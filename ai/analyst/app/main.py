@@ -1,87 +1,111 @@
+from __future__ import annotations
+
 import os
 import time
 import uuid
 from contextlib import contextmanager
+from typing import Any, Iterator
 
 import psycopg
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import ValidationError
 
-app = FastAPI(title="P1 AI Data Analyst — Day 1")
+from .models import ErrorResponse, QueryRequest, QueryResponse
+from .security import SQLValidationError, validate_sql
+
+app = FastAPI(title="P1 AI Data Analyst — Day 2")
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://analyst:analyst@postgres:5432/ai_analyst")
 MAX_ROWS = int(os.getenv("SQL_MAX_ROWS", "1000"))
 STATEMENT_TIMEOUT_MS = int(os.getenv("SQL_STATEMENT_TIMEOUT_MS", "3000"))
-ALLOWED_TABLES = {"city", "employment", "salary", "education", "economic_indicator", "dataset_metadata", "column_metadata"}
-DENIED = ("insert ", "update ", "delete ", "drop ", "alter ", "truncate ", "create ", "grant ", "revoke ")
 
-class QueryRequest(BaseModel):
-    sql: str = Field(min_length=1)
-
-
-def validate_sql(sql: str) -> str:
-    q = sql.strip().lower()
-    if not (q.startswith("select ") or q.startswith("with ")):
-        raise HTTPException(400, "Only SELECT/WITH statements are allowed")
-    if ";" in q.rstrip(";"):
-        raise HTTPException(400, "Multiple SQL statements are not allowed")
-    if any(token in q for token in DENIED):
-        raise HTTPException(400, "Unsafe SQL statement")
-    # Day 1 allowlist: reject explicit references to non-project tables.
-    import re
-    refs = re.findall(r"\b(?:from|join)\s+([a-z_][a-z0-9_]*)", q)
-    unknown = sorted(set(refs) - ALLOWED_TABLES)
-    if unknown:
-        raise HTTPException(400, f"Table not allowlisted: {unknown[0]}")
-    return sql.strip().rstrip(";")
+ALLOWED_TABLES = (
+    "city",
+    "employment",
+    "salary",
+    "education",
+    "economic_indicator",
+)
 
 
 @contextmanager
-def connection():
+def connection() -> Iterator[psycopg.Connection]:
     with psycopg.connect(DATABASE_URL) as conn:
         yield conn
 
 
-def execute(sql: str):
-    sql = validate_sql(sql)
+def execute_query(sql: str) -> tuple[list[str], list[list[Any]], float]:
+    try:
+        validated = validate_sql(sql)
+    except SQLValidationError:
+        raise
+
+    started = time.perf_counter()
     with connection() as conn:
         with conn.cursor() as cur:
             cur.execute(f"SET LOCAL statement_timeout = {STATEMENT_TIMEOUT_MS}")
             cur.execute("SET TRANSACTION READ ONLY")
-            cur.execute(sql)
-            columns = [d.name for d in cur.description] if cur.description else []
-            rows = cur.fetchmany(MAX_ROWS)
-            return columns, [dict(zip(columns, row)) for row in rows]
+            cur.execute(validated.normalized_sql)
+            columns = [desc.name for desc in (cur.description or [])]
+            rows = [list(row) for row in cur.fetchmany(MAX_ROWS)]
+
+    elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
+    return columns, rows, elapsed_ms
+
+
+def error_response(code: str, message: str, trace_id: str, status_code: int) -> HTTPException:
+    return HTTPException(
+        status_code=status_code,
+        detail={
+            "code": code,
+            "message": message,
+            "trace_id": trace_id,
+        },
+    )
 
 
 @app.get("/health")
-def health():
-    with connection() as conn:
-        conn.execute("SELECT 1")
+def health() -> dict[str, str]:
+    try:
+        with connection() as conn:
+            conn.execute("SELECT 1")
+    except psycopg.Error as exc:
+        raise error_response("DATABASE_UNAVAILABLE", "Database is unavailable", str(uuid.uuid4()), 503) from exc
     return {"status": "ok"}
 
 
 @app.get("/api/schema")
-def schema():
+def schema() -> dict[str, list[dict[str, str]]]:
     with connection() as conn:
         with conn.cursor() as cur:
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT table_name, column_name, data_type
                 FROM information_schema.columns
-                WHERE table_schema='public' AND table_name = ANY(%s)
+                WHERE table_schema = 'public' AND table_name = ANY(%s)
                 ORDER BY table_name, ordinal_position
-            """, (list(ALLOWED_TABLES),))
-            return {"tables": [dict(zip(["table_name", "column_name", "data_type"], r)) for r in cur.fetchall()]}
+                """,
+                (list(ALLOWED_TABLES),),
+            )
+            columns = ["table_name", "column_name", "data_type"]
+            return {"columns": columns, "tables": [dict(zip(columns, row)) for row in cur.fetchall()]}
 
 
-@app.post("/api/query")
-def query(req: QueryRequest):
+@app.post("/api/query", response_model=QueryResponse, responses={400: {"model": ErrorResponse}, 403: {"model": ErrorResponse}, 409: {"model": ErrorResponse}, 500: {"model": ErrorResponse}})
+def query(req: QueryRequest) -> QueryResponse:
     trace_id = str(uuid.uuid4())
-    started = time.perf_counter()
-    columns, rows = execute(req.sql)
-    return {
-        "trace_id": trace_id,
-        "columns": columns,
-        "rows": rows,
-        "row_count": len(rows),
-        "execution_ms": round((time.perf_counter() - started) * 1000, 2),
-    }
+    try:
+        columns, rows, execution_ms = execute_query(req.sql)
+    except SQLValidationError as exc:
+        raise error_response(exc.code, exc.message, trace_id, 400) from exc
+    except psycopg.errors.QueryCanceled as exc:
+        raise error_response("STATEMENT_TIMEOUT", "SQL execution exceeded the configured timeout", trace_id, 409) from exc
+    except psycopg.Error as exc:
+        raise error_response("DATABASE_QUERY_ERROR", "Database query failed", trace_id, 500) from exc
+
+    return QueryResponse(
+        trace_id=trace_id,
+        columns=columns,
+        rows=rows,
+        row_count=len(rows),
+        execution_ms=execution_ms,
+    )

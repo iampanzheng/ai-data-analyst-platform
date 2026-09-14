@@ -39,3 +39,7 @@ SQL result
 ```
 
 The LLM agent is intentionally not part of Day 1.
+
+## Day 2 — SQL Validator
+
+The query path now uses an AST-based SQL validator before database execution. The validator enforces one statement, read-only SELECT/WITH semantics, the public-schema boundary, physical table allowlisting, comment rejection, and several PostgreSQL side-effect protections. All validation failures return a structured code with a trace ID.
