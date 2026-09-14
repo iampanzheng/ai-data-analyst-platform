@@ -60,4 +60,48 @@ INSERT INTO dataset_metadata(dataset_name,description,source,update_frequency) V
 ('salary','Occupation wage statistics.','U.S. Bureau of Labor Statistics OEWS','annual'),
 ('education','Education attainment indicators.','U.S. Census Bureau ACS','annual'),
 ('economic_indicator','Selected economic indicators.','U.S. Census Bureau / BLS','annual')
-ON CONFLICT(dataset_name) DO UPDATE SET source=EXCLUDED.source;
+ON CONFLICT(dataset_name) DO UPDATE SET
+    description=EXCLUDED.description,
+    source=EXCLUDED.source,
+    update_frequency=EXCLUDED.update_frequency;
+
+WITH metadata(dataset_name, column_name, business_name, description, data_type, semantic_type) AS (
+    VALUES
+    ('city','id','City ID','Stable internal identifier for a city record.','integer','identifier'),
+    ('city','name','City Name','Name of the incorporated place.','text','geography_name'),
+    ('city','state','State','Two-letter U.S. state abbreviation.','text','geography_code'),
+    ('city','population','Population','Estimated resident population.','bigint','measure'),
+    ('city','year','Year','Reference year for the population estimate.','integer','time'),
+    ('city','source','Source','Source label for the population dataset.','text','provenance'),
+    ('employment','id','Employment Record ID','Stable internal identifier for an employment record.','integer','identifier'),
+    ('employment','city_id','City ID','Foreign key to city.','integer','foreign_key'),
+    ('employment','industry','Industry','Industry classification.','text','category'),
+    ('employment','occupation','Occupation','Occupation classification.','text','category'),
+    ('employment','employment_count','Employment Count','Number of employed workers represented by the record.','integer','measure'),
+    ('employment','year','Year','Reference year for employment.','integer','time'),
+    ('salary','id','Salary Record ID','Stable internal identifier for a salary record.','integer','identifier'),
+    ('salary','city_id','City ID','Foreign key to city.','integer','foreign_key'),
+    ('salary','occupation','Occupation','Occupation classification for wage statistics.','text','category'),
+    ('salary','median_salary','Median Salary','Median annual salary for the occupation.','numeric','measure'),
+    ('salary','mean_salary','Mean Salary','Mean annual salary for the occupation.','numeric','measure'),
+    ('salary','year','Year','Reference year for wage statistics.','integer','time'),
+    ('education','id','Education Record ID','Stable internal identifier for an education record.','integer','identifier'),
+    ('education','city_id','City ID','Foreign key to city.','integer','foreign_key'),
+    ('education','education_level','Education Level','Education attainment category.','text','category'),
+    ('education','population','Population','Population represented by the education attainment record.','integer','measure'),
+    ('education','year','Year','Reference year for the education measure.','integer','time'),
+    ('economic_indicator','id','Economic Indicator ID','Stable internal identifier for an economic indicator record.','integer','identifier'),
+    ('economic_indicator','city_id','City ID','Foreign key to city.','integer','foreign_key'),
+    ('economic_indicator','indicator','Indicator','Name of the economic indicator.','text','category'),
+    ('economic_indicator','value','Value','Numeric value of the economic indicator.','numeric','measure'),
+    ('economic_indicator','year','Year','Reference year for the indicator.','integer','time')
+)
+INSERT INTO column_metadata(dataset_id,column_name,business_name,description,data_type,semantic_type)
+SELECT d.id, m.column_name, m.business_name, m.description, m.data_type, m.semantic_type
+FROM metadata AS m
+JOIN dataset_metadata AS d ON d.dataset_name = m.dataset_name
+ON CONFLICT(dataset_id,column_name) DO UPDATE SET
+    business_name=EXCLUDED.business_name,
+    description=EXCLUDED.description,
+    data_type=EXCLUDED.data_type,
+    semantic_type=EXCLUDED.semantic_type;

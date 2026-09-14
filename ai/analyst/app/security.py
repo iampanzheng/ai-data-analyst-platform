@@ -2,21 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import re
-from typing import FrozenSet
-
 import sqlglot
 from sqlglot import exp
 
-ALLOWED_TABLES: FrozenSet[str] = frozenset(
-    {
-        "city",
-        "employment",
-        "salary",
-        "education",
-        "economic_indicator",
-    }
-)
-ALLOWED_SCHEMA = "public"
+from .policy import ALLOWED_SCHEMA, ALLOWED_TABLES
 MAX_SQL_LENGTH = 20_000
 
 
