@@ -15,7 +15,17 @@ else:
 
 with psycopg.connect(DATABASE_URL) as conn:
     with conn.cursor() as cur:
-        cur.execute("TRUNCATE TABLE city RESTART IDENTITY")
+        # Day 1 ETL owns the demo analytics dataset. Clear dependent tables first
+        # so city can be reloaded without violating foreign-key constraints.
+        cur.execute("""
+            TRUNCATE TABLE
+                employment,
+                salary,
+                education,
+                economic_indicator,
+                city
+            RESTART IDENTITY
+        """)
         with CSV_PATH.open(newline="", encoding="utf-8") as f:
             for row in csv.DictReader(f):
                 cur.execute(
