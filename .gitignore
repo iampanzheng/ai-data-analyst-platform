@@ -1,0 +1,13 @@
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+node_modules/
+dist/
+.DS_Store
+
+__pycache__/
+*.py[cod]
+data/raw/census/sub-est2025.csv
+data/raw/bls/oesm24ma.zip

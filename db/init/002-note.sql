@@ -1,0 +1,1 @@
+-- Day 1 uses the checked-in fixture for clean-clone startup. The ETL is the authoritative ingestion path for raw public files.

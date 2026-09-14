@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ai_analyst
+      POSTGRES_USER: analyst
+      POSTGRES_PASSWORD: analyst
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./03-database-schema.sql:/docker-entrypoint-initdb.d/001-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U analyst -d ai_analyst"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  etl:
+    build:
+      context: .
+      dockerfile: etl/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://analyst:analyst@postgres:5432/ai_analyst
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  fastapi:
+    build:
+      context: ./ai/analyst
+    environment:
+      DATABASE_URL: postgresql://analyst:analyst@postgres:5432/ai_analyst
+      SQL_MAX_ROWS: ${SQL_MAX_ROWS:-1000}
+      SQL_STATEMENT_TIMEOUT_MS: ${SQL_STATEMENT_TIMEOUT_MS:-3000}
+    ports:
+      - "8000:8000"
+    depends_on:
+      etl:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
