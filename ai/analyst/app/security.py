@@ -93,8 +93,19 @@ def _extract_table_refs(tree: exp.Expression) -> tuple[set[str], set[str]]:
         name = table.name.lower()
         if name in cte_names:
             continue
-        db = (table.args.get("db") or "").lower()
-        catalog = (table.args.get("catalog") or "").lower()
+        db_expr = table.args.get("db")
+        catalog_expr = table.args.get("catalog")
+
+        db = (
+            db_expr.name.lower()
+            if isinstance(db_expr, exp.Identifier)
+            else (db_expr or "").lower()
+        )
+        catalog = (
+            catalog_expr.name.lower()
+            if isinstance(catalog_expr, exp.Identifier)
+            else (catalog_expr or "").lower()
+        )
         if db and db != ALLOWED_SCHEMA:
             unexpected_schemas.add(db)
         if catalog:

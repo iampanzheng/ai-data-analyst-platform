@@ -7,7 +7,10 @@ from contextlib import contextmanager
 from typing import Any, Iterator
 
 import psycopg
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+
+from .logging_config import configure_logging
+from .telemetry import get_or_create_trace_id, request_timing
 
 from .models import (
     ColumnMetadata,
@@ -20,7 +23,11 @@ from .models import (
 from .policy import ALLOWED_SCHEMA, ALLOWED_TABLES
 from .security import SQLValidationError, validate_sql
 
-app = FastAPI(title="P1 AI Data Analyst — Day 2")
+import logging
+
+configure_logging()
+logger = logging.getLogger("ai.analyst.api")
+app = FastAPI(title="P1 AI Data Analyst — Day 3")
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://analyst:analyst@postgres:5432/ai_analyst")
 MAX_ROWS = int(os.getenv("SQL_MAX_ROWS", "1000"))
 STATEMENT_TIMEOUT_MS = int(os.getenv("SQL_STATEMENT_TIMEOUT_MS", "3000"))
@@ -31,7 +38,7 @@ def connection() -> Iterator[psycopg.Connection]:
         yield conn
 
 
-def execute_query(sql: str) -> tuple[list[str], list[list[Any]], float]:
+def execute_query(sql: str, trace_id: str) -> tuple[list[str], list[list[Any]], float, frozenset[str]]:
     validated = validate_sql(sql)
     started = time.perf_counter()
     with connection() as conn:
@@ -41,8 +48,18 @@ def execute_query(sql: str) -> tuple[list[str], list[list[Any]], float]:
             cur.execute(validated.normalized_sql)
             columns = [desc.name for desc in (cur.description or [])]
             rows = [list(row) for row in cur.fetchmany(MAX_ROWS)]
-    elapsed_ms = round((time.perf_counter() - started) * 1000, 2)
-    return columns, rows, elapsed_ms
+    elapsed_ms = request_timing(started)
+    logger.info(
+        "sql_execution",
+        extra={"fields": {
+            "trace_id": trace_id,
+            "event": "sql_execution",
+            "tables": sorted(validated.tables),
+            "row_count": len(rows),
+            "execution_ms": elapsed_ms,
+        }},
+    )
+    return columns, rows, elapsed_ms, validated.tables
 
 
 def error_response(code: str, message: str, trace_id: str, status_code: int) -> HTTPException:
@@ -148,10 +165,11 @@ def schema() -> SchemaResponse:
         500: {"model": ErrorResponse},
     },
 )
-def query(req: QueryRequest) -> QueryResponse:
-    trace_id = str(uuid.uuid4())
+def query(req: QueryRequest, request: Request) -> QueryResponse:
+    trace_id = get_or_create_trace_id(request)
+    started = time.perf_counter()
     try:
-        columns, rows, execution_ms = execute_query(req.sql)
+        columns, rows, execution_ms, _tables = execute_query(req.sql, trace_id)
     except SQLValidationError as exc:
         raise error_response(exc.code, exc.message, trace_id, 400) from exc
     except psycopg.errors.QueryCanceled as exc:
@@ -163,6 +181,17 @@ def query(req: QueryRequest) -> QueryResponse:
         ) from exc
     except psycopg.Error as exc:
         raise error_response("DATABASE_QUERY_ERROR", "Database query failed", trace_id, 500) from exc
+
+    logger.info(
+        "request_complete",
+        extra={"fields": {
+            "trace_id": trace_id,
+            "event": "request_complete",
+            "path": "/api/query",
+            "total_execution_ms": request_timing(started),
+            "row_count": len(rows),
+        }},
+    )
 
     return QueryResponse(
         trace_id=trace_id,

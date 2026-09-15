@@ -28,7 +28,8 @@ services:
 
   fastapi:
     build:
-      context: ./ai/analyst
+      context: .
+      dockerfile: ai/analyst/Dockerfile
     environment:
       DATABASE_URL: postgresql://analyst:analyst@postgres:5432/ai_analyst
       SQL_MAX_ROWS: ${SQL_MAX_ROWS:-1000}

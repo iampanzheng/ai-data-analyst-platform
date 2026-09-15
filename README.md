@@ -1,6 +1,6 @@
 # P1 — AI Data Analyst Platform
 
-V1.1 Sprint 0 — Day 2: Schema/Metadata + SQL Validator.
+V1.1 Sprint 0 — Day 3: Schema/Metadata + SQL Validator.
 
 ## Current runtime path
 
@@ -95,3 +95,23 @@ SELECT * FROM city; SELECT * FROM salary;
 ## Day 2 exit criterion
 
 A reviewer can inspect a stable schema metadata contract, see the same table policy used by the API and validator, submit a safe query, and observe unsafe SQL rejected.
+
+
+## Sprint 0 Day 3
+
+The project now includes validator regression tests, PostgreSQL/API integration tests, trace ID propagation, and structured execution logging. See `DAY3.md`.
+
+## Day 3 test execution
+
+Run all tests against the Compose PostgreSQL environment:
+
+```bash
+docker compose up --build -d
+docker compose exec fastapi pytest -q
+```
+
+Run unit-only tests locally:
+
+```bash
+uv run pytest -q -m "not integration"
+```

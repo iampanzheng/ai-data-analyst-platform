@@ -1,6 +1,13 @@
 FROM python:3.13-slim
+
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY app ./app
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENV PYTHONPATH=/app
+
+COPY pytest.ini /app/pytest.ini
+COPY ai/analyst/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+COPY ai /app/ai
+COPY tests /app/tests
+
+CMD ["uvicorn", "ai.analyst.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
