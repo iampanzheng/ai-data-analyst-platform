@@ -1,6 +1,7 @@
 package com.aianalyst.gateway.controller;
 
 import com.aianalyst.gateway.dto.QueryRequest;
+import com.aianalyst.gateway.dto.AnalyzeRequest;
 import com.aianalyst.gateway.service.FastApiClient;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,14 @@ public class GatewayController {
     @GetMapping("/schema")
     public ResponseEntity<String> schema() {
         return ResponseEntity.ok(fastApiClient.schema());
+    }
+
+    @PostMapping("/analyze")
+    public ResponseEntity<String> analyze(
+            @Valid @RequestBody AnalyzeRequest request,
+            @RequestHeader(value = "X-Trace-ID", required = false) String traceId) {
+        String effectiveTraceId = traceId == null || traceId.isBlank() ? UUID.randomUUID().toString() : traceId;
+        return ResponseEntity.ok(fastApiClient.analyze(request.question(), effectiveTraceId));
     }
 
     @PostMapping("/query")

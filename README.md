@@ -115,3 +115,12 @@ Run unit-only tests locally:
 ```bash
 uv run pytest -q -m "not integration"
 ```
+
+## Day 5 — Model Client + Analyst Agent v0.1
+
+The AI execution path is now available at `POST /api/analyze`.
+
+Flow: question → schema metadata → LLM SQL generation → SQL validation → PostgreSQL → LLM answer.
+
+Default `LLM_PROVIDER=mock` makes the flow deterministic and runnable without an API key.
+Set `LLM_PROVIDER=openai-compatible`, `LLM_BASE_URL`, `LLM_API_KEY`, and `LLM_MODEL` to use a compatible chat-completions endpoint.

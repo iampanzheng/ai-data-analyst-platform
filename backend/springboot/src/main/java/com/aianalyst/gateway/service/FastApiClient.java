@@ -10,7 +10,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Map;
 
 @Service
 public class FastApiClient {
@@ -35,8 +34,11 @@ public class FastApiClient {
     }
 
     public String query(String sql, String traceId) {
-        String body = toJson(sql);
-        return send("POST", "/api/query", body, traceId);
+        return send("POST", "/api/query", toJsonSql(sql), traceId);
+    }
+
+    public String analyze(String question, String traceId) {
+        return send("POST", "/api/analyze", toJsonQuestion(question), traceId);
     }
 
     private String send(String method, String path, String body, String traceId) {
@@ -53,8 +55,6 @@ public class FastApiClient {
                 requestBuilder
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8));
-            } else if ("GET".equals(method)) {
-                requestBuilder.GET();
             } else {
                 requestBuilder.method(method, HttpRequest.BodyPublishers.noBody());
             }
@@ -104,47 +104,32 @@ public class FastApiClient {
         return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
     }
 
-    private static String toJson(String sql) {
+    private static String toJsonSql(String sql) {
         return "{\"sql\":\"" + escapeJson(sql) + "\"}";
+    }
+
+    private static String toJsonQuestion(String question) {
+        return "{\"question\":\"" + escapeJson(question) + "\"}";
     }
 
     private static String escapeJson(String value) {
         StringBuilder result = new StringBuilder(value.length() + 16);
-
         for (int i = 0; i < value.length(); i++) {
             char c = value.charAt(i);
-
             switch (c) {
-                case '"':
-                    result.append("\\\"");
-                    break;
-                case '\\':
-                    result.append("\\\\");
-                    break;
-                case '\b':
-                    result.append("\\b");
-                    break;
-                case '\f':
-                    result.append("\\f");
-                    break;
-                case '\n':
-                    result.append("\\n");
-                    break;
-                case '\r':
-                    result.append("\\r");
-                    break;
-                case '\t':
-                    result.append("\\t");
-                    break;
-                default:
-                    if (c < 0x20) {
-                        result.append(String.format("\\u%04x", (int) c));
-                    } else {
-                        result.append(c);
-                    }
+                case '"' -> result.append("\\\"");
+                case '\\' -> result.append("\\\\");
+                case '\b' -> result.append("\\b");
+                case '\f' -> result.append("\\f");
+                case '\n' -> result.append("\\n");
+                case '\r' -> result.append("\\r");
+                case '\t' -> result.append("\\t");
+                default -> {
+                    if (c < 0x20) result.append(String.format("\\u%04x", (int) c));
+                    else result.append(c);
+                }
             }
         }
-
         return result.toString();
     }
 

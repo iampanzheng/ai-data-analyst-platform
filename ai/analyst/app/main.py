@@ -8,6 +8,7 @@ from typing import Any, Iterator
 
 import psycopg
 from fastapi import FastAPI, HTTPException, Request
+from pydantic import BaseModel, Field
 
 from .logging_config import configure_logging
 from .telemetry import get_or_create_trace_id, request_timing
@@ -25,11 +26,26 @@ from .security import SQLValidationError, validate_sql
 
 import logging
 
-from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+class AnalyzeRequest(BaseModel):
+    question: str = Field(min_length=1)
+
+
+class AnalyzeResponse(BaseModel):
+    trace_id: str
+    question: str
+    sql_candidate: str | None
+    validated_sql: str | None
+    query_result: dict[str, Any] | None
+    final_answer: str | None
+    model: str | None
+    usage: dict[str, int]
+    errors: list[dict[str, str]]
+
 
 configure_logging()
 logger = logging.getLogger("ai.analyst.api")
-app = FastAPI(title="P1 AI Data Analyst — Day 3")
+app = FastAPI(title="P1 AI Data Analyst — Day 5")
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://analyst:analyst@postgres:5432/ai_analyst")
 MAX_ROWS = int(os.getenv("SQL_MAX_ROWS", "1000"))
 STATEMENT_TIMEOUT_MS = int(os.getenv("SQL_STATEMENT_TIMEOUT_MS", "3000"))
@@ -201,4 +217,24 @@ def query(req: QueryRequest, request: Request) -> QueryResponse:
         rows=rows,
         row_count=len(rows),
         execution_ms=execution_ms,
+    )
+
+
+@app.post("/api/analyze", response_model=AnalyzeResponse)
+def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
+    trace_id = get_or_create_trace_id(request)
+    from .agent.graph import AnalystAgent
+    from .llm.client import create_llm_client
+
+    state = AnalystAgent(create_llm_client()).run(req.question, trace_id)
+    return AnalyzeResponse(
+        trace_id=trace_id,
+        question=state.question,
+        sql_candidate=state.sql_candidate,
+        validated_sql=state.validated_sql,
+        query_result=state.query_result,
+        final_answer=state.final_answer,
+        model=state.model,
+        usage=state.usage,
+        errors=state.errors,
     )

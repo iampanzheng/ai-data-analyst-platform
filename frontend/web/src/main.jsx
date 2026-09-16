@@ -5,6 +5,8 @@ import './styles.css';
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
 function App() {
+  const [question, setQuestion] = useState('人口最多的 5 个城市是哪几个？');
+  const [analysis, setAnalysis] = useState(null);
   const [sql, setSql] = useState('SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5');
   const [result, setResult] = useState(null);
   const [schema, setSchema] = useState(null);
@@ -17,6 +19,30 @@ function App() {
       return r.json();
     }).then(setSchema).catch(e => setError(e.message));
   }, []);
+
+  async function askAnalyst() {
+    setLoading(true);
+    setError(null);
+    try {
+      const r = await fetch(`${API}/analyze`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question })
+      });
+      const body = await r.json();
+      if (!r.ok) throw new Error(body?.detail?.message || JSON.stringify(body));
+      setAnalysis(body);
+      setResult(body.query_result);
+      if (body.validated_sql) setSql(body.validated_sql);
+      if (body.errors?.length) throw new Error(body.errors.map(e => `${e.code}: ${e.message}`).join('\n'));
+    } catch (e) {
+      setAnalysis(null);
+      setResult(null);
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function runQuery() {
     setLoading(true);
@@ -42,18 +68,32 @@ function App() {
     <main className="container">
       <header>
         <h1>AI Data Analyst</h1>
-        <p>Day 4 scaffold: React → Spring Boot → FastAPI → PostgreSQL</p>
+        <p>Day 5: Question → Schema → LLM → Validator → PostgreSQL → Answer</p>
       </header>
 
       <section className="card">
-        <label htmlFor="sql">SQL Query</label>
-        <textarea id="sql" value={sql} onChange={e => setSql(e.target.value)} rows={7} />
-        <button onClick={runQuery} disabled={loading || !sql.trim()}>
-          {loading ? 'Running…' : 'Run Query'}
+        <label htmlFor="question">Business Question</label>
+        <textarea id="question" value={question} onChange={e => setQuestion(e.target.value)} rows={4} />
+        <button onClick={askAnalyst} disabled={loading || !question.trim()}>
+          {loading ? 'Analyzing…' : 'Ask Analyst'}
         </button>
       </section>
 
+      {analysis?.final_answer && (
+        <section className="card">
+          <h2>Answer</h2>
+          <p>{analysis.final_answer}</p>
+          <div className="meta">Model: {analysis.model || '—'} · trace: {analysis.trace_id}</div>
+        </section>
+      )}
+
       {error && <section className="card error"><strong>Error:</strong> {error}</section>}
+
+      <section className="card">
+        <label htmlFor="sql">Validated SQL / Manual Query</label>
+        <textarea id="sql" value={sql} onChange={e => setSql(e.target.value)} rows={7} />
+        <button onClick={runQuery} disabled={loading || !sql.trim()}>Run Query</button>
+      </section>
 
       {result && (
         <section className="card">

@@ -34,7 +34,11 @@ services:
       DATABASE_URL: postgresql://analyst:analyst@postgres:5432/ai_analyst
       SQL_MAX_ROWS: ${SQL_MAX_ROWS:-1000}
       SQL_STATEMENT_TIMEOUT_MS: ${SQL_STATEMENT_TIMEOUT_MS:-3000}
-      DEBUG_HTTP_BODY: ${DEBUG_HTTP_BODY:-false}
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-30}
     ports:
       - "8000:8000"
     depends_on:
@@ -45,6 +49,8 @@ services:
     build:
       context: .
       dockerfile: backend/springboot/Dockerfile
+      secrets:
+        - maven_settings
     environment:
       FASTAPI_BASE_URL: http://fastapi:8000
       CORS_ALLOWED_ORIGIN: http://localhost:5173
@@ -73,3 +79,7 @@ services:
 
 volumes:
   postgres_data:
+
+secrets:
+  maven_settings:
+    file: ${HOME}/.m2/settings.xml

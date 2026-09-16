@@ -3,7 +3,6 @@ FROM python:3.13-slim
 WORKDIR /app
 ENV PYTHONPATH=/app
 
-COPY pytest.ini /app/pytest.ini
 COPY ai/analyst/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
