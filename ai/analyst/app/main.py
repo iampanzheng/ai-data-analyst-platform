@@ -25,6 +25,8 @@ from .security import SQLValidationError, validate_sql
 
 import logging
 
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
 configure_logging()
 logger = logging.getLogger("ai.analyst.api")
 app = FastAPI(title="P1 AI Data Analyst — Day 3")

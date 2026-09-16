@@ -34,11 +34,42 @@ services:
       DATABASE_URL: postgresql://analyst:analyst@postgres:5432/ai_analyst
       SQL_MAX_ROWS: ${SQL_MAX_ROWS:-1000}
       SQL_STATEMENT_TIMEOUT_MS: ${SQL_STATEMENT_TIMEOUT_MS:-3000}
+      DEBUG_HTTP_BODY: ${DEBUG_HTTP_BODY:-false}
     ports:
       - "8000:8000"
     depends_on:
       etl:
         condition: service_completed_successfully
+
+  gateway:
+    build:
+      context: .
+      dockerfile: backend/springboot/Dockerfile
+    environment:
+      FASTAPI_BASE_URL: http://fastapi:8000
+      CORS_ALLOWED_ORIGIN: http://localhost:5173
+    ports:
+      - "8080:8080"
+    depends_on:
+      fastapi:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/web/Dockerfile
+    environment:
+      VITE_API_BASE_URL: http://localhost:8080/api
+    ports:
+      - "5173:5173"
+    depends_on:
+      gateway:
+        condition: service_healthy
 
 volumes:
   postgres_data:
