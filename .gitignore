@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .venv/
+.vscode/
 node_modules/
 dist/
 .DS_Store
