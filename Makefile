@@ -13,3 +13,6 @@ ps:
 	docker compose ps
 test:
 	python -m compileall ai etl scripts tests
+
+eval:
+	python -m evaluation.run

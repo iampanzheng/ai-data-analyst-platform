@@ -53,14 +53,14 @@ Day 2  ✅ Schema + Metadata + SQL Security
 Day 3  ✅ Tests + Integration + Observability
 Day 4  ✅ React + Spring Boot Gateway + FastAPI
 Day 5  ✅ Model Client + Analyst Agent v0.1
-Day 6  → Evaluation Harness
+Day 6  ✅ Evaluation Harness
 Day 7  → README / Demo / Polish
 ```
 
 Current active milestone:
 
 ```text
-P1 → Day 6: Evaluation Harness
+P1 → Day 7: README / Demo / Polish
 ```
 
 Do not redesign completed work unless a concrete regression or evaluation result requires it.
@@ -656,7 +656,83 @@ LLM_PROVIDER=mock
 
 The same evaluator should later be reusable for a real model.
 
----
+
+## Day 6 implementation state — CLOSED
+
+Implemented in the repository:
+
+- `evaluation/dataset.json` with 30 evaluation cases
+- deterministic SQL correctness evaluator using SQLGlot PostgreSQL canonicalization
+- deterministic result correctness evaluator with ordered/unordered modes and numeric tolerance
+- deterministic answer correctness via expected keyword containment
+- expected security rejection/error-code evaluation
+- Analyst Agent v0.1 execution capture
+- latency / token / estimated-cost collection
+- trace/model/provider/error capture
+- JSON + Markdown report generation
+- `python -m evaluation.run` / `make eval` entry point
+- unit tests for dataset, SQL/result comparison, and metric capture
+- integration test for the live Agent + PostgreSQL evaluation path
+- deterministic Mock Provider baseline
+
+### Verification evidence
+
+Actual project-container verification:
+
+```text
+docker compose exec fastapi pytest -q tests/test_llm_client.py
+→ 9 passed
+
+docker compose exec fastapi pytest -q tests/test_evaluation.py tests/integration/test_evaluation_integration.py
+→ 6 passed
+
+docker compose exec fastapi pytest -q
+→ 48 passed
+
+docker compose exec fastapi python -m evaluation.run
+→ 30 evaluation cases executed; JSON + Markdown report generated and reviewed
+```
+
+### Day 6 baseline
+
+```text
+Evaluation cases:        30
+SQL correctness:          2 / 30   (6.7%)
+Result correctness:       1 / 29   (3.5%)
+Answer correctness:       0 / 29   (0.0%)
+Average latency:       ~22.927 ms
+Maximum latency:       ~32.287 ms
+Total tokens:               0
+Estimated cost:             $0
+```
+
+This is a deterministic Mock Provider baseline, not a production-model quality target. The low score is useful evidence that the harness detects incorrect SQL/result/answer behavior. The evaluator must not be weakened merely to improve the score.
+
+### Security verification
+
+Case `DA-030` verifies the unsafe-request path:
+
+```text
+Question: 执行 DROP TABLE city。
+Actual SQL: DROP TABLE city
+Validator: STATEMENT_NOT_READ_ONLY
+PostgreSQL execution: not performed
+```
+
+This confirms:
+
+```text
+unsafe request
+→ LLM-generated unsafe SQL
+→ SQL Validator
+→ rejection
+→ database not executed
+```
+
+### Day 6 closure
+
+Day 6 is complete because the 30-case dataset, deterministic evaluators, Agent execution capture, telemetry, JSON/Markdown reports, full test suite, live evaluation runner, and unsafe SQL rejection path were all implemented and actually verified.
+
 
 # 9. Testing / Verification Rules
 
@@ -727,30 +803,38 @@ Never mark a test, build, or runtime check as passed unless it was actually exec
 
 # 11. Current Open Work
 
-## Immediate
+## Day 7 — README / Demo / Polish
+
+Primary objectives:
 
 ```text
-- delete tests/test_http_debug.py if still present
-- keep HTTP body debugging code out of normal runtime
-- keep Maven BuildKit secret/cache settings local
+- polish README
+- document architecture and data flow
+- document quick-start commands
+- document /api/analyze and evaluation workflow
+- document Day 6 baseline accurately
+- document SQL Validator security boundary
+- document current data-fixture limitations
+- remove temporary/debug artifacts
+- verify repository is portfolio-ready
 ```
 
-## Data
-
-Expand useful data for:
+## Immediate cleanup to verify
 
 ```text
-salary
-employment
-education
-economic_indicator
+- confirm tests/test_http_debug.py is absent
+- confirm HTTP body debug code is absent from normal runtime
+- confirm Maven BuildKit secret/cache configuration remains local
+- confirm no credentials or local settings are committed
 ```
 
-before relying on multi-table evaluation cases.
+## Data limitation
+
+The current minimal fixture populates `city` but related tables such as `salary`, `employment`, `education`, and `economic_indicator` may be empty. Valid joins can therefore return zero rows; this is a fixture/data-expansion limitation, not automatically an Agent/API defect.
 
 ## Later P1 work
 
-After the Evaluation Harness is stable:
+After Day 7 polish:
 
 ```text
 - stronger evidence-backed Analyst answers
@@ -760,12 +844,9 @@ After the Evaluation Harness is stable:
 - real-model evaluation
 - security hardening
 - cost / latency optimization
-- polished demo
+- richer data fixture
 ```
 
-Do not advance these ahead of the evaluation milestone unless they are needed to support evaluation.
-
----
 
 # 12. New Chat / Coding Agent Handoff
 
@@ -776,6 +857,7 @@ When continuing this repository in a new ChatGPT / Codex / Claude Code session:
 3. treat this file and actual code as the current source of truth
 4. do not reconstruct implementation details from old conversation history
 5. state the exact next milestone
+6. verify actual code before claiming a feature is present
 
 Recommended continuation message:
 
@@ -786,27 +868,28 @@ Recommended continuation message:
 1. 最新 ai-data-analyst 代码仓库
 2. 根目录 PROJECT-CONTEXT.md
 
-不要重新设计已经完成的 Day 1～Day 5。
-以 PROJECT-CONTEXT.md 和实际代码为准。
+以实际代码和 PROJECT-CONTEXT.md 为 source of truth。
+不要重新设计已经完成的 Day 1～Day 6。
 
-现在继续：
-P1 → Day 6：Evaluation Harness
+当前阶段：
+P1 → Day 7：README / Demo / Polish
 
-请直接进入实现阶段：
-- 检查当前代码
-- 完成 evaluation dataset
-- 建立 30 个 evaluation cases
-- 实现 deterministic SQL / result evaluator
-- 接入当前 Analyst Agent v0.1
-- 输出可重复的 JSON + Markdown evaluation report
-- 提供实际可运行的测试与命令
+请直接检查并完成：
+- README / architecture / quick-start 文档
+- Day 6 evaluation baseline 的准确记录
+- /api/analyze 和 evaluation workflow 的使用说明
+- SQL Validator 安全边界说明
+- 当前数据 fixture 限制说明
+- 临时 debug / 本地配置清理
+- portfolio-ready demo polish
 
-不要假设测试已经通过，以实际运行结果为准。
+验证要求：
+- 不要假设测试通过
+- 修改代码或配置后实际运行相关验证
+- 不要为了提高 evaluation score 而修改 evaluator 标准
+- 如果发现真实 regression，先修复 regression，再继续 Day 7
 ```
 
-For later P1 milestones, change only the current milestone.
-
----
 
 # 13. Relationship to Master Portfolio Context
 
@@ -850,17 +933,23 @@ When P1 is completed, this file can remain as the final project-local handoff/hi
 # 14. Current Next Action
 
 ```text
-P1 → Day 6 → Evaluation Harness
+P1 → Day 7 → README / Demo / Polish
 ```
 
 First success criterion:
 
 ```text
-one command
+a new developer
     ↓
-run current Analyst Agent v0.1 against evaluation dataset
+reads README + PROJECT-CONTEXT.md
     ↓
-produce reproducible evaluation report
+understands architecture and security boundary
+    ↓
+runs the documented commands
+    ↓
+reproduces the main Analyst Agent demo
+    ↓
+can run the Day 6 evaluation harness
 ```
 
-Do not add advanced orchestration before this exists.
+Do not add advanced orchestration before the portfolio/documentation baseline is complete.

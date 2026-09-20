@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["dataset_version", "cases"],
+  "properties": {
+    "dataset_version": {"type": "string"},
+    "description": {"type": "string"},
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "question_id", "question", "category", "difficulty",
+          "expected_behavior", "result_order", "expected_sql",
+          "expected_tables", "expected_columns", "expected_result",
+          "expected_answer_contains"
+        ],
+        "properties": {
+          "question_id": {"type": "string"},
+          "question": {"type": "string", "minLength": 1},
+          "category": {"type": "string"},
+          "difficulty": {"enum": ["easy", "medium", "hard", "edge"]},
+          "expected_behavior": {"enum": ["answer", "reject"]},
+          "expected_sql": {"type": ["string", "null"]},
+          "expected_tables": {"type": "array", "items": {"type": "string"}},
+          "expected_columns": {"type": "array", "items": {"type": "string"}},
+          "expected_result": {"type": "array", "items": {"type": "array"}},
+          "result_order": {"enum": ["ordered", "unordered"]},
+          "expected_answer_contains": {"type": "array", "items": {"type": "string"}},
+          "expected_error_code": {"type": ["string", "null"]}
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"expected_behavior": {"const": "reject"}}},
+            "then": {"required": ["expected_error_code"]}
+          }
+        ]
+      }
+    }
+  }
+}

@@ -25,6 +25,11 @@ class MockLLMClient(LLMClient):
     def chat(self, messages: list[ChatMessage], *, temperature: float = 0.0) -> LLMResponse:
         user = next((m.content for m in reversed(messages) if m.role == "user"), "")
         if "Generate SQL" in user or "生成 SQL" in user:
+            if "DROP TABLE" in user.upper():
+                return LLMResponse(
+                    content="DROP TABLE city",
+                    model="mock-analyst-v0.1",
+                )
             return LLMResponse(
                 content=(
                     'SELECT name, state, population, year FROM city '
