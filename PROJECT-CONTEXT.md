@@ -729,9 +729,61 @@ unsafe request
 → database not executed
 ```
 
+### Day 6 baseline artifacts
+
+The reviewed Mock baseline is preserved as versioned evidence:
+
+```text
+evaluation/results/baseline-mock-v0.1.json
+evaluation/results/baseline-mock-v0.1.md
+```
+
+The dataset loader validates `evaluation/dataset.json` against `evaluation/dataset.schema.json` using JSON Schema Draft 2020-12 before constructing evaluation cases. Invalid enum values, malformed fields, unexpected properties, and reject cases without a non-empty `expected_error_code` fail fast.
+
+### Evaluator v0.1 limitations
+
+Preserve these limitations explicitly rather than weakening the baseline:
+
+- `sql_correct` is canonical reference-SQL equality after SQLGlot PostgreSQL normalization; it is **not** full SQL semantic equivalence. Semantically equivalent queries may therefore fail this metric.
+- `result_correct` is the stronger objective signal for answer-producing cases because it compares columns and rows, supports ordered/unordered modes, and applies numeric tolerance.
+- `answer_correct` uses deterministic required-keyword containment; it is **not** a semantic answer-quality judge. Equivalent wording can fail.
+- LLM-as-a-Judge is intentionally deferred until deterministic evaluation is stable and real-model comparisons require it.
+
+These limitations are acceptable for the v0.1 deterministic baseline and should be revisited during real-model evaluation rather than retroactively changing the Mock baseline.
+
+### Post-review cleanup verification
+
+After the Day 6 review, the following non-behavioral cleanup was added:
+
+- preserved reviewed Mock baseline artifacts under versioned filenames
+- enabled Draft 2020-12 JSON Schema validation for the evaluation dataset
+- added negative tests for invalid difficulty values and reject cases without a non-empty expected error code
+- documented evaluator v0.1 metric semantics in `evaluation/README.md`
+
+Verification performed in the review environment:
+
+```text
+JSON Schema itself: valid
+current 30-case dataset against schema: PASS
+invalid difficulty rejection: PASS
+missing/null reject error-code rejection: PASS
+Python compileall for changed evaluation/test files: PASS
+baseline artifact summary integrity: PASS
+```
+
+The review environment did not contain `sqlglot`, so the modified repository's full pytest suite was not re-executed there. Re-run the normal project-container verification before committing this cleanup:
+
+```bash
+docker compose up --build -d
+docker compose exec fastapi pytest -q
+docker compose exec fastapi python -m evaluation.run
+```
+
+The previously recorded Day 6 closure evidence (`48 passed` plus the reviewed 30-case Mock baseline) remains the verification evidence for the pre-cleanup snapshot.
+
 ### Day 6 closure
 
-Day 6 is complete because the 30-case dataset, deterministic evaluators, Agent execution capture, telemetry, JSON/Markdown reports, full test suite, live evaluation runner, and unsafe SQL rejection path were all implemented and actually verified.
+Day 6 is complete because the 30-case dataset, schema validation, deterministic evaluators, Agent execution capture, telemetry, versioned JSON/Markdown baseline artifacts, full test suite, live evaluation runner, and unsafe SQL rejection path were implemented and actually verified.
 
 
 # 9. Testing / Verification Rules

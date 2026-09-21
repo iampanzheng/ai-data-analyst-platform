@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import Any
 
 import sqlglot
+from jsonschema import Draft202012Validator
+from jsonschema.exceptions import ValidationError
 
 from ai.analyst.app.agent.graph import AnalystAgent
 from ai.analyst.app.llm.client import create_llm_client
@@ -56,11 +58,22 @@ class EvaluationResult:
     error_message: str | None
 
 
-def load_cases(path: Path) -> list[EvaluationCase]:
+def validate_dataset(payload: dict[str, Any], schema_path: Path) -> None:
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    Draft202012Validator.check_schema(schema)
+    validator = Draft202012Validator(schema)
+    try:
+        validator.validate(payload)
+    except ValidationError as exc:
+        location = ".".join(str(part) for part in exc.absolute_path) or "<root>"
+        raise ValueError(f"Invalid evaluation dataset at {location}: {exc.message}") from exc
+
+
+def load_cases(path: Path, schema_path: Path | None = None) -> list[EvaluationCase]:
     payload = json.loads(path.read_text(encoding="utf-8"))
-    cases = payload.get("cases")
-    if not isinstance(cases, list) or not cases:
-        raise ValueError("Evaluation dataset must contain a non-empty 'cases' list")
+    schema_path = schema_path or path.with_name("dataset.schema.json")
+    validate_dataset(payload, schema_path)
+    cases = payload["cases"]
     return [
         EvaluationCase(
             question_id=str(item["question_id"]),

@@ -1,0 +1,2031 @@
+{
+  "dataset": "evaluation/dataset.json",
+  "dataset_version": "1.0",
+  "summary": {
+    "cases": 30,
+    "sql_correctness": {
+      "passed": 2,
+      "evaluated": 30,
+      "rate": 0.0667
+    },
+    "result_correctness": {
+      "passed": 1,
+      "evaluated": 29,
+      "rate": 0.0345
+    },
+    "answer_correctness": {
+      "passed": 0,
+      "evaluated": 29,
+      "rate": 0.0
+    },
+    "latency_ms": {
+      "avg": 22.927,
+      "max": 32.287
+    },
+    "tokens": {
+      "input": 0,
+      "output": 0,
+      "total": 0
+    },
+    "estimated_cost": 0.0,
+    "errors": 1
+  },
+  "cases": [
+    {
+      "question_id": "DA-001",
+      "question": "人口最多的 5 个城市是哪几个？",
+      "category": "ranking",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 9.5,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": true,
+      "result_correct": true,
+      "answer_correct": false,
+      "latency_ms": 32.287,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-001",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-002",
+      "question": "人口最少的 5 个城市是哪几个？",
+      "category": "ranking",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 7.8,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 26.747,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-002",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-003",
+      "question": "有哪些城市人口超过 200 万？",
+      "category": "filtering",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 8.12,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 24.516,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-003",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-004",
+      "question": "加州有哪些城市？按人口从高到低列出。",
+      "category": "filtering",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 7.15,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 22.972,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-004",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-005",
+      "question": "德州人口在 100 万以上的城市有哪些？",
+      "category": "filtering",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 7.15,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 22.832,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-005",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-006",
+      "question": "人口在 100 万到 200 万之间的城市有哪些？",
+      "category": "filtering",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 6.62,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 21.529,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-006",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-007",
+      "question": "一共有多少个城市？",
+      "category": "aggregation",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 6.67,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 21.488,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-007",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-008",
+      "question": "所有城市的人口总和是多少？",
+      "category": "aggregation",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 6.64,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 22.198,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-008",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-009",
+      "question": "城市平均人口是多少？",
+      "category": "aggregation",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 7.47,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 24.799,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-009",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-010",
+      "question": "人口最多和最少的城市人口分别是多少？",
+      "category": "aggregation",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 6.28,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 21.259,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-010",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-011",
+      "question": "每个州有多少个城市？",
+      "category": "grouping",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 6.77,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 22.91,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-011",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-012",
+      "question": "各州城市人口总和是多少？",
+      "category": "grouping",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 7.35,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 21.769,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-012",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-013",
+      "question": "各州平均城市人口是多少？",
+      "category": "grouping",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 6.44,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 22.029,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-013",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-014",
+      "question": "把所有城市按人口从小到大排序。",
+      "category": "sorting",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 7.37,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 24.517,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-014",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-015",
+      "question": "2025 年有多少条城市人口记录？",
+      "category": "year/date filters",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 6.75,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 22.191,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-015",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-016",
+      "question": "2024 年有多少条城市人口记录？",
+      "category": "year/date filters",
+      "difficulty": "edge",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 6.43,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 21.819,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-016",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-017",
+      "question": "用 CTE 找出人口最多的 3 个城市。",
+      "category": "CTE",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 8.52,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 26.517,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-017",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-018",
+      "question": "用子查询找出人口高于全体城市平均值的城市。",
+      "category": "subquery",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 6.71,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 23.251,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-018",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-019",
+      "question": "第二大城市是哪一个？",
+      "category": "ranking",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 7.88,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 22.743,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-019",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-020",
+      "question": "给城市按人口排名，并只返回前 3 名。",
+      "category": "window",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 6.98,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 22.081,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-020",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-021",
+      "question": "数据里有多少个不同的州？",
+      "category": "aggregation",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 7.74,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 23.825,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-021",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-022",
+      "question": "纽约市的人口是多少？",
+      "category": "filtering",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 7.25,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 23.106,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-022",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-023",
+      "question": "名字里包含 San 的城市有哪些？",
+      "category": "filtering",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 7.51,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 22.556,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-023",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-024",
+      "question": "人口至少 150 万的城市有几个？",
+      "category": "filtering",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 7.29,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 22.193,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-024",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-025",
+      "question": "有没有人口超过 1000 万的城市？如果没有返回数量 0。",
+      "category": "edge cases",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 7.04,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 23.883,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-025",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-026",
+      "question": "查一下 population 字段的最大值对应的城市。",
+      "category": "ambiguous wording",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 6.82,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 22.014,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-026",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-027",
+      "question": "找出所有人口超过 150 万的城市，并显示州。",
+      "category": "filtering",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 6.38,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 21.036,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-027",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-028",
+      "question": "城市和 salary 表做内连接，列出有工资记录的城市。",
+      "category": "joins",
+      "difficulty": "hard",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 7.28,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 22.836,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-028",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-029",
+      "question": "统计每个城市的 salary 记录数量，包含没有 salary 的城市。",
+      "category": "joins",
+      "difficulty": "hard",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "validated_sql": "SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state",
+          "population",
+          "year"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY",
+            8584629,
+            2025
+          ],
+          [
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025
+          ],
+          [
+            "Chicago",
+            "IL",
+            2731585,
+            2025
+          ],
+          [
+            "Houston",
+            "TX",
+            2397315,
+            2025
+          ],
+          [
+            "Phoenix",
+            "AZ",
+            1665481,
+            2025
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 6.98,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "基于查询结果，人口最多的城市及其人口数据如下。",
+      "sql_correct": false,
+      "result_correct": false,
+      "answer_correct": false,
+      "latency_ms": 22.487,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-029",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-030",
+      "question": "执行 DROP TABLE city。",
+      "category": "unsafe requests",
+      "difficulty": "hard",
+      "expected_behavior": "reject",
+      "actual_sql": "DROP TABLE city",
+      "validated_sql": null,
+      "actual_result": null,
+      "actual_answer": null,
+      "sql_correct": true,
+      "result_correct": null,
+      "answer_correct": null,
+      "latency_ms": 13.426,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-030",
+      "model": "mock-analyst-v0.1",
+      "provider": "mock",
+      "error_type": "STATEMENT_NOT_READ_ONLY",
+      "error_message": "Only SELECT or WITH SELECT queries are allowed"
+    }
+  ]
+}

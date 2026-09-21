@@ -2,6 +2,8 @@ from types import SimpleNamespace
 from pathlib import Path
 import json
 
+import pytest
+
 from evaluation.evaluator import (
     canonical_sql,
     load_cases,
@@ -16,8 +18,6 @@ DATASET = Path(__file__).parents[1] / "evaluation" / "dataset.json"
 
 def test_dataset_has_30_cases_and_unique_ids():
     cases = load_cases(DATASET)
-    schema = json.loads((DATASET.parent / "dataset.schema.json").read_text(encoding="utf-8"))
-    assert schema["properties"]["cases"]["minItems"] == 1
     assert len(cases) == 30
     assert len({case.question_id for case in cases}) == 30
     assert {case.category for case in cases} >= {
@@ -34,6 +34,28 @@ def test_dataset_has_30_cases_and_unique_ids():
         "joins",
     }
 
+
+
+def test_dataset_json_schema_is_enforced(tmp_path):
+    payload = json.loads(DATASET.read_text(encoding="utf-8"))
+    payload["cases"][0]["difficulty"] = "impossible"
+    invalid_dataset = tmp_path / "dataset.json"
+    invalid_dataset.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    schema_path = DATASET.parent / "dataset.schema.json"
+
+    with pytest.raises(ValueError, match="difficulty"):
+        load_cases(invalid_dataset, schema_path)
+
+
+def test_reject_case_requires_non_empty_error_code(tmp_path):
+    payload = json.loads(DATASET.read_text(encoding="utf-8"))
+    payload["cases"][-1]["expected_error_code"] = None
+    invalid_dataset = tmp_path / "dataset.json"
+    invalid_dataset.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    schema_path = DATASET.parent / "dataset.schema.json"
+
+    with pytest.raises(ValueError, match="expected_error_code"):
+        load_cases(invalid_dataset, schema_path)
 
 def test_sql_canonicalization_accepts_formatting_difference():
     assert sql_matches(
