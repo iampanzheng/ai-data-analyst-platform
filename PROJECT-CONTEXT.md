@@ -54,13 +54,13 @@ Day 3  ✅ Tests + Integration + Observability
 Day 4  ✅ React + Spring Boot Gateway + FastAPI
 Day 5  ✅ Model Client + Analyst Agent v0.1
 Day 6  ✅ Evaluation Harness
-Day 7  → README / Demo / Polish
+Day 7  ✅ README / Demo / Polish
 ```
 
 Current active milestone:
 
 ```text
-P1 → Day 7: README / Demo / Polish
+P1 → Day 7 complete; portfolio baseline closed
 ```
 
 Do not redesign completed work unless a concrete regression or evaluation result requires it.
@@ -78,7 +78,9 @@ FastAPI AI Service
   ↓
 Analyst Agent
   ↓
-Schema / SQL / Python / Chart / Report Tools
+Schema Tool / LLM Client / SQL Tool
+  ↓
+SQL Validator
   ↓
 PostgreSQL
 ```
@@ -857,19 +859,44 @@ Never mark a test, build, or runtime check as passed unless it was actually exec
 
 ## Day 7 — README / Demo / Polish
 
-Primary objectives:
+### Day 7 implementation state — COMPLETE
+
+Completed:
+
+- README rewritten around the current runnable system and portfolio engineering story
+- architecture, provider boundary, SQL security boundary, API usage, and evaluation workflow documented
+- reviewed Day 6 Mock baseline documented without presenting Mock quality as real-model capability
+- Demo walkthrough added in `docs/DEMO.md`
+- portfolio/resume/interview talking points added in `docs/PORTFOLIO.md`
+- implemented tools clearly separated from planned Python/chart/report tools
+- stale Day 3 / Day 5 public labels removed
+- default Compose build made independent of developer-specific Maven `settings.xml`
+- optional Maven mirror override retained for local optimization
+- generated caches removed from the portfolio snapshot and `.gitignore` cleaned up
+- transient `evaluation-report.*` files treated as reproducible latest-run outputs; versioned baselines remain preserved
+
+Final Day 7 verification in the normal project environment:
 
 ```text
-- polish README
-- document architecture and data flow
-- document quick-start commands
-- document /api/analyze and evaluation workflow
-- document Day 6 baseline accurately
-- document SQL Validator security boundary
-- document current data-fixture limitations
-- remove temporary/debug artifacts
-- verify repository is portfolio-ready
+docker compose up --build -d                         -> passed
+docker compose exec fastapi pytest -q               -> 51 passed
+docker compose exec fastapi python -m evaluation.run -> 30 cases completed
+Mock correctness                                     -> SQL 6.7%, result 3.5%, answer 0.0%
+latest evaluation avg latency                        -> 38.238 ms
+cd backend/springboot && mvn clean test              -> 5 tests passed, BUILD SUCCESS
+browser smoke test                                   -> all 4 checks passed
 ```
+
+Browser checks verified:
+
+```text
+- Schema renders
+- Ask Analyst returns successfully
+- Validated SQL and result table render
+- manual Run Query succeeds
+```
+
+Day 7 is closed. Do not add further documentation-only work unless a concrete inconsistency is found.
 
 ## Immediate cleanup to verify
 
@@ -921,25 +948,24 @@ Recommended continuation message:
 2. 根目录 PROJECT-CONTEXT.md
 
 以实际代码和 PROJECT-CONTEXT.md 为 source of truth。
-不要重新设计已经完成的 Day 1～Day 6。
+不要重新设计已经完成并关闭的 Day 1～Day 7。
 
 当前阶段：
-P1 → Day 7：README / Demo / Polish
+P1 → Phase 2：Real LLM Evaluation
 
-请直接检查并完成：
-- README / architecture / quick-start 文档
-- Day 6 evaluation baseline 的准确记录
-- /api/analyze 和 evaluation workflow 的使用说明
-- SQL Validator 安全边界说明
-- 当前数据 fixture 限制说明
-- 临时 debug / 本地配置清理
-- portfolio-ready demo polish
+请以现有 `LLMClient` abstraction 和 Day 6 evaluation harness 为基础继续：
+- 接入并验证真实模型 provider
+- 保持 Mock baseline 不变
+- 使用同一 30-case dataset 跑真实模型 baseline
+- 记录 correctness / latency / input tokens / output tokens / estimated cost
+- 比较模型差异并分析失败 case
+- 在有测量证据后再设计 model routing / fallback / cost controls
 
 验证要求：
-- 不要假设测试通过
-- 修改代码或配置后实际运行相关验证
-- 不要为了提高 evaluation score 而修改 evaluator 标准
-- 如果发现真实 regression，先修复 regression，再继续 Day 7
+- 不要削弱 evaluator 标准来提高分数
+- 不要绕过 SQL Validator
+- 不要在没有实际运行结果时声称模型效果、成本或延迟
+- 不要提前引入多 Agent 或复杂 AI Gateway 架构
 ```
 
 
@@ -985,23 +1011,21 @@ When P1 is completed, this file can remain as the final project-local handoff/hi
 # 14. Current Next Action
 
 ```text
-P1 → Day 7 → README / Demo / Polish
+P1 → Phase 2 → Real LLM Evaluation
 ```
 
-First success criterion:
+Next phase objective:
 
 ```text
-a new developer
+connect a real model
     ↓
-reads README + PROJECT-CONTEXT.md
+run the existing 30-case evaluation unchanged
     ↓
-understands architecture and security boundary
+measure correctness / latency / token usage / cost
     ↓
-runs the documented commands
+compare models with evidence
     ↓
-reproduces the main Analyst Agent demo
-    ↓
-can run the Day 6 evaluation harness
+introduce routing / fallback / cost controls only where measurements justify them
 ```
 
-Do not add advanced orchestration before the portfolio/documentation baseline is complete.
+Preserve the Day 7 portfolio baseline while Phase 2 evolves the model layer.

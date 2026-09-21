@@ -1,8 +1,14 @@
 # 09 Evaluation Dataset Schema
 
-Day 6 uses `evaluation/dataset.json` as the versioned evaluation dataset and `evaluation/dataset.schema.json` as its machine-readable schema.
+The canonical machine-readable schema is:
 
-Each case contains:
+```text
+evaluation/dataset.schema.json
+```
+
+`evaluation.run.load_cases()` validates `evaluation/dataset.json` against JSON Schema Draft 2020-12 before evaluation begins.
+
+## Case fields
 
 ```text
 question_id
@@ -16,10 +22,10 @@ expected_columns
 expected_result
 result_order
 expected_answer_contains
-expected_error_code
+expected_error_code (reject cases)
 ```
 
-Runtime output is captured separately as:
+## Captured run fields
 
 ```text
 actual_sql
@@ -35,18 +41,19 @@ output_tokens
 total_tokens
 estimated_cost
 trace_id
-model/provider
+model
+provider
 error_type
 error_message
 ```
 
-The initial dataset contains 30 cases and covers filtering, aggregation, ranking, grouping, sorting, year/date filters, CTE/subquery/window queries, ambiguous wording, joins, edge cases, and unsafe requests.
+## Baseline
 
-The evaluator is deterministic by default:
+The first dataset contains 30 cases. Versioned Mock baseline artifacts live under:
 
-- SQL: SQLGlot PostgreSQL canonicalization
-- result: column/row comparison with numeric tolerance
-- answer: expected keyword containment
-- rejection: expected security error code
+```text
+evaluation/results/baseline-mock-v0.1.json
+evaluation/results/baseline-mock-v0.1.md
+```
 
-LLM-as-a-Judge is intentionally deferred until the deterministic baseline is established.
+Evaluator semantics and limitations are documented in `evaluation/README.md`.

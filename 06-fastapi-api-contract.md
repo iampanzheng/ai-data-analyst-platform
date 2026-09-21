@@ -1,49 +1,22 @@
 # 06 FastAPI API Contract
 
 ## GET /health
-Returns service/database readiness.
+
+Returns FastAPI/database readiness.
 
 ## GET /api/schema
-Returns the application allowlisted PostgreSQL schema together with business metadata.
 
-Response:
-
-```json
-{
-  "schema_name": "public",
-  "tables": [
-    {
-      "table_name": "city",
-      "business_name": "city",
-      "description": "Annual resident population estimates for incorporated U.S. places.",
-      "source": "U.S. Census Bureau Vintage 2025",
-      "update_frequency": "annual",
-      "columns": [
-        {
-          "name": "population",
-          "business_name": "Population",
-          "description": "Estimated resident population.",
-          "data_type": "bigint",
-          "semantic_type": "measure",
-          "nullable": false,
-          "queryable": true
-        }
-      ]
-    }
-  ]
-}
-```
-
-The endpoint combines the physical schema from `information_schema.columns` with `dataset_metadata` and `column_metadata`.
+Returns only application-allowlisted PostgreSQL tables together with physical column information and business metadata from `dataset_metadata` / `column_metadata`.
 
 ## POST /api/query
+
 Request:
 
 ```json
 {"sql":"SELECT name, population FROM city LIMIT 5"}
 ```
 
-Response:
+Successful response:
 
 ```json
 {
@@ -55,7 +28,7 @@ Response:
 }
 ```
 
-Validation failures return HTTP 400 with:
+Validation failures return a structured error such as:
 
 ```json
 {
@@ -67,7 +40,49 @@ Validation failures return HTTP 400 with:
 }
 ```
 
-## Future endpoints
-- POST /api/analysis
-- POST /api/chat
-- GET /api/evaluations/{id}
+## POST /api/analyze
+
+Request:
+
+```json
+{"question":"人口最多的 5 个城市是哪几个？"}
+```
+
+Response shape:
+
+```json
+{
+  "trace_id": "...",
+  "question": "人口最多的 5 个城市是哪几个？",
+  "sql_candidate": "SELECT ...",
+  "validated_sql": "SELECT ...",
+  "query_result": {
+    "columns": ["name", "state", "population", "year"],
+    "rows": [],
+    "row_count": 0,
+    "execution_ms": 0.0,
+    "trace_id": "..."
+  },
+  "final_answer": "...",
+  "model": "mock-analyst-v0.1",
+  "usage": {},
+  "errors": []
+}
+```
+
+Generated SQL is validated through the same SQL security policy as `/api/query`; the Agent cannot bypass the validator.
+
+## Gateway routes
+
+The Spring Boot gateway exposes corresponding routes under `http://localhost:8080/api`:
+
+```text
+GET  /api/health
+GET  /api/schema
+POST /api/query
+POST /api/analyze
+```
+
+## Future API work
+
+Conversation/history, persisted evaluation runs, authentication, and richer report APIs are not part of the current Day 7 portfolio baseline.

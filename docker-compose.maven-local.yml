@@ -1,0 +1,9 @@
+services:
+  gateway:
+    build:
+      secrets:
+        - maven_settings
+
+secrets:
+  maven_settings:
+    file: ${HOME}/.m2/settings.xml

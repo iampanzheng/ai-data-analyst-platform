@@ -1,34 +1,69 @@
-# 07 Agent State / Tool Contract
+# 07 Analyst Agent / Tool Contract
 
-## State
+## Current state
+
+The current `AnalystState` carries the core analysis lifecycle, including:
 
 ```text
 question
-intent
 relevant_schema
 sql_candidate
 validated_sql
 query_result
-analysis_result
-chart_artifact
 final_answer
 errors
 trace_id
+model
+usage
 ```
 
-## Tools
+## Implemented tools / boundaries
 
-### get_database_schema()
-Returns relevant schema and business metadata.
+### Schema Tool
 
-### execute_sql(query)
-Read-only, allowlisted, timeout-bounded.
+Returns allowlisted schema and business metadata for model context.
 
-### run_python_analysis(input)
-Pandas/NumPy only against bounded query results; no OS/network/file primitives exposed to the model.
+### LLM Client
 
-### create_chart(spec)
-Produces a chart from structured data.
+Provider-independent interface used for SQL generation and answer generation.
 
-### generate_report(evidence)
-Turns verified evidence into a concise business answer with sources/SQL/result references.
+Current providers:
+
+```text
+mock
+openai-compatible
+```
+
+### SQL Tool
+
+Executes only SQL that has passed the shared SQL Validator. Database execution is read-only, timeout-bounded, and row-capped.
+
+## Planned later tools
+
+The following are architectural extension points, not current Day 7 features:
+
+### Python Analysis Tool
+
+Planned bounded Pandas/NumPy analysis against verified query results. Arbitrary OS/network/file execution will not be exposed to the model.
+
+### Chart Tool
+
+Planned structured chart generation from verified data.
+
+### Report Tool
+
+Planned evidence-backed report generation using SQL/results/analysis artifacts.
+
+## Critical invariant
+
+Never:
+
+```text
+LLM → database
+```
+
+Always:
+
+```text
+LLM SQL candidate → SQL Validator → read-only database
+```

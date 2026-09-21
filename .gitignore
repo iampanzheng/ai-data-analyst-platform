@@ -1,15 +1,20 @@
 .env
-__pycache__/
-*.pyc
-.pytest_cache/
 .venv/
 .vscode/
-node_modules/
-temp/
-dist/
 .DS_Store
 
 __pycache__/
 *.py[cod]
+.pytest_cache/
+
+node_modules/
+dist/
+temp/
+
+# Reproducible latest-run evaluation outputs; versioned baselines are retained.
+evaluation/results/evaluation-report.json
+evaluation/results/evaluation-report.md
+
+# Downloaded public source artifacts.
 data/raw/census/sub-est2025.csv
 data/raw/bls/oesm24ma.zip
