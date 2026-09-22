@@ -1008,10 +1008,51 @@ When P1 is completed, this file can remain as the final project-local handoff/hi
 
 ---
 
+
+## Phase 2 Stage model
+
+P1 no longer uses Day N naming for new work. New progress is tracked as:
+
+```text
+Phase → Stage → Task
+```
+
+Current plan:
+
+```text
+Stage 2.1 Real LLM Integration
+Stage 2.2 Real-model Baseline
+Stage 2.3 Model Comparison
+Stage 2.4 Routing Policy
+Stage 2.5 Reliability & Cost Control
+Stage 2.6 Phase 2 Evaluation & Closeout
+```
+
+### Stage 2.1 implementation state — IN PROGRESS
+
+Implemented in code:
+
+- normalized LLM usage (`input_tokens`, `output_tokens`, `total_tokens`)
+- provider/model metadata propagation
+- structured provider error classification
+- bounded retry/backoff for timeout, connection, rate-limit, and 5xx failures
+- non-retry behavior for auth/request/invalid-response failures
+- five-case real-model smoke runner (`python -m evaluation.smoke`)
+- real-model configuration and cost-rate fields documented
+
+Pending Stage 2.1 exit criterion:
+
+```text
+configure one real provider/model
+→ run five-case smoke
+→ review SQL/security/result/answer/latency/tokens/cost/errors
+→ only then close Stage 2.1
+```
+
 # 14. Current Next Action
 
 ```text
-P1 → Phase 2 → Real LLM Evaluation
+P1 → Phase 2 → Stage 2.1 Real LLM Integration
 ```
 
 Next phase objective:
@@ -1029,3 +1070,64 @@ introduce routing / fallback / cost controls only where measurements justify the
 ```
 
 Preserve the Day 7 portfolio baseline while Phase 2 evolves the model layer.
+
+
+### Stage 2.1A — Ollama + Qwen3 8B
+
+Current first real-model target:
+
+```text
+macOS Ollama
+  → qwen3:8b
+  → OpenAI-compatible endpoint
+  → FastAPI in Docker via host.docker.internal
+  → existing Analyst Agent
+  → existing SQL Validator
+  → PostgreSQL
+```
+
+Implementation preparation completed:
+
+- added `.env.ollama.example`
+- added `docs/PHASE2-STAGE2.1A-OLLAMA.md`
+- Docker Compose now propagates retry/backoff/cost environment settings
+- OpenAI-compatible base URL accepts both provider-root and `/v1` forms
+- local baseline API cost configured as zero
+
+Pending exit criterion: run the real five-case smoke on the developer Mac and review actual outputs.
+
+
+## Phase 2 — Stage 2.1A.1 status
+
+The first Ollama/Qwen3 8B smoke run achieved 5/5 pipeline completion but 4/5 semantic correctness. `SMOKE-003` exposed a schema-value grounding error (`California` vs stored `CA`). Stage 2.1A.1 therefore refines the SQL prompt to honor metadata value semantics, separates pipeline and semantic smoke status, and adds optional Qwen `/no_think` prompt control via `LLM_DISABLE_THINKING`. Re-run the same five smoke cases and compare correctness, latency, and tokens before closing Stage 2.1A.
+
+## Phase 2 — Stage 2.1A.2 Value Grounding + Answer-aware Smoke Evaluation
+
+Status: **IMPLEMENTED / VERIFIED AT RESULT LAYER**
+
+Reason for refinement:
+- Qwen3 8B produced valid SQL with `state = 'California'` although the database stores `CA`.
+- A correct grouped result was summarized with an incorrect total of 13 instead of 15.
+
+Implemented:
+- bounded `sample_values` for approved low-cardinality semantic types (`geography_code` currently enabled),
+- `value_hint` for natural-language state name/alias -> USPS code mapping,
+- smoke metrics split into pipeline/result/answer/semantic correctness,
+- final-answer checks that detect the previously observed grouped-total hallucination.
+
+Exit criterion: 5-case Qwen3 8B smoke should reach 5/5 pipeline, result, answer, and semantic correctness before Stage 2.1A is closed.
+
+
+## Phase 2 — Stage 2.1A.3 Multilingual Entity Normalization + Context-aware Answer Evaluation
+
+Status: **READY FOR DOCKER VERIFICATION**
+
+The latest Qwen3 8B smoke run achieved:
+
+- pipeline correctness: 5/5
+- SQL/result correctness: 5/5
+- raw smoke answer score: 3/5
+
+Manual review showed both answer failures were evaluator false negatives: translated city names were semantically correct, and `总计9个州` was incorrectly treated as a city-total claim. Stage 2.1A.3 fixes those evaluator issues without changing Agent behavior, prompts, value grounding, or SQL security.
+
+Exit criterion: full pytest passes and the five-case smoke reaches 5/5 for pipeline, result, answer, and semantic correctness. After that, close Stage 2.1A and proceed to Stage 2.1B.

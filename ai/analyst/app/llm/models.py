@@ -9,4 +9,5 @@ class ChatMessage(BaseModel):
 class LLMResponse(BaseModel):
     content: str
     model: str
+    provider: str
     usage: dict[str, int] = Field(default_factory=dict)

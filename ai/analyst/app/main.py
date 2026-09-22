@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from typing import Any, Iterator
 
 import psycopg
+from psycopg import sql as psycopg_sql
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 
@@ -39,16 +40,34 @@ class AnalyzeResponse(BaseModel):
     query_result: dict[str, Any] | None
     final_answer: str | None
     model: str | None
+    provider: str | None
     usage: dict[str, int]
     errors: list[dict[str, str]]
 
 
 configure_logging()
 logger = logging.getLogger("ai.analyst.api")
-app = FastAPI(title="P1 AI Data Analyst — Day 5")
+app = FastAPI(title="P1 AI Data Analyst Platform")
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://analyst:analyst@postgres:5432/ai_analyst")
 MAX_ROWS = int(os.getenv("SQL_MAX_ROWS", "1000"))
 STATEMENT_TIMEOUT_MS = int(os.getenv("SQL_STATEMENT_TIMEOUT_MS", "3000"))
+VALUE_GROUNDING_MAX_VALUES = int(os.getenv("VALUE_GROUNDING_MAX_VALUES", "20"))
+VALUE_GROUNDING_SEMANTIC_TYPES = {"geography_code"}
+VALUE_GROUNDING_COLUMNS = {("city", "state")}
+
+
+def _is_value_grounded(table_name: str, column_name: str, semantic_type: str) -> bool:
+    return (table_name, column_name) in VALUE_GROUNDING_COLUMNS or semantic_type in VALUE_GROUNDING_SEMANTIC_TYPES
+
+
+def _value_hint(table_name: str, column_name: str, semantic_type: str) -> str:
+    if (table_name, column_name) == ("city", "state") or semantic_type == "geography_code":
+        return (
+            "Stored values are two-letter U.S. postal abbreviations. Map natural-language state "
+            "names or common aliases to the stored code before filtering; for example "
+            "California/加州 -> CA, Texas/德州 -> TX, New York/纽约州 -> NY."
+        )
+    return ""
 
 @contextmanager
 def connection() -> Iterator[psycopg.Connection]:
@@ -158,17 +177,40 @@ def schema() -> SchemaResponse:
                 columns=[],
             )
 
+        resolved_semantic_type = semantic_type or "unknown"
         grouped[table_name].columns.append(
             ColumnMetadata(
                 name=column_name,
                 business_name=business_name or column_name,
                 description=column_description or "",
                 data_type=data_type,
-                semantic_type=semantic_type or "unknown",
+                semantic_type=resolved_semantic_type,
                 nullable=is_nullable == "YES",
                 queryable=True,
+                value_hint=_value_hint(table_name, column_name, resolved_semantic_type),
             )
         )
+
+    # Add bounded value grounding only for explicitly approved low-cardinality semantic types.
+    # Identifiers come from allowlisted introspection results and are still quoted defensively.
+    with connection() as conn:
+        with conn.cursor() as cur:
+            for table in grouped.values():
+                for column in table.columns:
+                    if not _is_value_grounded(table.table_name, column.name, column.semantic_type):
+                        continue
+                    cur.execute(
+                        psycopg_sql.SQL(
+                            "SELECT DISTINCT {column} FROM {schema}.{table} "
+                            "WHERE {column} IS NOT NULL ORDER BY {column} LIMIT %s"
+                        ).format(
+                            column=psycopg_sql.Identifier(column.name),
+                            schema=psycopg_sql.Identifier(ALLOWED_SCHEMA),
+                            table=psycopg_sql.Identifier(table.table_name),
+                        ),
+                        (VALUE_GROUNDING_MAX_VALUES,),
+                    )
+                    column.sample_values = [str(row[0]) for row in cur.fetchall()]
 
     return SchemaResponse(schema_name=ALLOWED_SCHEMA, tables=list(grouped.values()))
 
@@ -235,6 +277,7 @@ def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
         query_result=state.query_result,
         final_answer=state.final_answer,
         model=state.model,
+        provider=state.provider,
         usage=state.usage,
         errors=state.errors,
     )

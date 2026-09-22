@@ -53,7 +53,7 @@ Analyst Agent v0.1
      PostgreSQL :5432
 ```
 
-The model provider is behind a provider-independent `LLMClient` abstraction. Development and baseline evaluation use a deterministic Mock provider; an OpenAI-compatible adapter is also implemented for later real-model evaluation.
+The model provider is behind a provider-independent `LLMClient` abstraction. Development and baseline evaluation use a deterministic Mock provider; an OpenAI-compatible adapter is implemented and Phase 2 is hardening it for real-model evaluation with normalized usage, structured provider errors, and bounded retry/backoff.
 
 ## Technology stack
 
@@ -258,6 +258,10 @@ Day 7 verification completed successfully:
 - **5 Spring Boot tests passed** with `BUILD SUCCESS`
 - browser smoke tests passed for Schema, Ask Analyst, validated SQL/result rendering, and manual Run Query
 
+## Phase 2 — Real LLM Integration
+
+Phase 2 work is tracked as **Phase → Stage → Task** rather than Day N. Stage 2.1 keeps the Agent and SQL security architecture unchanged while hardening the real-model boundary with normalized token usage, structured LLM errors, bounded retry/backoff, and a five-case real-model smoke test. See `docs/PHASE2-STAGE2.1.md`.
+
 ## Model providers
 
 Default deterministic development mode:
@@ -276,7 +280,7 @@ LLM_MODEL=your-model
 LLM_TIMEOUT_SECONDS=30
 ```
 
-Real-model quality, token cost, latency, routing, fallback, and provider comparison are deliberately deferred to the next P1 phase so that they can be measured using the existing evaluation harness rather than added without evidence.
+Phase 2 now builds on this baseline: first stabilize one real-model path, then run the same evaluation dataset for measured quality, token cost, latency, provider comparison, routing, and fallback decisions.
 
 ## Data and current limitations
 

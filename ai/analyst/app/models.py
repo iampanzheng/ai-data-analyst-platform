@@ -33,6 +33,8 @@ class ColumnMetadata(BaseModel):
     semantic_type: str
     nullable: bool
     queryable: bool
+    sample_values: list[str] = Field(default_factory=list)
+    value_hint: str = ""
 
 
 class TableMetadata(BaseModel):

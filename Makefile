@@ -16,3 +16,9 @@ test:
 
 eval:
 	python -m evaluation.run
+
+smoke:
+	python -m evaluation.smoke
+
+smoke-docker:
+	docker compose exec fastapi python -m evaluation.smoke

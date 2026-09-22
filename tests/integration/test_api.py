@@ -24,6 +24,10 @@ def test_schema_endpoint_returns_metadata(client):
     assert city["columns"]
     population = next(c for c in city["columns"] if c["name"] == "population")
     assert population["queryable"] is True
+    state = next(c for c in city["columns"] if c["name"] == "state")
+    assert "CA" in state["sample_values"]
+    assert "TX" in state["sample_values"]
+    assert "California/加州 -> CA" in state["value_hint"]
 
 
 def test_query_endpoint_propagates_trace_id(client):

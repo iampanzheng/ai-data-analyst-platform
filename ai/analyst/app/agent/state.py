@@ -18,4 +18,5 @@ class AnalystState:
     errors: list[dict[str, str]] = field(default_factory=list)
     trace_id: str = ""
     model: str | None = None
+    provider: str | None = None
     usage: dict[str, int] = field(default_factory=dict)

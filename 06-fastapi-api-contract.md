@@ -65,6 +65,7 @@ Response shape:
   },
   "final_answer": "...",
   "model": "mock-analyst-v0.1",
+  "provider": "mock",
   "usage": {},
   "errors": []
 }
@@ -85,4 +86,4 @@ POST /api/analyze
 
 ## Future API work
 
-Conversation/history, persisted evaluation runs, authentication, and richer report APIs are not part of the current Day 7 portfolio baseline.
+Conversation/history, persisted evaluation runs, authentication, and richer report APIs are not part of the Phase 1 portfolio baseline.

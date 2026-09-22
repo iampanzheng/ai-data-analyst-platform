@@ -41,3 +41,25 @@ docker compose \
 The override references `${HOME}/.m2/settings.xml`; use it only on machines where that file exists.
 
 Never commit real API keys, Maven credentials, or machine-specific settings files.
+
+
+## Phase 2 real-model settings
+
+```text
+LLM_PROVIDER=openai-compatible
+LLM_BASE_URL=<provider base URL>
+LLM_API_KEY=<secret; never commit>
+LLM_MODEL=<model id>
+LLM_TIMEOUT_SECONDS=30
+LLM_MAX_RETRIES=2
+LLM_RETRY_BACKOFF_SECONDS=0.5
+LLM_INPUT_COST_PER_1M=<current provider price>
+LLM_OUTPUT_COST_PER_1M=<current provider price>
+```
+
+`LLM_INPUT_COST_PER_1M` and `LLM_OUTPUT_COST_PER_1M` are configuration rather than hard-coded prices because provider pricing changes over time.
+
+
+## Phase 2 local Ollama provider
+
+For Stage 2.1A, Ollama runs on the macOS host and FastAPI remains in Docker. Configure `LLM_BASE_URL=http://host.docker.internal:11434` and `LLM_MODEL=qwen3:8b`. See `docs/PHASE2-STAGE2.1A-OLLAMA.md` for the complete smoke-test sequence.

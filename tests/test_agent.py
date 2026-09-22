@@ -30,6 +30,7 @@ def test_mock_agent_state_flow(monkeypatch):
     assert state.validated_sql.startswith("SELECT")
     assert state.query_result["row_count"] == 1
     assert state.final_answer
+    assert state.provider == "mock"
 
 def test_mock_agent_routes_unsafe_request_to_sql_validator(monkeypatch):
     monkeypatch.setattr(

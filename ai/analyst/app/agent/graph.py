@@ -23,6 +23,7 @@ class AnalystAgent:
             state.relevant_schema = get_database_schema()
             sql_response = self.llm.chat(build_sql_messages(question, state.relevant_schema))
             state.model = sql_response.model
+            state.provider = sql_response.provider
             state.usage = dict(sql_response.usage)
             sql = _normalize_sql(sql_response.content)
             state.sql_candidate = sql
@@ -36,6 +37,7 @@ class AnalystAgent:
             )
             state.final_answer = answer_response.content.strip()
             state.model = answer_response.model
+            state.provider = answer_response.provider
             for key, value in answer_response.usage.items():
                 state.usage[key] = state.usage.get(key, 0) + value
             return state
