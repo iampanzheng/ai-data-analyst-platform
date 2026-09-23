@@ -242,3 +242,36 @@ def test_base_url_may_end_with_v1(monkeypatch):
 
     result = OpenAICompatibleLLMClient().chat(_messages())
     assert result.content == "ok"
+
+
+def test_chat_completions_url_supports_gemini_openai_root():
+    from ai.analyst.app.llm.client import _chat_completions_url
+
+    assert _chat_completions_url(
+        "https://generativelanguage.googleapis.com/v1beta/openai/"
+    ) == "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+
+
+def test_optional_reasoning_effort_is_sent(monkeypatch):
+    import httpx
+    from ai.analyst.app.llm.client import OpenAICompatibleLLMClient
+    from ai.analyst.app.llm.models import ChatMessage
+
+    monkeypatch.setenv("LLM_BASE_URL", "https://example.test/v1")
+    monkeypatch.setenv("LLM_MODEL", "example-model")
+    monkeypatch.setenv("LLM_REASONING_EFFORT", "low")
+    captured = {}
+
+    class Response:
+        status_code = 200
+        def json(self):
+            return {"model": "example-model", "choices": [{"message": {"content": "ok"}}], "usage": {}}
+
+    def fake_post(url, *, json, headers, timeout):
+        captured.update(json)
+        return Response()
+
+    monkeypatch.setattr(httpx, "post", fake_post)
+    client = OpenAICompatibleLLMClient()
+    client.chat([ChatMessage(role="user", content="hello")])
+    assert captured["reasoning_effort"] == "low"

@@ -88,9 +88,13 @@ def normalize_usage(raw_usage: Any) -> dict[str, int]:
 
 
 def _chat_completions_url(base_url: str) -> str:
-    """Accept either provider roots or OpenAI-style base URLs ending in /v1."""
+    """Build a chat-completions URL from common OpenAI-compatible API roots.
+
+    Supports provider roots (where /v1 is implied) and API roots that already
+    end in /v1 or /openai, such as Gemini's /v1beta/openai endpoint.
+    """
     normalized = base_url.rstrip("/")
-    if normalized.endswith("/v1"):
+    if normalized.endswith(("/v1", "/openai")):
         return f"{normalized}/chat/completions"
     return f"{normalized}/v1/chat/completions"
 
@@ -107,6 +111,7 @@ class OpenAICompatibleLLMClient(LLMClient):
         self.timeout = float(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
         self.max_retries = int(os.getenv("LLM_MAX_RETRIES", "2"))
         self.retry_backoff_seconds = float(os.getenv("LLM_RETRY_BACKOFF_SECONDS", "0.5"))
+        self.reasoning_effort = os.getenv("LLM_REASONING_EFFORT", "").strip().lower()
         if not self.base_url or not self.model:
             raise LLMClientError(
                 "LLM_CONFIGURATION_ERROR",
@@ -130,6 +135,8 @@ class OpenAICompatibleLLMClient(LLMClient):
             "messages": [m.model_dump() for m in messages],
             "temperature": temperature,
         }
+        if self.reasoning_effort:
+            payload["reasoning_effort"] = self.reasoning_effort
         headers = {"Content-Type": "application/json"}
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"

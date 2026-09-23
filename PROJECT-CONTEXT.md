@@ -1131,3 +1131,14 @@ The latest Qwen3 8B smoke run achieved:
 Manual review showed both answer failures were evaluator false negatives: translated city names were semantically correct, and `总计9个州` was incorrectly treated as a city-total claim. Stage 2.1A.3 fixes those evaluator issues without changing Agent behavior, prompts, value grounding, or SQL security.
 
 Exit criterion: full pytest passes and the five-case smoke reaches 5/5 for pipeline, result, answer, and semantic correctness. After that, close Stage 2.1A and proceed to Stage 2.1B.
+
+
+## Phase 2 — Stage 2.1B: Gemini 3.8 Flash
+
+Status: **IMPLEMENTED — READY FOR HOSTED SMOKE VERIFICATION**
+
+Stage 2.1A (Ollama + Qwen3 8B) is closed after full pytest and 5/5 pipeline/result/answer/semantic smoke verification.
+
+Stage 2.1B reuses the same OpenAI-compatible LLM adapter and five-case smoke suite against `gemini-3.8-flash`. The adapter now accepts API roots ending in `/openai` (Gemini) as well as `/v1`, and supports optional `LLM_REASONING_EFFORT`. No Agent or SQL Security architecture changes are introduced.
+
+Exit: full pytest + five-case hosted smoke reviewed before Stage 2.2.
