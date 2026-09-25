@@ -18,12 +18,14 @@ class LLMClientError(RuntimeError):
         *,
         retryable: bool = False,
         status_code: int | None = None,
+        retry_after_seconds: float | None = None
     ) -> None:
         super().__init__(message)
         self.code = code
         self.message = message
         self.retryable = retryable
         self.status_code = status_code
+        self.retry_after_seconds = retry_after_seconds
 
 
 class LLMClient(ABC):
@@ -199,12 +201,20 @@ class OpenAICompatibleLLMClient(LLMClient):
 
             if not last_error.retryable or attempt >= self.max_retries:
                 raise last_error
-            self._sleep_before_retry(attempt)
+            self._sleep_before_retry(attempt, last_error)
 
         raise last_error or LLMClientError("LLM_ERROR", "Unknown LLM client error")
 
-    def _sleep_before_retry(self, attempt: int) -> None:
-        delay = self.retry_backoff_seconds * (2**attempt)
+    def _sleep_before_retry(
+        self,
+        attempt: int,
+        error: LLMClientError,
+    ) -> None:
+        if error.retry_after_seconds is not None:
+            delay = error.retry_after_seconds
+        else:
+            delay = self.retry_backoff_seconds * (2**attempt)
+
         if delay > 0:
             time.sleep(delay)
 
@@ -218,11 +228,21 @@ class OpenAICompatibleLLMClient(LLMClient):
                 status_code=status,
             )
         if status == 429:
+            retry_after_seconds = None
+            raw_retry_after = response.headers.get("Retry-After")
+
+            if raw_retry_after:
+                try:
+                    retry_after_seconds = max(0.0, float(raw_retry_after))
+                except ValueError:
+                    pass
+
             return LLMClientError(
                 "LLM_RATE_LIMIT",
                 "LLM provider rate limit exceeded",
                 retryable=True,
                 status_code=status,
+                retry_after_seconds=retry_after_seconds,
             )
         if 500 <= status <= 599:
             return LLMClientError(

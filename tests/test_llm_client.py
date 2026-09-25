@@ -1,14 +1,18 @@
 import json
+from types import SimpleNamespace
 
 import httpx
 import pytest
 
+from ai.analyst.app.agent.prompts import build_answer_messages
 from ai.analyst.app.llm.client import (
     LLMClientError,
     OpenAICompatibleLLMClient,
     normalize_usage,
 )
 from ai.analyst.app.llm.models import ChatMessage
+from ai.analyst.app.security import SQLValidationError, validate_sql
+from evaluation.smoke import SMOKE_CASES
 
 
 def _messages():
@@ -206,6 +210,8 @@ def test_missing_model(monkeypatch):
 
 
 def test_create_request_payload(monkeypatch):
+    monkeypatch.delenv("LLM_REASONING_EFFORT", raising=False)
+
     captured = {}
 
     def handler(request):
@@ -219,6 +225,216 @@ def test_create_request_payload(monkeypatch):
         "messages": [{"role": "user", "content": "hello"}],
         "temperature": 0.2,
     }
+
+
+def test_create_request_payload_with_reasoning_effort(monkeypatch):
+    monkeypatch.setenv("LLM_REASONING_EFFORT", "low")
+
+    captured = {}
+
+    def handler(request):
+        captured["json"] = json.loads(request.content)
+        return httpx.Response(
+            200,
+            json={
+                "model": "test-model",
+                "choices": [{"message": {"content": "ok"}}],
+            },
+        )
+
+    _client(monkeypatch, handler).chat(_messages(), temperature=0.2)
+
+    assert captured["json"]["reasoning_effort"] == "low"
+
+
+def test_entity_matching_normalizes_unicode_whitespace():
+    from evaluation.smoke import _mentions_entity
+
+    assert _mentions_entity("New\u202fYork", "New York")
+    assert _mentions_entity("Los\u202fAngeles", "Los Angeles")
+
+
+def test_state_counts_support_markdown_table():
+    from evaluation.smoke import _extract_state_counts
+
+    answer = """
+    | State | Count |
+    |---|---:|
+    | CA | 3 |
+    | TX | 5 |
+    """
+
+    assert _extract_state_counts(answer)["CA"] == 3
+    assert _extract_state_counts(answer)["TX"] == 5
+
+
+def test_markdown_state_counts_do_not_hide_wrong_city_total():
+    from evaluation.smoke import _answer_check
+
+    case = next(c for c in SMOKE_CASES if c.case_id == "SMOKE-004")
+
+    state = SimpleNamespace(
+        final_answer="| CA | 3 |\n| TX | 5 |\n城市总数为13个。",
+        errors=[],
+    )
+
+    assert _answer_check(state, case)[0] is False
+
+
+def test_rate_limit_retry_honors_retry_after(monkeypatch):
+    sleeps = []
+    request_count = 0
+
+    def fake_sleep(seconds):
+        sleeps.append(seconds)
+
+
+    monkeypatch.setattr(
+        "ai.analyst.app.llm.client.time.sleep",
+        fake_sleep,
+    )
+
+    # first response 429 Retry-After: 2
+    # second response 200
+    def handler(request):
+        nonlocal request_count
+        request_count += 1
+
+        if request_count == 1:
+            return httpx.Response(
+                429,
+                headers={"Retry-After": "2"},
+                json={"error": {"message": "rate limit exceeded"}},
+            )
+
+        return httpx.Response(
+            200,
+            json={
+                "model": "test-model",
+                "choices": [
+                    {
+                        "message": {
+                            "content": "ok",
+                        }
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 10,
+                    "completion_tokens": 2,
+                    "total_tokens": 12,
+                },
+            },
+        )
+
+    client = _client(monkeypatch, handler, retries=1)
+
+    response = client.chat(
+        _messages(),
+        temperature=0.2,
+    )
+
+    assert response.content == "ok"
+    assert request_count == 2
+    assert sleeps == [2.0]
+
+
+def test_rate_limit_retry_falls_back_to_backoff(monkeypatch):
+    sleeps = []
+    request_count = 0
+
+    monkeypatch.setattr(
+        "ai.analyst.app.llm.client.time.sleep",
+        lambda seconds: sleeps.append(seconds),
+    )
+
+    def handler(request):
+        nonlocal request_count
+        request_count += 1
+
+        if request_count == 1:
+            return httpx.Response(
+                429,
+                json={"error": {"message": "rate limit"}},
+            )
+
+        return httpx.Response(
+            200,
+            json={
+                "model": "test-model",
+                "choices": [
+                    {"message": {"content": "ok"}}
+                ],
+            },
+        )
+
+    client = _client(monkeypatch, handler, retries=1, backoff=0.5)
+
+    client.chat(_messages())
+
+    assert sleeps == [0.5]
+
+
+def test_city_count_answer_accepts_15():
+    from evaluation.smoke import _answer_check
+
+    case = next(
+        c for c in SMOKE_CASES
+        if c.case_id == "SMOKE-002"
+    )
+
+    state = SimpleNamespace(
+        final_answer="共有 15 个城市。",
+        errors=[],
+    )
+
+    passed, _ = _answer_check(state, case)
+
+    assert passed is True
+
+
+def test_group_count_accepts_markdown_table():
+    from evaluation.smoke import _answer_check
+
+    case = next(
+        c for c in SMOKE_CASES
+        if c.case_id == "SMOKE-004"
+    )
+
+    state = SimpleNamespace(
+        final_answer="""
+        州与城市数量：
+
+        | 州 | 城市数 |
+        |----|--------|
+        | AZ | 1 |
+        | CA | 3 |
+        | FL | 1 |
+        | TX | 5 |
+        """,
+        errors=[],
+    )
+
+    passed, _ = _answer_check(state, case)
+
+    assert passed is True
+
+
+def test_drop_table_is_rejected():
+    with pytest.raises(SQLValidationError) as exc_info:
+        validate_sql("DROP TABLE city;")
+
+    assert exc_info.value.code == "STATEMENT_NOT_READ_ONLY"
+
+
+def test_answer_prompt_requires_result_grounding():
+    sql = ""
+    result = []
+    messages = build_answer_messages("每个州有多少个城市？", sql, result)
+
+    system_prompt = messages[0].content.lower()
+
+    assert "strictly" in system_prompt
+    assert "query result" in system_prompt
 
 
 def test_base_url_may_end_with_v1(monkeypatch):

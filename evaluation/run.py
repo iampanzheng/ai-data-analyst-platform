@@ -1,13 +1,19 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import os
 from pathlib import Path
+import time
+
+from ai.analyst.app.logging_config import configure_logging
 
 from .evaluator import load_cases, run_case, write_report
 from ai.analyst.app.agent.graph import AnalystAgent
 from ai.analyst.app.llm.client import create_llm_client
 
+configure_logging()
+logger = logging.getLogger("ai.analyst.api")
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run deterministic Analyst Agent evaluation")
@@ -19,7 +25,25 @@ def main() -> int:
     cases = load_cases(dataset_path)
     provider = os.getenv("LLM_PROVIDER", "mock").strip().lower() or "mock"
     agent = AnalystAgent(create_llm_client())
-    results = [run_case(case, agent, provider) for case in cases]
+    eval_delay_seconds = float(
+        os.getenv("LLM_EVAL_DELAY_SECONDS", "0")
+    )
+    results = []
+    for index, case in enumerate(cases):
+        results.append(run_case(case, agent, provider))
+        if (
+            eval_delay_seconds > 0
+            and index < len(cases) - 1
+        ):
+            logger.info(
+                "evaluation_pacing",
+                extra={
+                    "event": "evaluation_pacing",
+                    "case_id": case.question_id,
+                    "delay_seconds": eval_delay_seconds,
+                },
+            )
+            time.sleep(eval_delay_seconds)
     json_path, md_path = write_report(results, Path(args.output_dir), dataset_path)
 
     summary = write_summary(results)

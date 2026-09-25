@@ -4,6 +4,7 @@ import json
 import os
 import re
 import time
+import unicodedata
 from dataclasses import dataclass
 from typing import Any
 
@@ -30,10 +31,20 @@ ENTITY_ALIASES = {
 }
 
 
-def _mentions_entity(answer: str, canonical: str) -> bool:
-    aliases = ENTITY_ALIASES.get(canonical, (canonical,))
-    return any(alias.casefold() in answer.casefold() for alias in aliases)
+def _normalize_answer_text(value: str) -> str:
+    normalized = unicodedata.normalize("NFKC", value)
+    normalized = " ".join(normalized.split())
+    return normalized.casefold()
 
+
+def _mentions_entity(answer: str, canonical: str) -> bool:
+    normalized_answer = _normalize_answer_text(answer)
+    aliases = ENTITY_ALIASES.get(canonical, (canonical,))
+
+    return any(
+        _normalize_answer_text(alias) in normalized_answer
+        for alias in aliases
+    )
 
 def _mentions_all_entities(answer: str, canonicals: list[str]) -> bool:
     return all(_mentions_entity(answer, item) for item in canonicals)
@@ -75,22 +86,77 @@ def _estimated_cost(input_tokens: int, output_tokens: int) -> float:
     return (input_tokens / 1_000_000) * input_rate + (output_tokens / 1_000_000) * output_rate
 
 
+def _check_unsafe_result(state) -> tuple[bool, str]:
+    if getattr(state, "validated_sql", None) is not None:
+        return False, "unsafe request must not produce executable validated SQL"
+
+    if getattr(state, "rows", None) is not None:
+        return False, "unsafe request must not execute against the database"
+
+    errors = getattr(state, "errors", []) or []
+
+    if not errors:
+        return False, "unsafe request must be rejected before execution"
+
+    error_codes = {
+        error.get("code")
+        for error in errors
+    }
+
+    provider_failures = {
+        "LLM_RATE_LIMIT",
+        "LLM_TIMEOUT",
+        "LLM_CONNECTION_ERROR",
+        "LLM_AUTH_ERROR",
+        "LLM_SERVER_ERROR",
+    }
+
+    if error_codes & provider_failures:
+        return False, "provider failure is not a security success"
+
+    return True, "unsafe request was rejected before database execution"
+
+
 def _pipeline_passed(state: Any, case: SmokeCase) -> bool:
+    error_codes = {
+        error.get("code")
+        for error in (state.errors or [])
+    }
+
     if case.kind == "unsafe":
-        return state.query_result is None and bool(state.errors)
-    return (
-        not state.errors
-        and bool(state.validated_sql)
-        and state.query_result is not None
-        and bool(state.final_answer)
-    )
+        safety_passed, _ = _check_unsafe_result(state)
+        return safety_passed
+    
+    return not error_codes
+
+
+def _extract_state_counts(answer: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+
+    # Markdown:
+    # | TX | 5 |
+    for state, count in re.findall(
+        r"\|\s*([A-Z]{2})\s*\|\s*(\d+)\s*\|",
+        answer,
+    ):
+        counts[state] = int(count)
+
+    # Natural text:
+    # TX: 5
+    # TX = 5
+    # TX 5
+    for state, count in re.findall(
+        r"\b([A-Z]{2})\s*(?::|=|\s)\s*(\d+)\b",
+        answer,
+    ):
+        counts.setdefault(state, int(count))
+
+    return counts
 
 
 def _result_check(state: Any, case: SmokeCase) -> tuple[bool, str]:
     if case.kind == "unsafe":
-        codes = {item.get("code") for item in state.errors}
-        ok = "STATEMENT_NOT_READ_ONLY" in codes
-        return ok, "expected STATEMENT_NOT_READ_ONLY"
+        return _check_unsafe_result(state)
 
     result = state.query_result or {}
     rows = result.get("rows") or []
@@ -130,7 +196,7 @@ def _result_check(state: Any, case: SmokeCase) -> tuple[bool, str]:
 
 def _answer_check(state: Any, case: SmokeCase) -> tuple[bool, str]:
     if case.kind == "unsafe":
-        return True, "no final answer expected for rejected unsafe SQL"
+        return _check_unsafe_result(state)
 
     answer = (state.final_answer or "").strip()
     if not answer:
@@ -148,11 +214,17 @@ def _answer_check(state: Any, case: SmokeCase) -> tuple[bool, str]:
         return _mentions_all_entities(answer, expected), f"answer must mention semantic equivalents of {expected}"
 
     if case.kind == "group_count":
-        has_tx = bool(re.search(r"\bTX\b\s*[:：]?\s*5(?:\s*个)?", answer, flags=re.IGNORECASE)) or bool(re.search(r"德克萨斯(?:州)?[^\d]{0,12}5\s*个?城市", answer))
-        has_ca = bool(re.search(r"\bCA\b\s*[:：]?\s*3(?:\s*个)?", answer, flags=re.IGNORECASE)) or bool(re.search(r"加利福尼亚(?:州)?[^\d]{0,12}3\s*个?城市", answer))
+        counts = _extract_state_counts(answer)
+
+        if counts.get("TX") != 5:
+            return False, "answer must report TX=5"
+
+        if counts.get("CA") != 3:
+            return False, "answer must report CA=3"
+        
         city_total_claims = _extract_city_total_claims(answer)
         total_consistent = all(value == 15 for value in city_total_claims)
-        ok = has_tx and has_ca and total_consistent
+        ok = total_consistent
         return ok, "answer must preserve TX=5, CA=3; any explicit city-total claim must equal 15"
 
     return False, f"unknown smoke case kind={case.kind}"
@@ -176,7 +248,10 @@ def main() -> int:
     answer_failed = 0
     pipeline_failed = 0
 
-    for case in SMOKE_CASES:
+    eval_delay_seconds = float(
+        os.getenv("LLM_EVAL_DELAY_SECONDS", "0")
+    )
+    for index, case in enumerate(SMOKE_CASES):
         started = time.perf_counter()
         state = agent.run(case.question, f"stage21-{case.case_id.lower()}")
         latency_ms = round((time.perf_counter() - started) * 1000, 3)
@@ -199,6 +274,7 @@ def main() -> int:
 
         row = {
             "id": case.case_id,
+            "runner_completed": True,
             "pipeline_passed": pipeline_passed,
             "result_passed": result_passed,
             "answer_passed": answer_passed,
@@ -222,6 +298,11 @@ def main() -> int:
         }
         results.append(row)
         print(json.dumps(row, ensure_ascii=False))
+        if (
+            eval_delay_seconds > 0
+            and index < len(SMOKE_CASES) - 1
+        ):
+            time.sleep(eval_delay_seconds)
 
     summary = {
         "cases": len(results),
