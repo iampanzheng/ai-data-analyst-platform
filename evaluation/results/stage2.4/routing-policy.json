@@ -1,0 +1,38 @@
+{
+  "stage": "2.4",
+  "policy_version": "1.0",
+  "strategy": "deterministic",
+  "llm_decides_route": false,
+  "default_auto_route": "remote",
+  "routes": {
+    "remote": {
+      "role": "interactive_default",
+      "baseline": "groq-gpt-oss-20b-calibrated",
+      "measured_completion_rate": 1.0,
+      "measured_end_to_end_semantic_rate": 0.9667,
+      "measured_avg_latency_ms": 2527.446,
+      "measured_p95_latency_ms": 2943.881
+    },
+    "local": {
+      "role": "privacy_offline_zero_api_cost",
+      "baseline": "qwen3-8b-ollama-calibrated",
+      "measured_completion_rate": 0.8,
+      "measured_completed_case_semantic_rate": 0.9167,
+      "measured_avg_latency_ms": 65954.708,
+      "measured_p95_latency_ms": 116301.793,
+      "measured_api_cost": 0.0
+    }
+  },
+  "request_modes": {
+    "auto": "configured deterministic default; remote in the measured Stage 2.3 policy",
+    "remote": "explicit remote route",
+    "local": "explicit local route"
+  },
+  "automatic_fallback": false,
+  "fallback_stage": "2.5",
+  "notes": [
+    "Stage 2.4 does not classify query complexity with an LLM.",
+    "Stage 2.4 does not retry a failed route on another provider.",
+    "The Stage 2.2 evaluator and baselines remain frozen."
+  ]
+}

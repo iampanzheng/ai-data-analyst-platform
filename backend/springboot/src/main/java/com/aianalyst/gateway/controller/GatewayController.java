@@ -36,7 +36,8 @@ public class GatewayController {
             @Valid @RequestBody AnalyzeRequest request,
             @RequestHeader(value = "X-Trace-ID", required = false) String traceId) {
         String effectiveTraceId = traceId == null || traceId.isBlank() ? UUID.randomUUID().toString() : traceId;
-        return ResponseEntity.ok(fastApiClient.analyze(request.question(), effectiveTraceId));
+        return ResponseEntity.ok(fastApiClient.analyze(
+                request.question(), request.effectiveRoutingMode(), effectiveTraceId));
     }
 
     @PostMapping("/query")

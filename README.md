@@ -365,3 +365,7 @@ Richer data + stronger evidence-backed analysis
 ```
 
 The existing `LLMClient` abstraction and Day 6 evaluation harness are intentionally designed to support this progression.
+
+## Phase 2 routing
+
+Stage 2.4 adds deterministic LLM routing. With `LLM_ROUTING_ENABLED=true`, `/api/analyze` supports `routing_mode=auto|remote|local`. The measured Stage 2.3 default is remote/Groq for interactive use; local/Ollama remains an explicit privacy/offline option. Automatic provider fallback is intentionally deferred to Stage 2.5. See `docs/PHASE2-STAGE2.4-ROUTING-POLICY.md` and `.env.routing.example`.

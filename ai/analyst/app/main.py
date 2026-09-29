@@ -4,7 +4,7 @@ import os
 import time
 import uuid
 from contextlib import contextmanager
-from typing import Any, Iterator
+from typing import Any, Iterator, Literal
 
 import psycopg
 from psycopg import sql as psycopg_sql
@@ -30,11 +30,15 @@ import logging
 
 class AnalyzeRequest(BaseModel):
     question: str = Field(min_length=1)
+    routing_mode: Literal["auto", "remote", "local"] = "auto"
 
 
 class AnalyzeResponse(BaseModel):
     trace_id: str
     question: str
+    routing_mode: str
+    selected_route: str | None
+    routing_reason: str | None
     sql_candidate: str | None
     validated_sql: str | None
     query_result: dict[str, Any] | None
@@ -266,12 +270,45 @@ def query(req: QueryRequest, request: Request) -> QueryResponse:
 def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
     trace_id = get_or_create_trace_id(request)
     from .agent.graph import AnalystAgent
-    from .llm.client import create_llm_client
+    from .llm.client import LLMClientError
+    from .llm.routing import create_routed_llm_client
 
-    state = AnalystAgent(create_llm_client()).run(req.question, trace_id)
+    try:
+        decision, llm = create_routed_llm_client(req.routing_mode)
+    except LLMClientError as exc:
+        return AnalyzeResponse(
+            trace_id=trace_id,
+            question=req.question,
+            routing_mode=req.routing_mode,
+            selected_route=None,
+            routing_reason=None,
+            sql_candidate=None,
+            validated_sql=None,
+            query_result=None,
+            final_answer=None,
+            model=None,
+            provider=None,
+            usage={},
+            errors=[{"code": exc.code, "message": exc.message}],
+        )
+
+    logger.info(
+        "llm_route_selected",
+        extra={"fields": {
+            "trace_id": trace_id,
+            "event": "llm_route_selected",
+            "routing_mode": req.routing_mode,
+            "selected_route": decision.selected_route,
+            "routing_reason": decision.reason,
+        }},
+    )
+    state = AnalystAgent(llm).run(req.question, trace_id)
     return AnalyzeResponse(
         trace_id=trace_id,
         question=state.question,
+        routing_mode=req.routing_mode,
+        selected_route=decision.selected_route,
+        routing_reason=decision.reason,
         sql_candidate=state.sql_candidate,
         validated_sql=state.validated_sql,
         query_result=state.query_result,

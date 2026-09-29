@@ -87,3 +87,9 @@ POST /api/analyze
 ## Future API work
 
 Conversation/history, persisted evaluation runs, authentication, and richer report APIs are not part of the Phase 1 portfolio baseline.
+
+## Phase 2 Stage 2.4 — Analyze routing
+
+`POST /api/analyze` additionally accepts optional `routing_mode` with one of `auto`, `remote`, or `local` (default `auto`).
+
+The response additionally exposes `routing_mode`, `selected_route`, and `routing_reason` so routing remains observable and explainable. Routing happens before Agent construction; SQL validation remains unchanged and authoritative.

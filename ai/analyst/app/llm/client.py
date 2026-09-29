@@ -3,11 +3,48 @@ from __future__ import annotations
 import os
 import time
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Any
 
 import httpx
 
 from .models import ChatMessage, LLMResponse
+
+
+
+
+@dataclass(frozen=True)
+class LLMClientConfig:
+    provider: str
+    base_url: str = ""
+    api_key: str = ""
+    model: str = ""
+    timeout: float = 30.0
+    max_retries: int = 2
+    retry_backoff_seconds: float = 0.5
+    max_retry_after_seconds: float = 60.0
+    reasoning_effort: str = ""
+    disable_thinking: bool = False
+
+
+def llm_config_from_env(prefix: str = "LLM") -> LLMClientConfig:
+    def value(name: str, default: str = "") -> str:
+        return os.getenv(f"{prefix}_{name}", default)
+
+    provider = value("PROVIDER", "mock").strip().lower()
+    return LLMClientConfig(
+        provider=provider,
+        base_url=value("BASE_URL").rstrip("/"),
+        api_key=value("API_KEY"),
+        model=value("MODEL"),
+        timeout=float(value("TIMEOUT_SECONDS", "30")),
+        max_retries=int(value("MAX_RETRIES", "2")),
+        retry_backoff_seconds=float(value("RETRY_BACKOFF_SECONDS", "0.5")),
+        max_retry_after_seconds=float(value("MAX_RETRY_AFTER_SECONDS", "60")),
+        reasoning_effort=value("REASONING_EFFORT").strip().lower(),
+        disable_thinking=value("DISABLE_THINKING", "false").strip().lower()
+        in {"1", "true", "yes", "on"},
+    )
 
 
 class LLMClientError(RuntimeError):
@@ -38,6 +75,7 @@ class MockLLMClient(LLMClient):
     """Deterministic client for local/dev tests. No network, no API key."""
 
     provider = "mock"
+    disable_thinking = False
 
     def chat(self, messages: list[ChatMessage], *, temperature: float = 0.0) -> LLMResponse:
         user = next((m.content for m in reversed(messages) if m.role == "user"), "")
@@ -106,15 +144,17 @@ class OpenAICompatibleLLMClient(LLMClient):
 
     provider = "openai-compatible"
 
-    def __init__(self) -> None:
-        self.base_url = os.getenv("LLM_BASE_URL", "").rstrip("/")
-        self.api_key = os.getenv("LLM_API_KEY", "")
-        self.model = os.getenv("LLM_MODEL", "")
-        self.timeout = float(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
-        self.max_retries = int(os.getenv("LLM_MAX_RETRIES", "2"))
-        self.retry_backoff_seconds = float(os.getenv("LLM_RETRY_BACKOFF_SECONDS", "0.5"))
-        self.max_retry_after_seconds = float(os.getenv("LLM_MAX_RETRY_AFTER_SECONDS", "60"))
-        self.reasoning_effort = os.getenv("LLM_REASONING_EFFORT", "").strip().lower()
+    def __init__(self, config: LLMClientConfig | None = None) -> None:
+        config = config or llm_config_from_env()
+        self.base_url = config.base_url
+        self.api_key = config.api_key
+        self.model = config.model
+        self.timeout = config.timeout
+        self.max_retries = config.max_retries
+        self.retry_backoff_seconds = config.retry_backoff_seconds
+        self.max_retry_after_seconds = config.max_retry_after_seconds
+        self.reasoning_effort = config.reasoning_effort
+        self.disable_thinking = config.disable_thinking
         if not self.base_url or not self.model:
             raise LLMClientError(
                 "LLM_CONFIGURATION_ERROR",
@@ -268,13 +308,18 @@ class OpenAICompatibleLLMClient(LLMClient):
         )
 
 
-def create_llm_client() -> LLMClient:
-    provider = os.getenv("LLM_PROVIDER", "mock").strip().lower()
+def create_llm_client(
+    *,
+    prefix: str = "LLM",
+    config: LLMClientConfig | None = None,
+) -> LLMClient:
+    resolved = config or llm_config_from_env(prefix)
+    provider = resolved.provider
     if provider in {"", "mock"}:
         return MockLLMClient()
     if provider in {"openai", "openai-compatible", "openai_compatible"}:
-        return OpenAICompatibleLLMClient()
+        return OpenAICompatibleLLMClient(resolved)
     raise LLMClientError(
         "LLM_CONFIGURATION_ERROR",
-        f"Unsupported LLM_PROVIDER: {provider}",
+        f"Unsupported {prefix}_PROVIDER: {provider}",
     )

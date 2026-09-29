@@ -21,7 +21,13 @@ class AnalystAgent:
         state = AnalystState(question=question, trace_id=trace_id)
         try:
             state.relevant_schema = get_database_schema()
-            sql_response = self.llm.chat(build_sql_messages(question, state.relevant_schema))
+            sql_response = self.llm.chat(
+                build_sql_messages(
+                    question,
+                    state.relevant_schema,
+                    disable_thinking=getattr(self.llm, "disable_thinking", False),
+                )
+            )
             state.model = sql_response.model
             state.provider = sql_response.provider
             state.usage = dict(sql_response.usage)
@@ -33,7 +39,12 @@ class AnalystAgent:
             state.query_result = execute_sql(validated.normalized_sql, trace_id)
 
             answer_response = self.llm.chat(
-                build_answer_messages(question, validated.normalized_sql, state.query_result)
+                build_answer_messages(
+                    question,
+                    validated.normalized_sql,
+                    state.query_result,
+                    disable_thinking=getattr(self.llm, "disable_thinking", False),
+                )
             )
             state.final_answer = answer_response.content.strip()
             state.model = answer_response.model

@@ -1181,3 +1181,33 @@ Measured conclusions:
 - Stage 2.3 records routing evidence but does not implement routing.
 
 Next: **Stage 2.4 — Routing Policy**.
+
+### Stage 2.4 — Routing Policy
+
+Status: **IMPLEMENTED — USER VERIFICATION PENDING**
+
+Stage 2.4 converts the frozen Stage 2.3 comparison into a deterministic router without changing the Analyst Agent or SQL security boundary.
+
+Policy v1:
+
+- `auto` -> configured deterministic default; Stage 2.4 example default is `remote` based on measured Groq reliability/latency.
+- `remote` -> explicit remote route.
+- `local` -> explicit local route for privacy/offline/$0 API-cost operation.
+- The LLM never chooses the route.
+- No automatic cross-provider fallback is implemented in Stage 2.4; fallback is reserved for Stage 2.5.
+
+Implementation:
+
+- new `ai/analyst/app/llm/routing.py`,
+- separate `LLM_REMOTE_*` and `LLM_LOCAL_*` configuration,
+- backward-compatible legacy `LLM_*` path when routing is disabled,
+- model-specific thinking directive configuration,
+- `/api/analyze` accepts `routing_mode=auto|remote|local`,
+- route decision metadata is returned and logged,
+- Spring gateway passes routing mode through,
+- React demo exposes route selection,
+- machine-readable policy at `evaluation/results/stage2.4/routing-policy.json`.
+
+Packaging verification: Python compile PASS; routing unit tests 8/8 PASS. Full pytest and Maven verification remain for the developer environment because the packaging sandbox lacks `sqlglot`/`psycopg` and Maven.
+
+Next after verification: **Stage 2.5 — Reliability, Fallback & Cost Control**.

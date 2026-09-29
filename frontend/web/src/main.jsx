@@ -7,6 +7,7 @@ const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 function App() {
   const [question, setQuestion] = useState('人口最多的 5 个城市是哪几个？');
   const [analysis, setAnalysis] = useState(null);
+  const [routingMode, setRoutingMode] = useState('auto');
   const [sql, setSql] = useState('SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5');
   const [result, setResult] = useState(null);
   const [schema, setSchema] = useState(null);
@@ -27,7 +28,7 @@ function App() {
       const r = await fetch(`${API}/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question })
+        body: JSON.stringify({ question, routingMode })
       });
       const body = await r.json();
       if (!r.ok) throw new Error(body?.detail?.message || JSON.stringify(body));
@@ -74,6 +75,12 @@ function App() {
       <section className="card">
         <label htmlFor="question">Business Question</label>
         <textarea id="question" value={question} onChange={e => setQuestion(e.target.value)} rows={4} />
+        <label htmlFor="routing-mode">LLM Route</label>
+        <select id="routing-mode" value={routingMode} onChange={e => setRoutingMode(e.target.value)}>
+          <option value="auto">Auto (measured default)</option>
+          <option value="remote">Remote / interactive</option>
+          <option value="local">Local / privacy</option>
+        </select>
         <button onClick={askAnalyst} disabled={loading || !question.trim()}>
           {loading ? 'Analyzing…' : 'Ask Analyst'}
         </button>

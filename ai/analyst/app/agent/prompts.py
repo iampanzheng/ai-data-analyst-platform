@@ -30,31 +30,44 @@ Never invent or estimate values that are not supported by the result.
 """
 
 
-def _thinking_directive() -> str:
-    value = os.getenv("LLM_DISABLE_THINKING", "false").strip().lower()
-    return "/no_think\n" if value in {"1", "true", "yes", "on"} else ""
+def _thinking_directive(disable_thinking: bool | None = None) -> str:
+    if disable_thinking is None:
+        value = os.getenv("LLM_DISABLE_THINKING", "false").strip().lower()
+        disable_thinking = value in {"1", "true", "yes", "on"}
+    return "/no_think\n" if disable_thinking else ""
 
 
-def build_sql_messages(question: str, schema: dict[str, Any]) -> list[ChatMessage]:
+def build_sql_messages(
+    question: str,
+    schema: dict[str, Any],
+    *,
+    disable_thinking: bool | None = None,
+) -> list[ChatMessage]:
     return [
         ChatMessage(role="system", content=SQL_SYSTEM_PROMPT),
         ChatMessage(
             role="user",
             content=(
-                f"{_thinking_directive()}Generate SQL for this question.\n"
+                f"{_thinking_directive(disable_thinking)}Generate SQL for this question.\n"
                 f"Question: {question}\nSchema:\n{json.dumps(schema, ensure_ascii=False)}"
             ),
         ),
     ]
 
 
-def build_answer_messages(question: str, sql: str, result: dict[str, Any]) -> list[ChatMessage]:
+def build_answer_messages(
+    question: str,
+    sql: str,
+    result: dict[str, Any],
+    *,
+    disable_thinking: bool | None = None,
+) -> list[ChatMessage]:
     return [
         ChatMessage(role="system", content=ANSWER_SYSTEM_PROMPT),
         ChatMessage(
             role="user",
             content=(
-                f"{_thinking_directive()}Question: {question}\n"
+                f"{_thinking_directive(disable_thinking)}Question: {question}\n"
                 f"Verified SQL: {sql}\n"
                 f"Verified result:\n{json.dumps(to_json_safe(result), ensure_ascii=False)}\n"
                 "Write the final answer."
