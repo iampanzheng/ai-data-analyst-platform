@@ -96,6 +96,15 @@
               "string",
               "null"
             ]
+          },
+          "semantic_columns": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
           }
         },
         "allOf": [

@@ -113,6 +113,7 @@ class OpenAICompatibleLLMClient(LLMClient):
         self.timeout = float(os.getenv("LLM_TIMEOUT_SECONDS", "30"))
         self.max_retries = int(os.getenv("LLM_MAX_RETRIES", "2"))
         self.retry_backoff_seconds = float(os.getenv("LLM_RETRY_BACKOFF_SECONDS", "0.5"))
+        self.max_retry_after_seconds = float(os.getenv("LLM_MAX_RETRY_AFTER_SECONDS", "60"))
         self.reasoning_effort = os.getenv("LLM_REASONING_EFFORT", "").strip().lower()
         if not self.base_url or not self.model:
             raise LLMClientError(
@@ -128,6 +129,11 @@ class OpenAICompatibleLLMClient(LLMClient):
             raise LLMClientError(
                 "LLM_CONFIGURATION_ERROR",
                 "LLM_RETRY_BACKOFF_SECONDS must be >= 0",
+            )
+        if self.max_retry_after_seconds < 0:
+            raise LLMClientError(
+                "LLM_CONFIGURATION_ERROR",
+                "LLM_MAX_RETRY_AFTER_SECONDS must be >= 0",
             )
 
     def chat(self, messages: list[ChatMessage], *, temperature: float = 0.0) -> LLMResponse:
@@ -212,6 +218,10 @@ class OpenAICompatibleLLMClient(LLMClient):
     ) -> None:
         if error.retry_after_seconds is not None:
             delay = error.retry_after_seconds
+            if delay > self.max_retry_after_seconds:
+                # Do not block a synchronous request/evaluation for many minutes.
+                # Surface the rate-limit error and let the caller pace/reschedule.
+                raise error
         else:
             delay = self.retry_backoff_seconds * (2**attempt)
 

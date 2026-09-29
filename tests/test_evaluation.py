@@ -99,7 +99,14 @@ def test_run_case_captures_usage_and_error():
             return fake_state
 
     result = run_case(case, FakeAgent(), "mock")
-    assert result.sql_correct is True
-    assert result.result_correct is None
-    assert result.answer_correct is None
+    assert result.exact_sql_match is None
+    assert result.safety_correct is True
+    assert result.semantic_correct is True
     assert result.total_tokens == 14
+    assert result.input_tokens == 10
+    assert result.output_tokens == 4
+    assert result.error_type == "STATEMENT_NOT_READ_ONLY"
+    assert result.error_message == "blocked"
+    assert result.trace_id == "eval-DA-030"
+    assert result.model == "fake"
+    assert result.provider == "mock"

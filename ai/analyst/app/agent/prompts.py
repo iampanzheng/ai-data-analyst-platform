@@ -4,6 +4,8 @@ import json
 import os
 from typing import Any
 
+from ai.analyst.app.serialization import to_json_safe
+
 from ..llm.models import ChatMessage
 
 
@@ -54,7 +56,7 @@ def build_answer_messages(question: str, sql: str, result: dict[str, Any]) -> li
             content=(
                 f"{_thinking_directive()}Question: {question}\n"
                 f"Verified SQL: {sql}\n"
-                f"Verified result:\n{json.dumps(result, ensure_ascii=False)}\n"
+                f"Verified result:\n{json.dumps(to_json_safe(result), ensure_ascii=False)}\n"
                 "Write the final answer."
             ),
         ),

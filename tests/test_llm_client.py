@@ -491,3 +491,27 @@ def test_optional_reasoning_effort_is_sent(monkeypatch):
     client = OpenAICompatibleLLMClient()
     client.chat([ChatMessage(role="user", content="hello")])
     assert captured["reasoning_effort"] == "low"
+
+
+def test_retry_after_above_cap_fails_fast(monkeypatch):
+    sleeps = []
+    monkeypatch.setattr(
+        "ai.analyst.app.llm.client.time.sleep",
+        lambda seconds: sleeps.append(seconds),
+    )
+
+    def handler(request):
+        return httpx.Response(
+            429,
+            headers={"Retry-After": "120"},
+            json={"error": {"message": "rate limit exceeded"}},
+        )
+
+    monkeypatch.setenv("LLM_MAX_RETRY_AFTER_SECONDS", "60")
+    client = _client(monkeypatch, handler, retries=2, backoff=0.5)
+
+    with pytest.raises(LLMClientError) as exc:
+        client.chat(_messages())
+
+    assert exc.value.code == "LLM_RATE_LIMIT"
+    assert sleeps == []

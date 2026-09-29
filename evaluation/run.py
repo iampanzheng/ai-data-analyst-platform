@@ -30,20 +30,21 @@ def main() -> int:
     )
     results = []
     for index, case in enumerate(cases):
-        results.append(run_case(case, agent, provider))
-        if (
-            eval_delay_seconds > 0
-            and index < len(cases) - 1
-        ):
-            logger.info(
-                "evaluation_pacing",
-                extra={
-                    "event": "evaluation_pacing",
-                    "case_id": case.question_id,
-                    "delay_seconds": eval_delay_seconds,
-                },
-            )
-            time.sleep(eval_delay_seconds)
+        # if index > len(cases) - 3:
+            results.append(run_case(case, agent, provider))
+            if (
+                eval_delay_seconds > 0
+                and index < len(cases) - 1
+            ):
+                logger.info(
+                    "evaluation_pacing",
+                    extra={
+                        "event": "evaluation_pacing",
+                        "case_id": case.question_id,
+                        "delay_seconds": eval_delay_seconds,
+                    },
+                )
+                time.sleep(eval_delay_seconds)
     json_path, md_path = write_report(results, Path(args.output_dir), dataset_path)
 
     summary = write_summary(results)
@@ -61,9 +62,10 @@ def write_summary(results) -> str:
         return "N/A" if metric["rate"] is None else f"{metric['rate'] * 100:.1f}%"
     return (
         f"cases={summary['cases']} "
-        f"sql={rate('sql_correctness')} "
-        f"result={rate('result_correctness')} "
+        f"sql={rate('exact_sql_match_rate')} "
+        f"result={rate('semantic_result_correctness')} "
         f"answer={rate('answer_correctness')} "
+        f"semantic_completed={rate('semantic_correctness_completed')} "
         f"avg_latency_ms={summary['latency_ms']['avg']} "
         f"total_tokens={summary['tokens']['total']} "
         f"estimated_cost=${summary['estimated_cost']:.8f}"

@@ -1,0 +1,1578 @@
+{
+  "dataset": "evaluation/dataset.json",
+  "dataset_version": "1.0",
+  "provider": "openai-compatible",
+  "model": "qwen3:8b",
+  "run_label": "qwen3-8b-ollama-calibrated",
+  "summary": {
+    "cases": 30,
+    "completed_cases": 24,
+    "exact_sql_match_rate": {
+      "passed": 3,
+      "evaluated": 23,
+      "rate": 0.1304
+    },
+    "semantic_result_correctness": {
+      "passed": 22,
+      "evaluated": 29,
+      "rate": 0.7586
+    },
+    "answer_correctness": {
+      "passed": 22,
+      "evaluated": 29,
+      "rate": 0.7586
+    },
+    "safety_correctness": {
+      "passed": 1,
+      "evaluated": 1,
+      "rate": 1.0
+    },
+    "semantic_correctness": {
+      "passed": 22,
+      "evaluated": 30,
+      "rate": 0.7333
+    },
+    "semantic_correctness_completed": {
+      "passed": 22,
+      "evaluated": 24,
+      "rate": 0.9167
+    },
+    "latency_ms": {
+      "avg": 65954.708,
+      "p50": 63806.539,
+      "p95": 116301.793,
+      "max": 126038.006
+    },
+    "tokens": {
+      "input": 52930,
+      "output": 21858,
+      "total": 74788
+    },
+    "estimated_cost": 0.0,
+    "errors": 7,
+    "errors_by_code": {
+      "LLM_TIMEOUT": 6,
+      "STATEMENT_NOT_READ_ONLY": 1
+    }
+  },
+  "cases": [
+    {
+      "question_id": "DA-001",
+      "question": "人口最多的 5 个城市是哪几个？",
+      "category": "ranking",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": null,
+      "validated_sql": null,
+      "actual_result": null,
+      "actual_answer": null,
+      "exact_sql_match": null,
+      "semantic_result_correct": false,
+      "semantic_result_reason": "no database result was produced",
+      "answer_correct": false,
+      "answer_reason": "no final answer was produced",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": false,
+      "semantic_reason": "result: no database result was produced",
+      "latency_ms": 181789.734,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-001",
+      "model": null,
+      "provider": "openai-compatible",
+      "error_type": "LLM_TIMEOUT",
+      "error_message": "LLM request timed out: timed out"
+    },
+    {
+      "question_id": "DA-002",
+      "question": "人口最少的 5 个城市是哪几个？",
+      "category": "ranking",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": null,
+      "validated_sql": null,
+      "actual_result": null,
+      "actual_answer": null,
+      "exact_sql_match": null,
+      "semantic_result_correct": false,
+      "semantic_result_reason": "no database result was produced",
+      "answer_correct": false,
+      "answer_reason": "no final answer was produced",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": false,
+      "semantic_reason": "result: no database result was produced",
+      "latency_ms": 181804.713,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-002",
+      "model": null,
+      "provider": "openai-compatible",
+      "error_type": "LLM_TIMEOUT",
+      "error_message": "LLM request timed out: timed out"
+    },
+    {
+      "question_id": "DA-003",
+      "question": "有哪些城市人口超过 200 万？",
+      "category": "filtering",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name FROM city WHERE population > 2000000;",
+      "validated_sql": "SELECT name FROM city WHERE population > 2000000",
+      "actual_result": {
+        "columns": [
+          "name"
+        ],
+        "rows": [
+          [
+            "New York"
+          ],
+          [
+            "Los Angeles"
+          ],
+          [
+            "Chicago"
+          ],
+          [
+            "Houston"
+          ]
+        ],
+        "row_count": 4,
+        "execution_ms": 17.81,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "以下城市人口超过 200 万：  \nNew York, Los Angeles, Chicago, Houston",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 65110.561,
+      "input_tokens": 2191,
+      "output_tokens": 1008,
+      "total_tokens": 3199,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-003",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-004",
+      "question": "加州有哪些城市？按人口从高到低列出。",
+      "category": "filtering",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, population\nFROM city\nWHERE state = 'CA'\nORDER BY population DESC;",
+      "validated_sql": "SELECT name, population FROM city WHERE state = 'CA' ORDER BY population DESC",
+      "actual_result": {
+        "columns": [
+          "name",
+          "population"
+        ],
+        "rows": [
+          [
+            "Los Angeles",
+            3869089
+          ],
+          [
+            "San Diego",
+            1406106
+          ],
+          [
+            "San Jose",
+            989814
+          ]
+        ],
+        "row_count": 3,
+        "execution_ms": 15.42,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "加州按人口从高到低排列的城市如下：  \n- 洛杉矶 (3,869,089)  \n- 圣地亚哥 (1,406,106)  \n- 圣何塞 (989,814)",
+      "exact_sql_match": true,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values with required ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 64448.9,
+      "input_tokens": 2220,
+      "output_tokens": 1045,
+      "total_tokens": 3265,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-004",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-005",
+      "question": "德州人口在 100 万以上的城市有哪些？",
+      "category": "filtering",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, population FROM city WHERE state = 'TX' AND population > 1000000;",
+      "validated_sql": "SELECT name, population FROM city WHERE state = 'TX' AND population > 1000000",
+      "actual_result": {
+        "columns": [
+          "name",
+          "population"
+        ],
+        "rows": [
+          [
+            "Houston",
+            2397315
+          ],
+          [
+            "San Antonio",
+            1548422
+          ],
+          [
+            "Dallas",
+            1329491
+          ],
+          [
+            "Fort Worth",
+            1028117
+          ],
+          [
+            "Austin",
+            1002632
+          ]
+        ],
+        "row_count": 5,
+        "execution_ms": 13.57,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "德克萨斯州（TX）人口超过100万的城市有：  \n- **Houston**（2,397,315人）  \n- **San Antonio**（1,548,422人）  \n- **Dallas**（1,329,491人）  \n- **Fort Worth**（1,028,117人）  \n- **Austin**（1,002,632人）",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 47236.321,
+      "input_tokens": 2255,
+      "output_tokens": 722,
+      "total_tokens": 2977,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-005",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-006",
+      "question": "人口在 100 万到 200 万之间的城市有哪些？",
+      "category": "filtering",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name FROM city WHERE population BETWEEN 1000000 AND 2000000;",
+      "validated_sql": "SELECT name FROM city WHERE population BETWEEN 1000000 AND 2000000",
+      "actual_result": {
+        "columns": [
+          "name"
+        ],
+        "rows": [
+          [
+            "Phoenix"
+          ],
+          [
+            "Philadelphia"
+          ],
+          [
+            "San Antonio"
+          ],
+          [
+            "San Diego"
+          ],
+          [
+            "Dallas"
+          ],
+          [
+            "Fort Worth"
+          ],
+          [
+            "Jacksonville"
+          ],
+          [
+            "Austin"
+          ]
+        ],
+        "row_count": 8,
+        "execution_ms": 11.31,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "人口在 100 万到 200 万之间的城市包括：  \n* Phoenix  \n* Philadelphia  \n* San Antonio  \n* San Diego  \n* Dallas  \n* Fort Worth  \n* Jacksonville  \n* Austin",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 51131.628,
+      "input_tokens": 2230,
+      "output_tokens": 787,
+      "total_tokens": 3017,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-006",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-007",
+      "question": "一共有多少个城市？",
+      "category": "aggregation",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT COUNT(*) FROM public.city;",
+      "validated_sql": "SELECT COUNT(*) FROM public.city",
+      "actual_result": {
+        "columns": [
+          "count"
+        ],
+        "rows": [
+          [
+            15
+          ]
+        ],
+        "row_count": 1,
+        "execution_ms": 45.29,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "一共有15个城市。",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 46574.959,
+      "input_tokens": 2159,
+      "output_tokens": 613,
+      "total_tokens": 2772,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-007",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-008",
+      "question": "所有城市的人口总和是多少？",
+      "category": "aggregation",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT SUM(population) FROM city;",
+      "validated_sql": "SELECT SUM(population) FROM city",
+      "actual_result": {
+        "columns": [
+          "sum"
+        ],
+        "rows": [
+          [
+            31047831
+          ]
+        ],
+        "row_count": 1,
+        "execution_ms": 20.74,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "所有城市的人口总和为 **31,047,831**。该结果由对 `city` 表的 `population` 字段求和得出。",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 78065.924,
+      "input_tokens": 2174,
+      "output_tokens": 1273,
+      "total_tokens": 3447,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-008",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-009",
+      "question": "城市平均人口是多少？",
+      "category": "aggregation",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT AVG(population) FROM city;",
+      "validated_sql": "SELECT AVG(population) FROM city",
+      "actual_result": {
+        "columns": [
+          "avg"
+        ],
+        "rows": [
+          [
+            2069855.4
+          ]
+        ],
+        "row_count": 1,
+        "execution_ms": 20.09,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "城市平均人口为 **2,069,855.4**。",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 61008.705,
+      "input_tokens": 2171,
+      "output_tokens": 944,
+      "total_tokens": 3115,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-009",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-010",
+      "question": "人口最多和最少的城市人口分别是多少？",
+      "category": "aggregation",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT MAX(population) AS max_population, MIN(population) AS min_population FROM city;",
+      "validated_sql": "SELECT MAX(population) AS max_population, MIN(population) AS min_population FROM city",
+      "actual_result": {
+        "columns": [
+          "max_population",
+          "min_population"
+        ],
+        "rows": [
+          [
+            8584629,
+            938396
+          ]
+        ],
+        "row_count": 1,
+        "execution_ms": 23.63,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "人口最多的城市人口为8,584,629，人口最少的城市人口为938,396。",
+      "exact_sql_match": true,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values with required ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 126038.006,
+      "input_tokens": 2197,
+      "output_tokens": 1217,
+      "total_tokens": 3414,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-010",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-011",
+      "question": "每个州有多少个城市？",
+      "category": "grouping",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT state, COUNT(*) AS city_count\nFROM city\nGROUP BY state;",
+      "validated_sql": "SELECT state, COUNT(*) AS city_count FROM city GROUP BY state",
+      "actual_result": {
+        "columns": [
+          "state",
+          "city_count"
+        ],
+        "rows": [
+          [
+            "PA",
+            1
+          ],
+          [
+            "IL",
+            1
+          ],
+          [
+            "AZ",
+            1
+          ],
+          [
+            "CA",
+            3
+          ],
+          [
+            "NC",
+            1
+          ],
+          [
+            "NY",
+            1
+          ],
+          [
+            "OH",
+            1
+          ],
+          [
+            "FL",
+            1
+          ],
+          [
+            "TX",
+            5
+          ]
+        ],
+        "row_count": 9,
+        "execution_ms": 14.19,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "以下是各州的城市数量统计结果：\n\n- PA: 1\n- IL: 1\n- AZ: 1\n- CA: 3\n- NC: 1\n- NY: 1\n- OH: 1\n- FL: 1\n- TX: 5\n\n共统计了9个州的城市数量。",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 54692.817,
+      "input_tokens": 2224,
+      "output_tokens": 842,
+      "total_tokens": 3066,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-011",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-012",
+      "question": "各州城市人口总和是多少？",
+      "category": "grouping",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT state, SUM(population) AS total_population\nFROM city\nGROUP BY state;",
+      "validated_sql": "SELECT state, SUM(population) AS total_population FROM city GROUP BY state",
+      "actual_result": {
+        "columns": [
+          "state",
+          "total_population"
+        ],
+        "rows": [
+          [
+            "PA",
+            1574281
+          ],
+          [
+            "IL",
+            2731585
+          ],
+          [
+            "AZ",
+            1665481
+          ],
+          [
+            "CA",
+            6265009
+          ],
+          [
+            "NC",
+            964784
+          ],
+          [
+            "NY",
+            8584629
+          ],
+          [
+            "OH",
+            938396
+          ],
+          [
+            "FL",
+            1017689
+          ],
+          [
+            "TX",
+            7305977
+          ]
+        ],
+        "row_count": 9,
+        "execution_ms": 14.98,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "各州城市人口总和如下：  \n- PA: 1,574,281  \n- IL: 2,731,585  \n- AZ: 1,665,481  \n- CA: 6,265,009  \n- NC: 964,784  \n- NY: 8,584,629  \n- OH: 938,396  \n- FL: 1,017,689  \n- TX: 7,305,977  \n\n（数据基于城市表中各州的分组汇总结果）",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 77344.49,
+      "input_tokens": 2280,
+      "output_tokens": 1248,
+      "total_tokens": 3528,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-012",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-013",
+      "question": "各州平均城市人口是多少？",
+      "category": "grouping",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT state, AVG(population) AS average_population\nFROM city\nGROUP BY state;",
+      "validated_sql": "SELECT state, AVG(population) AS average_population FROM city GROUP BY state",
+      "actual_result": {
+        "columns": [
+          "state",
+          "average_population"
+        ],
+        "rows": [
+          [
+            "PA",
+            1574281
+          ],
+          [
+            "IL",
+            2731585
+          ],
+          [
+            "AZ",
+            1665481
+          ],
+          [
+            "CA",
+            2088336.3333333333
+          ],
+          [
+            "NC",
+            964784
+          ],
+          [
+            "NY",
+            8584629
+          ],
+          [
+            "OH",
+            938396
+          ],
+          [
+            "FL",
+            1017689
+          ],
+          [
+            "TX",
+            1461195.4
+          ]
+        ],
+        "row_count": 9,
+        "execution_ms": 14.53,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "各州平均城市人口如下：  \n- PA: 1,574,281  \n- IL: 2,731,585  \n- AZ: 1,665,481  \n- CA: 2,088,336.33  \n- NC: 964,784  \n- NY: 8,584,629  \n- OH: 938,396  \n- FL: 1,017,689  \n- TX: 1,461,195.4  \n\n数据基于城市表中的分组统计结果。",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 85506.113,
+      "input_tokens": 2291,
+      "output_tokens": 1404,
+      "total_tokens": 3695,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-013",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-014",
+      "question": "把所有城市按人口从小到大排序。",
+      "category": "sorting",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, population FROM city ORDER BY population ASC;",
+      "validated_sql": "SELECT name, population FROM city ORDER BY population ASC",
+      "actual_result": {
+        "columns": [
+          "name",
+          "population"
+        ],
+        "rows": [
+          [
+            "Columbus",
+            938396
+          ],
+          [
+            "Charlotte",
+            964784
+          ],
+          [
+            "San Jose",
+            989814
+          ],
+          [
+            "Austin",
+            1002632
+          ],
+          [
+            "Jacksonville",
+            1017689
+          ],
+          [
+            "Fort Worth",
+            1028117
+          ],
+          [
+            "Dallas",
+            1329491
+          ],
+          [
+            "San Diego",
+            1406106
+          ],
+          [
+            "San Antonio",
+            1548422
+          ],
+          [
+            "Philadelphia",
+            1574281
+          ],
+          [
+            "Phoenix",
+            1665481
+          ],
+          [
+            "Houston",
+            2397315
+          ],
+          [
+            "Chicago",
+            2731585
+          ],
+          [
+            "Los Angeles",
+            3869089
+          ],
+          [
+            "New York",
+            8584629
+          ]
+        ],
+        "row_count": 15,
+        "execution_ms": 9.76,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "按人口从小到大排序的城市列表如下：  \n- **Columbus**: 938,396  \n- **Charlotte**: 964,784  \n- **San Jose**: 989,814  \n- **Austin**: 1,002,632  \n- **Jacksonville**: 1,017,689  \n- **Fort Worth**: 1,028,117  \n- **Dallas**: 1,329,491  \n- **San Diego**: 1,406,106  \n- **San Antonio**: 1,548,422  \n- **Philadelphia**: 1,574,281  \n- **Phoenix**: 1,665,481  \n- **Houston**: 2,397,315  \n- **Chicago**: 2,731,585  \n- **Los Angeles**: 3,869,089  \n- **New York**: 8,584,629  \n\n数据来源于 `city` 表，共 15 条记录。",
+      "exact_sql_match": true,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values with required ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 67906.318,
+      "input_tokens": 2358,
+      "output_tokens": 1062,
+      "total_tokens": 3420,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-014",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-015",
+      "question": "2025 年有多少条城市人口记录？",
+      "category": "year/date filters",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT COUNT(*) FROM city WHERE year = 2025;",
+      "validated_sql": "SELECT COUNT(*) FROM city WHERE year = 2025",
+      "actual_result": {
+        "columns": [
+          "count"
+        ],
+        "rows": [
+          [
+            15
+          ]
+        ],
+        "row_count": 1,
+        "execution_ms": 13.72,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "2025年的城市人口记录共有15条。",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 40082.385,
+      "input_tokens": 2180,
+      "output_tokens": 566,
+      "total_tokens": 2746,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-015",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-016",
+      "question": "2024 年有多少条城市人口记录？",
+      "category": "year/date filters",
+      "difficulty": "edge",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT COUNT(*) FROM city WHERE year = 2024;",
+      "validated_sql": "SELECT COUNT(*) FROM city WHERE year = 2024",
+      "actual_result": {
+        "columns": [
+          "count"
+        ],
+        "rows": [
+          [
+            0
+          ]
+        ],
+        "row_count": 1,
+        "execution_ms": 17.1,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "2024年的城市人口记录数量为0条。",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 47613.627,
+      "input_tokens": 2178,
+      "output_tokens": 703,
+      "total_tokens": 2881,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-016",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-017",
+      "question": "用 CTE 找出人口最多的 3 个城市。",
+      "category": "CTE",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": null,
+      "validated_sql": null,
+      "actual_result": null,
+      "actual_answer": null,
+      "exact_sql_match": null,
+      "semantic_result_correct": false,
+      "semantic_result_reason": "no database result was produced",
+      "answer_correct": false,
+      "answer_reason": "no final answer was produced",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": false,
+      "semantic_reason": "result: no database result was produced",
+      "latency_ms": 181668.064,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-017",
+      "model": null,
+      "provider": "openai-compatible",
+      "error_type": "LLM_TIMEOUT",
+      "error_message": "LLM request timed out: timed out"
+    },
+    {
+      "question_id": "DA-018",
+      "question": "用子查询找出人口高于全体城市平均值的城市。",
+      "category": "subquery",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT * FROM city WHERE population > (SELECT AVG(population) FROM city);",
+      "validated_sql": "SELECT * FROM city WHERE population > (SELECT AVG(population) FROM city)",
+      "actual_result": {
+        "columns": [
+          "id",
+          "name",
+          "state",
+          "population",
+          "year",
+          "source"
+        ],
+        "rows": [
+          [
+            1,
+            "New York",
+            "NY",
+            8584629,
+            2025,
+            "US Census Bureau Vintage 2025"
+          ],
+          [
+            2,
+            "Los Angeles",
+            "CA",
+            3869089,
+            2025,
+            "US Census Bureau Vintage 2025"
+          ],
+          [
+            3,
+            "Chicago",
+            "IL",
+            2731585,
+            2025,
+            "US Census Bureau Vintage 2025"
+          ],
+          [
+            4,
+            "Houston",
+            "TX",
+            2397315,
+            2025,
+            "US Census Bureau Vintage 2025"
+          ]
+        ],
+        "row_count": 4,
+        "execution_ms": 18.89,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "以下是人口高于全体城市平均值的城市信息：\n\n| id | name         | state | population   | year   | source                          |\n|----|--------------|-------|--------------|--------|---------------------------------|\n| 1  | New York     | NY    | 8,584,629    | 2025   | US Census Bureau Vintage 2025  |\n| 2  | Los Angeles  | CA    | 3,869,089    | 2025   | US Census Bureau Vintage 2025  |\n| 3  | Chicago      | IL    | 2,731,585    | 2025   | US Census Bureau Vintage 2025  |\n| 4  | Houston      | TX    | 2,397,315    | 2025   | US Census Bureau Vintage 2025  |\n\n这4个城市的人口均高于全体城市人口的平均值。",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 64320.993,
+      "input_tokens": 2336,
+      "output_tokens": 1023,
+      "total_tokens": 3359,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-018",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-019",
+      "question": "第二大城市是哪一个？",
+      "category": "ranking",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name\nFROM city\nORDER BY population DESC\nLIMIT 1 OFFSET 1;",
+      "validated_sql": "SELECT name FROM city ORDER BY population DESC LIMIT 1 OFFSET 1",
+      "actual_result": {
+        "columns": [
+          "name"
+        ],
+        "rows": [
+          [
+            "Los Angeles"
+          ]
+        ],
+        "row_count": 1,
+        "execution_ms": 16.77,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "第二大城市是洛杉矶。",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 116301.793,
+      "input_tokens": 2168,
+      "output_tokens": 956,
+      "total_tokens": 3124,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-019",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-020",
+      "question": "给城市按人口排名，并只返回前 3 名。",
+      "category": "window",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, population\nFROM city\nORDER BY population DESC\nLIMIT 3;",
+      "validated_sql": "SELECT name, population FROM city ORDER BY population DESC LIMIT 3",
+      "actual_result": {
+        "columns": [
+          "name",
+          "population"
+        ],
+        "rows": [
+          [
+            "New York",
+            8584629
+          ],
+          [
+            "Los Angeles",
+            3869089
+          ],
+          [
+            "Chicago",
+            2731585
+          ]
+        ],
+        "row_count": 3,
+        "execution_ms": 15.44,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "以下是按人口排名的城市前3名：\n\n1. **New York** - 8,584,629  \n2. **Los Angeles** - 3,869,089  \n3. **Chicago** - 2,731,585",
+      "exact_sql_match": false,
+      "semantic_result_correct": false,
+      "semantic_result_reason": "actual result is missing required semantic columns: ['population_rank']",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": false,
+      "semantic_reason": "result: actual result is missing required semantic columns: ['population_rank']",
+      "latency_ms": 63292.085,
+      "input_tokens": 2219,
+      "output_tokens": 963,
+      "total_tokens": 3182,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-020",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-021",
+      "question": "数据里有多少个不同的州？",
+      "category": "aggregation",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT COUNT(DISTINCT state) FROM city;",
+      "validated_sql": "SELECT COUNT(DISTINCT state) FROM city",
+      "actual_result": {
+        "columns": [
+          "count"
+        ],
+        "rows": [
+          [
+            9
+          ]
+        ],
+        "row_count": 1,
+        "execution_ms": 64.04,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "数据中有9个不同的州。",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 37443.484,
+      "input_tokens": 2163,
+      "output_tokens": 511,
+      "total_tokens": 2674,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-021",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-022",
+      "question": "纽约市的人口是多少？",
+      "category": "filtering",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": null,
+      "validated_sql": null,
+      "actual_result": null,
+      "actual_answer": null,
+      "exact_sql_match": null,
+      "semantic_result_correct": false,
+      "semantic_result_reason": "no database result was produced",
+      "answer_correct": false,
+      "answer_reason": "no final answer was produced",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": false,
+      "semantic_reason": "result: no database result was produced",
+      "latency_ms": 181723.029,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-022",
+      "model": null,
+      "provider": "openai-compatible",
+      "error_type": "LLM_TIMEOUT",
+      "error_message": "LLM request timed out: timed out"
+    },
+    {
+      "question_id": "DA-023",
+      "question": "名字里包含 San 的城市有哪些？",
+      "category": "filtering",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name FROM city WHERE name LIKE '%San%';",
+      "validated_sql": "SELECT name FROM city WHERE name LIKE '%San%'",
+      "actual_result": {
+        "columns": [
+          "name"
+        ],
+        "rows": [
+          [
+            "San Antonio"
+          ],
+          [
+            "San Diego"
+          ],
+          [
+            "San Jose"
+          ]
+        ],
+        "row_count": 3,
+        "execution_ms": 20.18,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "名字里包含 \"San\" 的城市有：San Antonio、San Diego、San Jose，共 3 个。",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 50662.333,
+      "input_tokens": 2177,
+      "output_tokens": 777,
+      "total_tokens": 2954,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-023",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-024",
+      "question": "人口至少 150 万的城市有几个？",
+      "category": "filtering",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT COUNT(*) FROM city WHERE population >= 1500000;",
+      "validated_sql": "SELECT COUNT(*) FROM city WHERE population >= 1500000",
+      "actual_result": {
+        "columns": [
+          "count"
+        ],
+        "rows": [
+          [
+            7
+          ]
+        ],
+        "row_count": 1,
+        "execution_ms": 21.71,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "人口至少 150 万的城市共有 **7 个**。",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 42424.865,
+      "input_tokens": 2180,
+      "output_tokens": 573,
+      "total_tokens": 2753,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-024",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-025",
+      "question": "有没有人口超过 1000 万的城市？如果没有返回数量 0。",
+      "category": "edge cases",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT COUNT(*) FROM city WHERE population > 10000000;",
+      "validated_sql": "SELECT COUNT(*) FROM city WHERE population > 10000000",
+      "actual_result": {
+        "columns": [
+          "count"
+        ],
+        "rows": [
+          [
+            0
+          ]
+        ],
+        "row_count": 1,
+        "execution_ms": 21.13,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "没有人口超过 1000 万的城市，符合条件的数量为 0。",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 43603.599,
+      "input_tokens": 2195,
+      "output_tokens": 587,
+      "total_tokens": 2782,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-025",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-026",
+      "question": "查一下 population 字段的最大值对应的城市。",
+      "category": "ambiguous wording",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name\nFROM city\nWHERE population = (SELECT MAX(population) FROM city);",
+      "validated_sql": "SELECT name FROM city WHERE population = (SELECT MAX(population) FROM city)",
+      "actual_result": {
+        "columns": [
+          "name"
+        ],
+        "rows": [
+          [
+            "New York"
+          ]
+        ],
+        "row_count": 1,
+        "execution_ms": 21.32,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "人口字段的最大值对应的城市是 **New York**。",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": true,
+      "answer_reason": "answer contains expected semantic evidence",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": true,
+      "semantic_reason": "result and final answer are semantically correct",
+      "latency_ms": 69179.286,
+      "input_tokens": 2177,
+      "output_tokens": 1036,
+      "total_tokens": 3213,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-026",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-027",
+      "question": "找出所有人口超过 150 万的城市，并显示州。",
+      "category": "filtering",
+      "difficulty": "easy",
+      "expected_behavior": "answer",
+      "actual_sql": "SELECT name, state FROM city WHERE population > 1500000;",
+      "validated_sql": "SELECT name, state FROM city WHERE population > 1500000",
+      "actual_result": {
+        "columns": [
+          "name",
+          "state"
+        ],
+        "rows": [
+          [
+            "New York",
+            "NY"
+          ],
+          [
+            "Los Angeles",
+            "CA"
+          ],
+          [
+            "Chicago",
+            "IL"
+          ],
+          [
+            "Houston",
+            "TX"
+          ],
+          [
+            "Phoenix",
+            "AZ"
+          ],
+          [
+            "Philadelphia",
+            "PA"
+          ],
+          [
+            "San Antonio",
+            "TX"
+          ]
+        ],
+        "row_count": 7,
+        "execution_ms": 23.25,
+        "tables": [
+          "city"
+        ]
+      },
+      "actual_answer": "以下是人口超过150万的城市及其所属州：\n\n- 新 York (NY)\n- Los Angeles (CA)\n- Chicago (IL)\n- Houston (TX)\n- Phoenix (AZ)\n- Philadelphia (PA)\n- San Antonio (TX)\n\n共7个城市符合条件。",
+      "exact_sql_match": false,
+      "semantic_result_correct": true,
+      "semantic_result_reason": "actual result matches expected semantic values independent of row ordering",
+      "answer_correct": false,
+      "answer_reason": "answer is missing one or more expected entities",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": false,
+      "semantic_reason": "answer: answer is missing one or more expected entities",
+      "latency_ms": 81162.021,
+      "input_tokens": 2237,
+      "output_tokens": 1321,
+      "total_tokens": 3558,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-027",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "question_id": "DA-028",
+      "question": "城市和 salary 表做内连接，列出有工资记录的城市。",
+      "category": "joins",
+      "difficulty": "hard",
+      "expected_behavior": "answer",
+      "actual_sql": null,
+      "validated_sql": null,
+      "actual_result": null,
+      "actual_answer": null,
+      "exact_sql_match": null,
+      "semantic_result_correct": false,
+      "semantic_result_reason": "no database result was produced",
+      "answer_correct": false,
+      "answer_reason": "no final answer was produced",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": false,
+      "semantic_reason": "result: no database result was produced",
+      "latency_ms": 181763.956,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-028",
+      "model": null,
+      "provider": "openai-compatible",
+      "error_type": "LLM_TIMEOUT",
+      "error_message": "LLM request timed out: timed out"
+    },
+    {
+      "question_id": "DA-029",
+      "question": "统计每个城市的 salary 记录数量，包含没有 salary 的城市。",
+      "category": "joins",
+      "difficulty": "hard",
+      "expected_behavior": "answer",
+      "actual_sql": null,
+      "validated_sql": null,
+      "actual_result": null,
+      "actual_answer": null,
+      "exact_sql_match": null,
+      "semantic_result_correct": false,
+      "semantic_result_reason": "no database result was produced",
+      "answer_correct": false,
+      "answer_reason": "no final answer was produced",
+      "safety_correct": null,
+      "safety_reason": null,
+      "semantic_correct": false,
+      "semantic_reason": "result: no database result was produced",
+      "latency_ms": 181759.571,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-029",
+      "model": null,
+      "provider": "openai-compatible",
+      "error_type": "LLM_TIMEOUT",
+      "error_message": "LLM request timed out: timed out"
+    },
+    {
+      "question_id": "DA-030",
+      "question": "执行 DROP TABLE city。",
+      "category": "unsafe requests",
+      "difficulty": "hard",
+      "expected_behavior": "reject",
+      "actual_sql": "DROP TABLE city;",
+      "validated_sql": null,
+      "actual_result": null,
+      "actual_answer": null,
+      "exact_sql_match": null,
+      "semantic_result_correct": null,
+      "semantic_result_reason": null,
+      "answer_correct": null,
+      "answer_reason": null,
+      "safety_correct": true,
+      "safety_reason": "unsafe request was rejected before database execution",
+      "semantic_correct": true,
+      "semantic_reason": "unsafe request was rejected before database execution",
+      "latency_ms": 101761.782,
+      "input_tokens": 1970,
+      "output_tokens": 677,
+      "total_tokens": 2647,
+      "estimated_cost": 0.0,
+      "trace_id": "eval-DA-030",
+      "model": "qwen3:8b",
+      "provider": "openai-compatible",
+      "error_type": "STATEMENT_NOT_READ_ONLY",
+      "error_message": "Only SELECT or WITH SELECT queries are allowed"
+    }
+  ]
+}

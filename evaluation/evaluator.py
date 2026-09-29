@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 import time
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any
@@ -14,6 +14,8 @@ from jsonschema.exceptions import ValidationError
 
 from ai.analyst.app.agent.graph import AnalystAgent
 from ai.analyst.app.llm.client import create_llm_client
+from ai.analyst.app.serialization import to_json_safe
+from evaluation.semantic_eval import evaluate_answer, evaluate_end_to_end, evaluate_result, evaluate_safety
 
 
 @dataclass(frozen=True)
@@ -26,6 +28,7 @@ class EvaluationCase:
     expected_sql: str | None
     expected_tables: list[str]
     expected_columns: list[str]
+    semantic_columns: list[str] | None
     expected_result: list[list[Any]]
     result_order: str
     expected_answer_contains: list[str]
@@ -43,9 +46,18 @@ class EvaluationResult:
     validated_sql: str | None
     actual_result: dict[str, Any] | None
     actual_answer: str | None
-    sql_correct: bool | None
-    result_correct: bool | None
+    # sql_correct: bool | None
+    # result_correct: bool | None
+    # answer_correct: bool | None
+    exact_sql_match: bool | None
+    semantic_result_correct: bool | None
+    semantic_result_reason: str | None
     answer_correct: bool | None
+    answer_reason: str | None
+    safety_correct: bool | None
+    safety_reason: str | None
+    semantic_correct: bool | None
+    semantic_reason: str | None
     latency_ms: float
     input_tokens: int
     output_tokens: int
@@ -84,6 +96,7 @@ def load_cases(path: Path, schema_path: Path | None = None) -> list[EvaluationCa
             expected_sql=item.get("expected_sql"),
             expected_tables=list(item.get("expected_tables", [])),
             expected_columns=list(item.get("expected_columns", [])),
+            semantic_columns=(list(item["semantic_columns"]) if item.get("semantic_columns") is not None else None),
             expected_result=list(item.get("expected_result", [])),
             result_order=str(item.get("result_order", "ordered")),
             expected_answer_contains=list(item.get("expected_answer_contains", [])),
@@ -213,7 +226,9 @@ def run_case(case: EvaluationCase, agent: AnalystAgent, provider: str) -> Evalua
         model = state.model
 
     if state is not None and case.expected_behavior == "reject":
-        sql_correct = error_type == case.expected_error_code
+        # Exact SQL match is not meaningful for a reject case. Safety is
+        # evaluated separately by evaluate_safety().
+        sql_correct = None
         result_correct = None
         answer_correct = None
     elif state is not None:
@@ -229,6 +244,43 @@ def run_case(case: EvaluationCase, agent: AnalystAgent, provider: str) -> Evalua
         )
         answer_correct = answer_matches(state.final_answer, case.expected_answer_contains)
 
+    actual_result = None
+    state_errors: list[Any] = []
+    state_answer: str | None = None
+    state_validated_sql: str | None = None
+
+    if state is not None:
+        state_errors = list(state.errors or [])
+        state_answer = state.final_answer
+        state_validated_sql = state.validated_sql
+        if state.query_result is not None:
+            actual_result = to_json_safe(state.query_result)
+
+    case_payload = asdict(case)
+
+    if case.expected_behavior == "reject":
+        result_check = None
+        answer_check = None
+    else:
+        result_check = evaluate_result(case_payload, actual_result)
+        answer_check = evaluate_answer(case_payload, state_answer)
+
+    safety_check = evaluate_safety(
+        case_payload,
+        validated_sql=state_validated_sql,
+        actual_result=actual_result,
+        errors=state_errors,
+    )
+
+    semantic_check = evaluate_end_to_end(
+        case_payload,
+        actual_result=actual_result,
+        actual_answer=state_answer,
+        validated_sql=state_validated_sql,
+        errors=state_errors,
+    )
+
+
     return EvaluationResult(
         question_id=case.question_id,
         question=case.question,
@@ -239,9 +291,33 @@ def run_case(case: EvaluationCase, agent: AnalystAgent, provider: str) -> Evalua
         validated_sql=validated_sql,
         actual_result=actual_result,
         actual_answer=actual_answer,
-        sql_correct=sql_correct,
-        result_correct=result_correct,
-        answer_correct=answer_correct,
+        # sql_correct=sql_correct,
+        # result_correct=result_correct,
+        # answer_correct=answer_correct,
+        # Diagnostic only.
+        exact_sql_match=sql_correct,
+
+        # Semantic evaluation.
+        semantic_result_correct=(result_check.passed if result_check else None),
+        semantic_result_reason=(result_check.reason if result_check else None),
+
+        answer_correct=(answer_check.passed if answer_check else None),
+        answer_reason=(answer_check.reason if answer_check else None),
+
+        safety_correct=(
+            safety_check.passed
+            if case.expected_behavior == "reject"
+            else None
+        ),
+        safety_reason=(
+            safety_check.reason
+            if case.expected_behavior == "reject"
+            else None
+        ),
+
+        semantic_correct=semantic_check.passed,
+        semantic_reason=semantic_check.reason,
+
         latency_ms=latency_ms,
         input_tokens=input_tokens,
         output_tokens=output_tokens,
@@ -266,14 +342,41 @@ def _bool_metric(results: list[EvaluationResult], field: str) -> dict[str, Any]:
 
 
 def summarize(results: list[EvaluationResult]) -> dict[str, Any]:
+    import math
+    import statistics
+    from collections import Counter
+
+    provider_error_codes = {
+        "LLM_AUTH_ERROR", "LLM_RATE_LIMIT", "LLM_SERVER_ERROR",
+        "LLM_TIMEOUT", "LLM_CONNECTION_ERROR", "LLM_INVALID_RESPONSE",
+        "EVALUATION_RUNTIME_ERROR",
+    }
+    completed = [r for r in results if r.error_type not in provider_error_codes]
+    latencies = [r.latency_ms for r in completed]
+
+    def percentile(values: list[float], p: float) -> float | None:
+        if not values:
+            return None
+        ordered = sorted(values)
+        rank = max(1, math.ceil(p * len(ordered)))
+        return round(ordered[rank - 1], 3)
+
+    error_counts = Counter(r.error_type for r in results if r.error_type)
+
     return {
         "cases": len(results),
-        "sql_correctness": _bool_metric(results, "sql_correct"),
-        "result_correctness": _bool_metric(results, "result_correct"),
+        "completed_cases": len(completed),
+        "exact_sql_match_rate": _bool_metric(results, "exact_sql_match"),
+        "semantic_result_correctness": _bool_metric(results, "semantic_result_correct"),
         "answer_correctness": _bool_metric(results, "answer_correct"),
+        "safety_correctness": _bool_metric(results, "safety_correct"),
+        "semantic_correctness": _bool_metric(results, "semantic_correct"),
+        "semantic_correctness_completed": _bool_metric(completed, "semantic_correct"),
         "latency_ms": {
-            "avg": round(sum(r.latency_ms for r in results) / len(results), 3) if results else None,
-            "max": max((r.latency_ms for r in results), default=None),
+            "avg": round(sum(latencies) / len(latencies), 3) if latencies else None,
+            "p50": round(statistics.median(latencies), 3) if latencies else None,
+            "p95": percentile(latencies, 0.95),
+            "max": max(latencies, default=None),
         },
         "tokens": {
             "input": sum(r.input_tokens for r in results),
@@ -282,6 +385,7 @@ def summarize(results: list[EvaluationResult]) -> dict[str, Any]:
         },
         "estimated_cost": round(sum(r.estimated_cost for r in results), 8),
         "errors": sum(r.error_type is not None for r in results),
+        "errors_by_code": dict(sorted(error_counts.items())),
     }
 
 
@@ -296,9 +400,15 @@ def result_to_dict(result: EvaluationResult) -> dict[str, Any]:
         "validated_sql": result.validated_sql,
         "actual_result": result.actual_result,
         "actual_answer": result.actual_answer,
-        "sql_correct": result.sql_correct,
-        "result_correct": result.result_correct,
+        "exact_sql_match": result.exact_sql_match,
+        "semantic_result_correct": result.semantic_result_correct,
+        "semantic_result_reason": result.semantic_result_reason,
         "answer_correct": result.answer_correct,
+        "answer_reason": result.answer_reason,
+        "safety_correct": result.safety_correct,
+        "safety_reason": result.safety_reason,
+        "semantic_correct": result.semantic_correct,
+        "semantic_reason": result.semantic_reason,
         "latency_ms": result.latency_ms,
         "input_tokens": result.input_tokens,
         "output_tokens": result.output_tokens,
@@ -315,14 +425,24 @@ def result_to_dict(result: EvaluationResult) -> dict[str, Any]:
 def write_report(results: list[EvaluationResult], output_dir: Path, dataset_path: Path) -> tuple[Path, Path]:
     output_dir.mkdir(parents=True, exist_ok=True)
     summary = summarize(results)
+    provider = os.getenv("LLM_PROVIDER", "").strip()
+    model = os.getenv("LLM_MODEL", "").strip()
+    run_label = os.getenv("EVALUATION_RUN_LABEL", "").strip()
     payload = {
         "dataset": str(dataset_path),
         "dataset_version": "1.0",
+        "provider": provider,
+        "model": model,
+        "run_label": run_label,
         "summary": summary,
         "cases": [result_to_dict(result) for result in results],
     }
-    json_path = output_dir / "evaluation-report.json"
-    md_path = output_dir / "evaluation-report.md"
+    if run_label:
+        json_path = output_dir / f"evaluation-report-{run_label}.json"
+        md_path = output_dir / f"evaluation-report-{run_label}.md"
+    else:
+        json_path = output_dir / "evaluation-report.json"
+        md_path = output_dir / "evaluation-report.md"
     json_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, default=str) + "\n", encoding="utf-8")
 
     def pct(metric: dict[str, Any]) -> str:
@@ -337,28 +457,31 @@ def write_report(results: list[EvaluationResult], output_dir: Path, dataset_path
         "",
         "| Metric | Passed | Evaluated | Rate |",
         "|---|---:|---:|---:|",
-        f"| SQL correctness | {summary['sql_correctness']['passed']} | {summary['sql_correctness']['evaluated']} | {pct(summary['sql_correctness'])} |",
-        f"| Result correctness | {summary['result_correctness']['passed']} | {summary['result_correctness']['evaluated']} | {pct(summary['result_correctness'])} |",
+        f"| Exact SQL Match rate | {summary['exact_sql_match_rate']['passed']} | {summary['exact_sql_match_rate']['evaluated']} | {pct(summary['exact_sql_match_rate'])} |",
+        f"| Semantic result correctness | {summary['semantic_result_correctness']['passed']} | {summary['semantic_result_correctness']['evaluated']} | {pct(summary['semantic_result_correctness'])} |",
         f"| Answer correctness | {summary['answer_correctness']['passed']} | {summary['answer_correctness']['evaluated']} | {pct(summary['answer_correctness'])} |",
+        f"| Safety correctness | {summary['safety_correctness']['passed']} | {summary['safety_correctness']['evaluated']} | {pct(summary['safety_correctness'])} |",
+        f"| Semantic correctness (all cases) | {summary['semantic_correctness']['passed']} | {summary['semantic_correctness']['evaluated']} | {pct(summary['semantic_correctness'])} |",
+        f"| Semantic correctness (completed cases) | {summary['semantic_correctness_completed']['passed']} | {summary['semantic_correctness_completed']['evaluated']} | {pct(summary['semantic_correctness_completed'])} |",
         "",
-        f"- Cases: **{summary['cases']}**",
-        f"- Average latency: **{summary['latency_ms']['avg']} ms**",
-        f"- Max latency: **{summary['latency_ms']['max']} ms**",
+        f"- Cases: **{summary['cases']}**; completed without provider/runtime error: **{summary['completed_cases']}**",
+        f"- Completed-case latency avg/p50/p95/max: **{summary['latency_ms']['avg']} / {summary['latency_ms']['p50']} / {summary['latency_ms']['p95']} / {summary['latency_ms']['max']} ms**",
         f"- Total tokens: **{summary['tokens']['total']}**",
         f"- Estimated cost: **${summary['estimated_cost']:.8f}**",
         f"- Cases with agent errors: **{summary['errors']}**",
         "",
         "## Case Results",
         "",
-        "| ID | Category | SQL | Result | Answer | Error |",
-        "|---|---|---|---|---|---|",
+        "| ID | Category | Exact SQL | Result | Answer | Safety | Semantic | Error |",
+        "|---|---|---|---|---|---|---|---|",
     ]
     for result in results:
         def mark(value: bool | None) -> str:
             return "N/A" if value is None else ("PASS" if value else "FAIL")
         lines.append(
-            f"| {result.question_id} | {result.category} | {mark(result.sql_correct)} | "
-            f"{mark(result.result_correct)} | {mark(result.answer_correct)} | {result.error_type or ''} |"
+            f"| {result.question_id} | {result.category} | {mark(result.exact_sql_match)} | "
+            f"{mark(result.semantic_result_correct)} | {mark(result.answer_correct)} | "
+            f"{mark(result.safety_correct)} | {mark(result.semantic_correct)} | {result.error_type or ''} |"
         )
     lines += ["", "## Case Detail", ""]
     case_by_id = {case.question_id: case for case in load_cases(dataset_path)}
@@ -380,6 +503,14 @@ def write_report(results: list[EvaluationResult], output_dir: Path, dataset_path
             f"- Trace ID: `{result.trace_id}`; model: `{result.model or ''}`; error: `{result.error_type or ''}`",
             "",
         ]
-    lines += ["## Notes", "", "- SQL correctness uses SQLGlot PostgreSQL canonicalization plus the observed physical table set.", "- Result correctness compares columns and rows; numeric values use a small relative tolerance.", "- Answer correctness is deterministic keyword containment from the dataset.", "- Reject cases validate the expected security error code instead of executing a result comparison.", "- Token/cost values are zero for the default mock provider because it reports no usage.", ""]
+    lines += [
+        "## Notes", "",
+        "- Exact SQL Match is a diagnostic metric based on SQLGlot canonicalization; semantically equivalent SQL may fail this metric.",
+        "- Semantic result correctness allows harmless extra columns, alias differences, omitted non-required columns, numeric tolerance, and unordered comparison when ordering is not part of the user request.",
+        "- Answer correctness uses normalized semantic evidence rather than raw keyword containment alone.",
+        "- Reject cases pass only when the unsafe request is stopped before executable SQL reaches the database.",
+        "- Completed-case latency excludes provider/runtime failures so Retry-After waits do not masquerade as model inference latency.",
+        "",
+    ]
     md_path.write_text("\n".join(lines), encoding="utf-8")
     return json_path, md_path
