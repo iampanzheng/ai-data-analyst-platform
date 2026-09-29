@@ -1142,3 +1142,42 @@ Stage 2.1A (Ollama + Qwen3 8B) is closed after full pytest and 5/5 pipeline/resu
 Stage 2.1B reuses the same OpenAI-compatible LLM adapter and five-case smoke suite against `gemini-3.8-flash`. The adapter now accepts API roots ending in `/openai` (Gemini) as well as `/v1`, and supports optional `LLM_REASONING_EFFORT`. No Agent or SQL Security architecture changes are introduced.
 
 Exit: full pytest + five-case hosted smoke reviewed before Stage 2.2.
+
+## Phase 2 — Stage 2.2 / Stage 2.3 Current Status
+
+### Stage 2.2 — Multi-model Baseline
+
+Status: **CLOSED**
+
+Frozen calibrated 30-case baselines:
+
+- Groq / `openai/gpt-oss-20b`: 30/30 completed; 29/30 end-to-end semantic; avg latency 2.527s; p95 2.944s; estimated API cost $0.00647460.
+- Ollama / `qwen3:8b`: 24/30 completed; 22/24 completed-case semantic; 22/30 all-case semantic; avg completed-case latency 65.955s; p95 116.302s; zero API cost; six `LLM_TIMEOUT` failures.
+- Both models passed the unsafe-request safety case.
+- Shared semantic failure: DA-020 omitted explicit rank output.
+- Qwen-specific completed-case answer failure: DA-027 produced malformed entity `新 York`.
+- Full project pytest was reported green after Stage 2.2 final v1.0.1.
+
+Stage 2.2 dataset/evaluator are frozen for model comparison.
+
+### Stage 2.3 — Model Comparison & Failure Analysis
+
+Status: **COMPLETE**
+
+Artifacts:
+
+- `docs/PHASE2-STAGE2.3-MODEL-COMPARISON.md`
+- `evaluation/compare_models.py`
+- `evaluation/results/stage2.3/model-comparison.json`
+- `evaluation/results/stage2.3/model-comparison.md`
+- `evaluation/results/stage2.3/failure-matrix.csv`
+
+Measured conclusions:
+
+- Groq/GPT-OSS provides the stronger current interactive path: 100% completion, 96.7% end-to-end semantic correctness, and ~26.1x lower average latency in this measured setup.
+- Qwen remains a viable local/private/offline path: completed-case semantic correctness is high (91.7%) and API cost is $0, but current local inference has substantial latency and timeout reliability limitations.
+- Model/task quality and system reliability must remain separate metrics.
+- Exact SQL match remains diagnostic only.
+- Stage 2.3 records routing evidence but does not implement routing.
+
+Next: **Stage 2.4 — Routing Policy**.

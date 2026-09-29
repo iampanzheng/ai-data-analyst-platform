@@ -1,0 +1,254 @@
+{
+  "stage": "2.3",
+  "title": "Model Comparison & Failure Analysis",
+  "source": "Stage 2.2 frozen calibrated 30-case baselines",
+  "models": [
+    {
+      "provider": "openai-compatible",
+      "model": "qwen3:8b",
+      "run_label": "qwen3-8b-ollama-calibrated",
+      "cases": 30,
+      "completed_cases": 24,
+      "completion_rate": 0.8,
+      "exact_sql_match": {
+        "passed": 3,
+        "evaluated": 23,
+        "rate": 0.1304
+      },
+      "semantic_result_correctness": {
+        "passed": 22,
+        "evaluated": 29,
+        "rate": 0.7586
+      },
+      "answer_correctness": {
+        "passed": 22,
+        "evaluated": 29,
+        "rate": 0.7586
+      },
+      "safety_correctness": {
+        "passed": 1,
+        "evaluated": 1,
+        "rate": 1.0
+      },
+      "semantic_correctness_all": {
+        "passed": 22,
+        "evaluated": 30,
+        "rate": 0.7333
+      },
+      "semantic_correctness_completed": {
+        "passed": 22,
+        "evaluated": 24,
+        "rate": 0.9167
+      },
+      "latency_ms": {
+        "avg": 65954.708,
+        "p50": 63806.539,
+        "p95": 116301.793,
+        "max": 126038.006
+      },
+      "tokens": {
+        "input": 52930,
+        "output": 21858,
+        "total": 74788
+      },
+      "estimated_cost": 0.0,
+      "provider_runtime_failures": 6,
+      "validation_rejections": 1,
+      "errors_by_code": {
+        "LLM_TIMEOUT": 6,
+        "STATEMENT_NOT_READ_ONLY": 1
+      }
+    },
+    {
+      "provider": "openai-compatible",
+      "model": "openai/gpt-oss-20b",
+      "run_label": "groq-gpt-oss-20b-calibrated",
+      "cases": 30,
+      "completed_cases": 30,
+      "completion_rate": 1.0,
+      "exact_sql_match": {
+        "passed": 0,
+        "evaluated": 29,
+        "rate": 0.0
+      },
+      "semantic_result_correctness": {
+        "passed": 28,
+        "evaluated": 29,
+        "rate": 0.9655
+      },
+      "answer_correctness": {
+        "passed": 29,
+        "evaluated": 29,
+        "rate": 1.0
+      },
+      "safety_correctness": {
+        "passed": 1,
+        "evaluated": 1,
+        "rate": 1.0
+      },
+      "semantic_correctness_all": {
+        "passed": 29,
+        "evaluated": 30,
+        "rate": 0.9667
+      },
+      "semantic_correctness_completed": {
+        "passed": 29,
+        "evaluated": 30,
+        "rate": 0.9667
+      },
+      "latency_ms": {
+        "avg": 2527.446,
+        "p50": 2548.731,
+        "p95": 2943.881,
+        "max": 2984.78
+      },
+      "tokens": {
+        "input": 70160,
+        "output": 4042,
+        "total": 74202
+      },
+      "estimated_cost": 0.0064746,
+      "provider_runtime_failures": 0,
+      "validation_rejections": 1,
+      "errors_by_code": {
+        "STATEMENT_NOT_READ_ONLY": 1
+      }
+    }
+  ],
+  "derived": {
+    "latency_ratio": {
+      "faster_model": "openai/gpt-oss-20b",
+      "slower_model": "qwen3:8b",
+      "ratio": 26.1
+    },
+    "output_token_ratio": {
+      "lower_output_model": "openai/gpt-oss-20b",
+      "higher_output_model": "qwen3:8b",
+      "ratio": 5.41
+    }
+  },
+  "failures": [
+    {
+      "model": "qwen3:8b",
+      "question_id": "DA-001",
+      "category": "ranking",
+      "difficulty": "easy",
+      "classification": "provider_or_runtime_failure",
+      "error_type": "LLM_TIMEOUT",
+      "semantic_result_correct": false,
+      "answer_correct": false,
+      "safety_correct": null,
+      "semantic_correct": false,
+      "semantic_reason": "result: no database result was produced"
+    },
+    {
+      "model": "qwen3:8b",
+      "question_id": "DA-002",
+      "category": "ranking",
+      "difficulty": "easy",
+      "classification": "provider_or_runtime_failure",
+      "error_type": "LLM_TIMEOUT",
+      "semantic_result_correct": false,
+      "answer_correct": false,
+      "safety_correct": null,
+      "semantic_correct": false,
+      "semantic_reason": "result: no database result was produced"
+    },
+    {
+      "model": "qwen3:8b",
+      "question_id": "DA-017",
+      "category": "CTE",
+      "difficulty": "medium",
+      "classification": "provider_or_runtime_failure",
+      "error_type": "LLM_TIMEOUT",
+      "semantic_result_correct": false,
+      "answer_correct": false,
+      "safety_correct": null,
+      "semantic_correct": false,
+      "semantic_reason": "result: no database result was produced"
+    },
+    {
+      "model": "qwen3:8b",
+      "question_id": "DA-020",
+      "category": "window",
+      "difficulty": "medium",
+      "classification": "semantic_result_or_instruction_failure",
+      "error_type": null,
+      "semantic_result_correct": false,
+      "answer_correct": true,
+      "safety_correct": null,
+      "semantic_correct": false,
+      "semantic_reason": "result: actual result is missing required semantic columns: ['population_rank']"
+    },
+    {
+      "model": "qwen3:8b",
+      "question_id": "DA-022",
+      "category": "filtering",
+      "difficulty": "easy",
+      "classification": "provider_or_runtime_failure",
+      "error_type": "LLM_TIMEOUT",
+      "semantic_result_correct": false,
+      "answer_correct": false,
+      "safety_correct": null,
+      "semantic_correct": false,
+      "semantic_reason": "result: no database result was produced"
+    },
+    {
+      "model": "qwen3:8b",
+      "question_id": "DA-027",
+      "category": "filtering",
+      "difficulty": "easy",
+      "classification": "answer_generation_failure",
+      "error_type": null,
+      "semantic_result_correct": true,
+      "answer_correct": false,
+      "safety_correct": null,
+      "semantic_correct": false,
+      "semantic_reason": "answer: answer is missing one or more expected entities"
+    },
+    {
+      "model": "qwen3:8b",
+      "question_id": "DA-028",
+      "category": "joins",
+      "difficulty": "hard",
+      "classification": "provider_or_runtime_failure",
+      "error_type": "LLM_TIMEOUT",
+      "semantic_result_correct": false,
+      "answer_correct": false,
+      "safety_correct": null,
+      "semantic_correct": false,
+      "semantic_reason": "result: no database result was produced"
+    },
+    {
+      "model": "qwen3:8b",
+      "question_id": "DA-029",
+      "category": "joins",
+      "difficulty": "hard",
+      "classification": "provider_or_runtime_failure",
+      "error_type": "LLM_TIMEOUT",
+      "semantic_result_correct": false,
+      "answer_correct": false,
+      "safety_correct": null,
+      "semantic_correct": false,
+      "semantic_reason": "result: no database result was produced"
+    },
+    {
+      "model": "openai/gpt-oss-20b",
+      "question_id": "DA-020",
+      "category": "window",
+      "difficulty": "medium",
+      "classification": "semantic_result_or_instruction_failure",
+      "error_type": null,
+      "semantic_result_correct": false,
+      "answer_correct": true,
+      "safety_correct": null,
+      "semantic_correct": false,
+      "semantic_reason": "result: actual result is missing required semantic columns: ['population_rank']"
+    }
+  ],
+  "routing_implications": {
+    "interactive_default_evidence": "Prefer the hosted Groq path for latency-sensitive interactive requests: it completed all measured cases, had higher end-to-end semantic correctness, and substantially lower measured latency.",
+    "local_path_evidence": "Retain Qwen3 8B/Ollama as a local/private/offline path: completed-case semantic correctness remained high and API cost was zero, but the measured setup had six timeouts and much higher latency.",
+    "shared_failure": "DA-020 is a shared instruction-adherence failure: both models returned the correct top three cities but omitted the explicit rank output required by the task contract."
+  }
+}

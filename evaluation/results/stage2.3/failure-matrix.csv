@@ -1,0 +1,10 @@
+model,question_id,category,difficulty,classification,error_type,semantic_result_correct,answer_correct,safety_correct,semantic_correct,semantic_reason
+qwen3:8b,DA-001,ranking,easy,provider_or_runtime_failure,LLM_TIMEOUT,False,False,,False,result: no database result was produced
+qwen3:8b,DA-002,ranking,easy,provider_or_runtime_failure,LLM_TIMEOUT,False,False,,False,result: no database result was produced
+qwen3:8b,DA-017,CTE,medium,provider_or_runtime_failure,LLM_TIMEOUT,False,False,,False,result: no database result was produced
+qwen3:8b,DA-020,window,medium,semantic_result_or_instruction_failure,,False,True,,False,result: actual result is missing required semantic columns: ['population_rank']
+qwen3:8b,DA-022,filtering,easy,provider_or_runtime_failure,LLM_TIMEOUT,False,False,,False,result: no database result was produced
+qwen3:8b,DA-027,filtering,easy,answer_generation_failure,,True,False,,False,answer: answer is missing one or more expected entities
+qwen3:8b,DA-028,joins,hard,provider_or_runtime_failure,LLM_TIMEOUT,False,False,,False,result: no database result was produced
+qwen3:8b,DA-029,joins,hard,provider_or_runtime_failure,LLM_TIMEOUT,False,False,,False,result: no database result was produced
+openai/gpt-oss-20b,DA-020,window,medium,semantic_result_or_instruction_failure,,False,True,,False,result: actual result is missing required semantic columns: ['population_rank']
