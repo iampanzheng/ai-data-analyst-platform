@@ -1,0 +1,68 @@
+{
+  "phase": "2",
+  "stage": "2.6",
+  "status": "closed",
+  "acceptance": {
+    "stage_2_4_full_pytest_user_side": "pass",
+    "stage_2_4_route_smoke": {
+      "auto_to_remote": "pass",
+      "remote_to_remote": "pass",
+      "local_to_local": "pass",
+      "curl": "pass",
+      "browser": "pass"
+    },
+    "stage_2_5_full_pytest_user_side": "pass",
+    "stage_2_5_fallback_smoke": {
+      "remote_auth_no_fallback": "pass",
+      "remote_connection_to_local": "pass",
+      "local_auto_privacy_safe": "pass",
+      "local_cross_route_to_remote": "pass",
+      "fallback_metadata": "pass",
+      "route_usage": "pass",
+      "estimated_remote_cost": "pass"
+    }
+  },
+  "baselines": {
+    "groq_gpt_oss_20b": {
+      "cases": 30,
+      "completed": 30,
+      "end_to_end_semantic_rate": 0.9667,
+      "completed_semantic_rate": 0.9667,
+      "avg_latency_ms": 2527.446,
+      "p95_latency_ms": 2943.881,
+      "tokens": 74202,
+      "estimated_cost_usd": 0.0064746,
+      "provider_runtime_failures": 0
+    },
+    "ollama_qwen3_8b": {
+      "cases": 30,
+      "completed": 24,
+      "end_to_end_semantic_rate": 0.7333,
+      "completed_semantic_rate": 0.9167,
+      "avg_latency_ms": 65954.708,
+      "p95_latency_ms": 116301.793,
+      "tokens": 74788,
+      "estimated_cost_usd": 0.0,
+      "provider_runtime_failures": 6
+    }
+  },
+  "frozen_decisions": [
+    "sql_validator_is_security_boundary",
+    "deterministic_routing_outside_llm",
+    "auto_defaults_remote",
+    "local_is_privacy_safe_by_default",
+    "local_to_remote_requires_cross_route",
+    "fallback_at_llm_call_boundary",
+    "exact_sql_match_is_diagnostic",
+    "separate_model_quality_from_runtime_reliability"
+  ],
+  "next_phase": {
+    "name": "Phase 3",
+    "starting_point": "richer evidence-backed analysis",
+    "do_not_redesign": [
+      "sql_security_boundary",
+      "deterministic_routing",
+      "privacy_safe_fallback"
+    ]
+  }
+}

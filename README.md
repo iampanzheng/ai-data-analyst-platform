@@ -369,3 +369,37 @@ The existing `LLMClient` abstraction and Day 6 evaluation harness are intentiona
 ## Phase 2 routing
 
 Stage 2.4 adds deterministic LLM routing. With `LLM_ROUTING_ENABLED=true`, `/api/analyze` supports `routing_mode=auto|remote|local`. The measured Stage 2.3 default is remote/Groq for interactive use; local/Ollama remains an explicit privacy/offline option. Automatic provider fallback is intentionally deferred to Stage 2.5. See `docs/PHASE2-STAGE2.4-ROUTING-POLICY.md` and `.env.routing.example`.
+
+## Phase 2 Closeout
+
+Phase 2 is **closed**.
+
+The project now includes calibrated real-model evaluation, measured Groq/Qwen baselines, deterministic `auto|remote|local` routing, privacy-aware provider fallback, sticky fallback at the LLM-call boundary, route-level token/cost telemetry, and runtime fallback observability.
+
+| Metric | Groq / GPT-OSS 20B | Ollama / Qwen3 8B |
+|---|---:|---:|
+| Completed | 30/30 | 24/30 |
+| End-to-end semantic | 96.7% | 73.3% |
+| Completed-case semantic | 96.7% | 91.7% |
+| Avg completed latency | 2.53 s | 65.95 s |
+| P95 completed latency | 2.94 s | 116.30 s |
+| API cost for 30-case run | ~$0.00647 | $0 |
+
+Runtime acceptance verified:
+
+```text
+auto   → remote
+remote → remote
+local  → local
+
+remote connection failure + auto       → local
+local connection failure + auto        → stays local
+local connection failure + cross_route → remote
+authentication failure                 → no fallback
+```
+
+See `docs/PHASE2-STAGE2.6-FINAL-EVALUATION-CLOSEOUT.md` and `PROJECT-CONTEXT.md` for the complete Phase 2 closeout.
+
+### Next phase
+
+Phase 3 should extend evidence-backed analysis—richer data, controlled analysis tooling, visualization, and report-quality outputs—without redesigning the closed SQL-security or routing/fallback architecture.

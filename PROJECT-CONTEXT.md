@@ -1,1220 +1,247 @@
 # PROJECT-CONTEXT.md — P1 AI Data Analyst Platform
 
-> Purpose: project-local handoff file for the `ai-data-analyst` repository.
-> This file is the source of truth for P1 implementation status, architecture, engineering decisions, verification state, and next actions.
-> Overall AI Engineer portfolio strategy, P2/P3, career positioning, and the global roadmap live in the separate Master PROJECT-CONTEXT.md.
+> Project-local source of truth for implementation status, architecture, measured results, verification state, frozen decisions, and next starting point.
 
----
-
-# 1. Project Identity
-
-## Project
-
-**P1 — AI Data Analyst Platform**
-
-Repository:
+# 1. Current Status
 
 ```text
-ai-data-analyst/
+Phase 1 — MVP Foundation                         ✅ CLOSED
+Phase 2 — Real LLM Evaluation / Routing / Cost  ✅ CLOSED
 ```
 
-## Product goal
-
-Build an AI-powered analytics application that accepts natural-language business/data questions, discovers relevant schema and metadata, generates SQL, validates it, executes read-only analysis, and later adds Python analysis, visualization, and evidence-backed reporting.
-
-## Primary user story
+Phase 2 stages:
 
 ```text
-Natural-language question
-→ Schema / Metadata
-→ LLM SQL generation
-→ SQL validation
-→ Read-only PostgreSQL execution
-→ optional Python analysis
-→ chart / report
-→ evidence-backed answer
+Stage 2.1 — Real LLM Integration                 ✅
+Stage 2.2 — Calibrated Multi-model Baseline      ✅
+Stage 2.3 — Model Comparison / Failure Analysis  ✅
+Stage 2.4 — Deterministic Routing                ✅
+Stage 2.5 — Reliability / Fallback / Cost        ✅
+Stage 2.6 — Evaluation & Closeout                ✅
 ```
 
-## Core engineering principle
+Do not redesign completed Phase 1–2 architecture without new measured evidence.
 
-```text
-request → validate → execute → evidence
-```
-
-Generated SQL is untrusted input. The Analyst Agent must never bypass the SQL Validator.
-
----
-
-# 2. Current Status
-
-```text
-Day 1  ✅ Data Pipeline
-Day 2  ✅ Schema + Metadata + SQL Security
-Day 3  ✅ Tests + Integration + Observability
-Day 4  ✅ React + Spring Boot Gateway + FastAPI
-Day 5  ✅ Model Client + Analyst Agent v0.1
-Day 6  ✅ Evaluation Harness
-Day 7  ✅ README / Demo / Polish
-```
-
-Current active milestone:
-
-```text
-P1 → Day 7 complete; portfolio baseline closed
-```
-
-Do not redesign completed work unless a concrete regression or evaluation result requires it.
-
----
-
-# 3. Current Architecture
+# 2. Core Architecture
 
 ```text
 React
   ↓
 Spring Boot Gateway
   ↓
-FastAPI AI Service
+FastAPI
   ↓
-Analyst Agent
+Deterministic Router
+  ├── remote: Groq / GPT-OSS 20B
+  └── local:  Ollama / Qwen3 8B
   ↓
-Schema Tool / LLM Client / SQL Tool
+Resilient LLM Client
+  ├── bounded provider retry
+  ├── privacy-aware fallback
+  ├── sticky fallback
+  └── usage / estimated-cost telemetry
   ↓
-SQL Validator
-  ↓
-PostgreSQL
-```
-
-## Deterministic query path
-
-```text
-Client / React
-    ↓
-Spring Boot Gateway :8080
-    ↓
-FastAPI :8000
-    ↓
-SQL Validator
-    ↓
-read-only PostgreSQL
-    ↓
-result
-```
-
-## Analyst Agent v0.1 path
-
-```text
-Question
+Analyst Agent v0.1
   ↓
 Schema Tool
   ↓
-LLM Client
-  ↓
-SQL Candidate
+LLM SQL candidate
   ↓
 SQL Validator
   ↓
-SQL Tool / PostgreSQL
+read-only PostgreSQL
   ↓
 Query Result
   ↓
-LLM Client
-  ↓
-Final Answer
+LLM final answer
 ```
 
-## Current V1 non-goals
-
-- multi-agent architecture
-- Kubernetes
-- fine-tuning
-- real-time BI dashboards
-- large data warehouse
-- arbitrary user code execution
-
----
-
-# 4. Completed Milestones
-
-## Day 1 — Data Pipeline ✅
-
-Implemented:
-
-- Git / monorepo skeleton
-- Docker Compose
-- PostgreSQL
-- initial public data fixture
-- `data/raw`
-- ETL
-- PostgreSQL schema
-- first successful SQL query
-
-Data flow:
+Core principle:
 
 ```text
-public data
-  ↓
-data/raw
-  ↓
-ETL
-  ↓
-PostgreSQL
-  ↓
-SQL
+request → validate → execute → evidence
 ```
 
-Current minimal fixture:
+LLM-generated SQL is untrusted. The SQL Validator remains the execution security boundary.
 
-- `city` contains 15 rows
-- top-five population query returns New York, Los Angeles, Chicago, Houston, Phoenix for 2025
-
-ETL reload rule:
-
-```sql
-TRUNCATE TABLE
-    employment,
-    salary,
-    education,
-    economic_indicator,
-    city
-RESTART IDENTITY;
-```
-
-Reason: those dependent tables reference `city` with foreign keys.
-
----
-
-## Day 2 — Schema / Metadata / SQL Security ✅
-
-Implemented:
-
-- `GET /api/schema`
-- dataset metadata
-- column metadata
-- shared table policy
-- SQL AST validation with SQLGlot
-- `SELECT` / `WITH` only
-- public-schema allowlist
-- table allowlist
-- CTE-aware table extraction
-- SQL comment rejection
-- `SELECT INTO` rejection
-- row-lock rejection
-- statement timeout
-- row cap
-- structured validation errors
-
-Current allowed schema:
+# 3. Routing / Fallback Contract
 
 ```text
-public
+routing_mode=auto   → remote
+routing_mode=remote → remote
+routing_mode=local  → local
 ```
-
-Current allowlisted tables:
 
 ```text
-city
-employment
-salary
-education
-economic_indicator
+remote + fallback_mode=auto
+→ retryable provider failure may fallback to local
+
+local + fallback_mode=auto
+→ remains local; never silently sends data remote
+
+local + fallback_mode=cross_route
+→ explicit permission for local → remote fallback
+
+fallback_mode=disabled
+→ no cross-route fallback
 ```
 
-Key design:
+Retryable fallback classes:
 
 ```text
-Metadata  = semantic knowledge
-Validator = execution policy
+LLM_TIMEOUT
+LLM_CONNECTION_ERROR
+LLM_RATE_LIMIT
+LLM_SERVER_ERROR
 ```
 
-Schema and Validator share the same table policy to prevent policy drift.
+Authentication/configuration and SQL-security errors do not trigger provider fallback.
 
-Verified examples include:
+# 4. Frozen Stage 2.2 Baselines
 
-```sql
-SELECT COUNT(*) FROM public.city;
-```
-
-allowed;
-
-```sql
-SELECT c.name
-FROM public.city c
-JOIN public.salary s ON s.city_id = c.id
-LIMIT 5;
-```
-
-allowed;
-
-```sql
-SELECT * FROM pg_catalog.pg_tables;
-```
-
-rejected with `SCHEMA_NOT_ALLOWED`;
-
-```sql
-SELECT * FROM analytics.city;
-```
-
-rejected with `SCHEMA_NOT_ALLOWED`.
-
----
-
-## Day 3 — Tests / Observability ✅
-
-Implemented:
-
-- SQL Validator unit tests
-- PostgreSQL integration tests
-- FastAPI schema/query integration tests
-- `X-Trace-ID` propagation with UUID fallback
-- structured JSON logging
-- `execution_ms`
-- `row_count`
-- queried table list
-- request timing
-
-Verified:
+## Groq / GPT-OSS 20B
 
 ```text
-32 tests collected in the container
-integration tests executed successfully
-host-side non-integration tests passed
+cases                         30
+completed                     30/30
+semantic result               28/29  (96.55%)
+answer correctness            29/29  (100%)
+safety                        1/1    (100%)
+end-to-end semantic           29/30  (96.67%)
+avg latency                   2.527 s
+p95 latency                   2.944 s
+tokens                        74,202
+estimated cost                $0.0064746
+provider/runtime failures     0
 ```
 
-Temporary cleanup:
+Known semantic failure: DA-020 omitted explicit rank output.
+
+## Ollama / Qwen3 8B
 
 ```text
-tests/test_http_debug.py
+cases                         30
+completed                     24/30
+semantic result               22/29  (75.86%)
+answer correctness            22/29  (75.86%)
+safety                        1/1    (100%)
+end-to-end semantic           22/30  (73.33%)
+completed-case semantic       22/24  (91.67%)
+avg completed latency         65.955 s
+p95 completed latency         116.302 s
+tokens                        74,788
+estimated API cost            $0
+provider/runtime failures     6 LLM_TIMEOUT
 ```
 
-must not remain in the final suite.
+Interpretation:
 
-Temporary HTTP body debug middleware must not be part of normal runtime.
+- Qwen completed-case quality is high;
+- its main measured weakness is local latency/reliability;
+- DA-020 is a shared rank-output adherence failure;
+- DA-027 includes a final-answer entity-generation defect (`新 York`).
 
----
+# 5. Evaluator State
 
-## Day 4 — Application Architecture ✅
+The calibrated evaluator is frozen for Phase 2 comparison.
 
-Implemented:
+Primary metrics:
 
-- Spring Boot Gateway
-- React scaffold
-- API contract alignment
-- React → Spring Boot → FastAPI → PostgreSQL
-- `/api/schema` through Gateway
-- `/api/query` through Gateway
-- `X-Trace-ID` propagation
-- browser query flow
+- Semantic Result Correctness
+- Answer Correctness
+- End-to-End Semantic Correctness
+- Safety Correctness
+- completion/reliability
+- latency
+- token usage
+- estimated cost
 
-### HTTP transport decision
+`Exact SQL Match` is diagnostic only.
 
-Gateway → FastAPI uses Java 21 `HttpClient` with explicit HTTP/1.1:
+# 6. Verification State
 
-```java
-HttpClient.newBuilder()
-    .version(HttpClient.Version.HTTP_1_1)
-    .connectTimeout(...)
-    .build();
-```
+User-side verification completed.
 
-This was required because the default JDK HTTP/2 preference caused a clear-text Uvicorn HTTP/1.1 upgrade compatibility issue. Symptoms included:
+## Stage 2.4
+
+- full pytest: PASS
+- curl route smoke: PASS
+- browser route smoke: PASS
+- `auto → remote`: PASS
+- `remote → remote`: PASS
+- `local → local`: PASS
+
+## Stage 2.5
+
+- full pytest: PASS
+- remote AUTH error + auto: no fallback — PASS
+- remote connection error + auto: remote → local — PASS
+- local connection error + auto: no remote fallback — PASS
+- local connection error + cross_route: local → remote — PASS
+- fallback metadata — PASS
+- route usage accounting — PASS
+- estimated remote cost — PASS
+
+# 7. Frozen Engineering Decisions
+
+1. Keep one Analyst Agent until evaluation demonstrates a concrete need for more orchestration.
+2. SQL Validator remains the deterministic database security boundary.
+3. Metadata knowledge and execution policy remain separate.
+4. Model providers stay behind `LLMClient`.
+5. Routing remains deterministic and outside the LLM.
+6. `auto` uses the measured remote interactive default.
+7. Explicit local mode is privacy-safe by default.
+8. Local→remote fallback requires explicit `cross_route` permission.
+9. Fallback happens at the LLM-call boundary, not by replaying the whole Agent.
+10. Model quality and system reliability are measured separately.
+11. Exact SQL equality is not the primary correctness measure.
+12. Provider failure is not a successful security rejection.
+
+# 8. Current API Observability
+
+`POST /api/analyze` includes:
 
 ```text
-Unsupported upgrade request
-Invalid HTTP request received
-```
-
-and FastAPI observing `Content-Length` while the ASGI body was empty.
-
-HTTP/1.1 was verified to restore the end-to-end query path.
-
-### Maven
-
-Gateway uses:
-
-```text
-Java 21
-Spring Boot 4.1.1
-Java HttpClient
-```
-
-`mvn clean test` has been verified successfully.
-
-Obsolete `ObjectMapper` references were removed from the Gateway client tests.
-
-### Local Maven build setup
-
-Environment-specific Maven mirror settings must not be committed.
-
-Use local:
-
-```text
-~/.m2/settings.xml
-```
-
-Docker builds use:
-
-- BuildKit secret for the local Maven settings file
-- BuildKit cache mounted at `/root/.m2`
-
-Goal:
-
-```text
-local mirror for download speed
-+
-persistent dependency cache
-+
-no local credentials/mirror settings in Git
-```
-
----
-
-## Day 5 — Model Client + Analyst Agent v0.1 ✅
-
-Implemented:
-
-- provider-independent `LLMClient` abstraction
-- Mock LLM provider
-- OpenAI-compatible provider abstraction
-- `AnalystState`
-- Schema Tool
-- SQL Tool
-- single Analyst Agent v0.1
-- `POST /api/analyze`
-- React analyst flow
-
-Agent flow:
-
-```text
-Question
-  ↓
-Schema
-  ↓
-LLM
-  ↓
-SQL Candidate
-  ↓
-SQL Validator
-  ↓
-PostgreSQL
-  ↓
-Query Result
-  ↓
-LLM
-  ↓
-Final Answer
-```
-
-Critical rule:
-
-```text
-LLM-generated SQL
-        ↓
-SQL Validator
-        ↓
-database
-```
-
-Never:
-
-```text
-LLM
- ↓
-database
-```
-
-Default development configuration:
-
-```text
-LLM_PROVIDER=mock
-```
-
-Mock provider is deterministic and requires no API key.
-
-Verified example:
-
-```text
-Question:
-人口最多的 5 个城市是哪几个？
-```
-
-Successful response included:
-
-```text
+routing_mode
+selected_route
+final_route
+routing_reason
+fallback_mode
+fallback_route
+fallback_used
+fallback_events
+route_usage
+estimated_cost_usd
 sql_candidate
 validated_sql
 query_result
 final_answer
-trace_id
 model
-```
-
-Verified SQL:
-
-```sql
-SELECT name, state, population, year
-FROM city
-ORDER BY population DESC
-LIMIT 5
-```
-
----
-
-# 5. Current API Surface
-
-## FastAPI
-
-```text
-GET  /health
-GET  /api/schema
-POST /api/query
-POST /api/analyze
-```
-
-## Gateway
-
-Gateway exposes corresponding `/api/...` routes to clients and forwards them to FastAPI.
-
-## Frontend
-
-Current React UI supports:
-
-- viewing Schema
-- submitting SQL
-- viewing query results
-- submitting a natural-language Analyst question
-- viewing the Analyst result, SQL, and query result
-
-The UI is intentionally minimal.
-
----
-
-# 6. Current Repository Structure
-
-```text
-ai-data-analyst/
-├── README.md
-├── PROJECT-CONTEXT.md
-├── LICENSE
-├── docker-compose.yml
-├── .env.example
-├── backend/
-│   └── springboot/
-├── ai/
-│   └── analyst/
-├── frontend/
-│   └── web/
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   └── samples/
-├── db/
-├── tests/
-├── evaluation/
-├── docs/
-└── .github/
-```
-
-This file is the project-local source of truth for P1 status and engineering decisions.
-
----
-
-# 7. Current Data State
-
-Current minimal dataset:
-
-```text
-city
-  15 rows
-```
-
-The current fixture is sufficient for basic city questions.
-
-Related tables such as:
-
-```text
-salary
-employment
-education
-economic_indicator
-```
-
-may still be empty in the minimal dataset.
-
-Therefore a valid join may currently return zero rows. Treat that as a data-expansion issue, not automatically as an API or Agent defect.
-
-Before building a strong multi-table evaluation set, expand the dataset for these tables.
-
----
-
-# 8. Day 6 — Evaluation Harness
-
-## Goal
-
-Run one command and produce a reproducible evaluation report for Analyst Agent v0.1.
-
-## Deliverables
-
-1. finalize evaluation dataset format
-2. create first 30 evaluation cases
-3. build deterministic evaluator runner
-4. add SQL correctness checks
-5. add result correctness checks
-6. capture Agent execution details
-7. collect latency / token / cost fields
-8. produce human-reviewable evaluation output
-
-## Initial metrics
-
-```text
-SQL correctness
-Result correctness
-Answer correctness
-Latency
-Token usage
-Estimated cost
-```
-
-## Evaluation case fields
-
-```text
-case_id
-question
-category
-difficulty
-expected_sql
-expected_tables
-expected_columns
-expected_result or result-check strategy
-actual_sql
-actual_result
-sql_correctness
-result_correctness
-answer_correctness
-latency
-input_tokens
-output_tokens
-total_tokens
-estimated_cost
+provider
+usage
+errors
 trace_id
-model/provider
-error_code
 ```
 
-## Initial categories
+# 9. Phase 3 Starting Point
 
-At minimum:
+Phase 2 is closed. Phase 3 should extend analysis capability rather than revisit routing/security fundamentals.
+
+Recommended direction:
 
 ```text
-filtering
-aggregation
-ranking
-grouping
-sorting
-joins
-year/date filters
-CTEs
-ambiguous wording
-unsafe requests
-edge cases
+richer datasets / metadata
+→ stronger evidence interpretation
+→ controlled Python analysis capability
+→ visualization
+→ report-quality evidence packaging
 ```
 
-## Evaluation principle
+Before implementation:
 
-Do not start with complex LLM-as-a-Judge.
+1. define the Phase 3 product objective;
+2. define measurable acceptance criteria;
+3. define deterministic execution policy for any Python/analysis tool;
+4. preserve the existing SQL security and routing/fallback contracts.
 
-First establish:
-
-```text
-question
-→ expected behavior
-→ actual SQL
-→ actual DB result
-→ objective comparison
-```
-
-Later, human review or LLM-assisted judging can be added.
-
-## Day 6 implementation order
-
-```text
-1. Evaluation schema
-2. 30 evaluation cases
-3. Dataset loader
-4. Deterministic SQL evaluator
-5. Deterministic result evaluator
-6. Agent evaluation runner
-7. Latency/token/cost capture
-8. JSON + Markdown report
-9. Run first baseline
-```
-
-First baseline:
-
-```text
-LLM_PROVIDER=mock
-```
-
-The same evaluator should later be reusable for a real model.
-
-
-## Day 6 implementation state — CLOSED
-
-Implemented in the repository:
-
-- `evaluation/dataset.json` with 30 evaluation cases
-- deterministic SQL correctness evaluator using SQLGlot PostgreSQL canonicalization
-- deterministic result correctness evaluator with ordered/unordered modes and numeric tolerance
-- deterministic answer correctness via expected keyword containment
-- expected security rejection/error-code evaluation
-- Analyst Agent v0.1 execution capture
-- latency / token / estimated-cost collection
-- trace/model/provider/error capture
-- JSON + Markdown report generation
-- `python -m evaluation.run` / `make eval` entry point
-- unit tests for dataset, SQL/result comparison, and metric capture
-- integration test for the live Agent + PostgreSQL evaluation path
-- deterministic Mock Provider baseline
-
-### Verification evidence
-
-Actual project-container verification:
-
-```text
-docker compose exec fastapi pytest -q tests/test_llm_client.py
-→ 9 passed
-
-docker compose exec fastapi pytest -q tests/test_evaluation.py tests/integration/test_evaluation_integration.py
-→ 6 passed
-
-docker compose exec fastapi pytest -q
-→ 48 passed
-
-docker compose exec fastapi python -m evaluation.run
-→ 30 evaluation cases executed; JSON + Markdown report generated and reviewed
-```
-
-### Day 6 baseline
-
-```text
-Evaluation cases:        30
-SQL correctness:          2 / 30   (6.7%)
-Result correctness:       1 / 29   (3.5%)
-Answer correctness:       0 / 29   (0.0%)
-Average latency:       ~22.927 ms
-Maximum latency:       ~32.287 ms
-Total tokens:               0
-Estimated cost:             $0
-```
-
-This is a deterministic Mock Provider baseline, not a production-model quality target. The low score is useful evidence that the harness detects incorrect SQL/result/answer behavior. The evaluator must not be weakened merely to improve the score.
-
-### Security verification
-
-Case `DA-030` verifies the unsafe-request path:
-
-```text
-Question: 执行 DROP TABLE city。
-Actual SQL: DROP TABLE city
-Validator: STATEMENT_NOT_READ_ONLY
-PostgreSQL execution: not performed
-```
-
-This confirms:
-
-```text
-unsafe request
-→ LLM-generated unsafe SQL
-→ SQL Validator
-→ rejection
-→ database not executed
-```
-
-### Day 6 baseline artifacts
-
-The reviewed Mock baseline is preserved as versioned evidence:
-
-```text
-evaluation/results/baseline-mock-v0.1.json
-evaluation/results/baseline-mock-v0.1.md
-```
-
-The dataset loader validates `evaluation/dataset.json` against `evaluation/dataset.schema.json` using JSON Schema Draft 2020-12 before constructing evaluation cases. Invalid enum values, malformed fields, unexpected properties, and reject cases without a non-empty `expected_error_code` fail fast.
-
-### Evaluator v0.1 limitations
-
-Preserve these limitations explicitly rather than weakening the baseline:
-
-- `sql_correct` is canonical reference-SQL equality after SQLGlot PostgreSQL normalization; it is **not** full SQL semantic equivalence. Semantically equivalent queries may therefore fail this metric.
-- `result_correct` is the stronger objective signal for answer-producing cases because it compares columns and rows, supports ordered/unordered modes, and applies numeric tolerance.
-- `answer_correct` uses deterministic required-keyword containment; it is **not** a semantic answer-quality judge. Equivalent wording can fail.
-- LLM-as-a-Judge is intentionally deferred until deterministic evaluation is stable and real-model comparisons require it.
-
-These limitations are acceptable for the v0.1 deterministic baseline and should be revisited during real-model evaluation rather than retroactively changing the Mock baseline.
-
-### Post-review cleanup verification
-
-After the Day 6 review, the following non-behavioral cleanup was added:
-
-- preserved reviewed Mock baseline artifacts under versioned filenames
-- enabled Draft 2020-12 JSON Schema validation for the evaluation dataset
-- added negative tests for invalid difficulty values and reject cases without a non-empty expected error code
-- documented evaluator v0.1 metric semantics in `evaluation/README.md`
-
-Verification performed in the review environment:
-
-```text
-JSON Schema itself: valid
-current 30-case dataset against schema: PASS
-invalid difficulty rejection: PASS
-missing/null reject error-code rejection: PASS
-Python compileall for changed evaluation/test files: PASS
-baseline artifact summary integrity: PASS
-```
-
-The review environment did not contain `sqlglot`, so the modified repository's full pytest suite was not re-executed there. Re-run the normal project-container verification before committing this cleanup:
-
-```bash
-docker compose up --build -d
-docker compose exec fastapi pytest -q
-docker compose exec fastapi python -m evaluation.run
-```
-
-The previously recorded Day 6 closure evidence (`48 passed` plus the reviewed 30-case Mock baseline) remains the verification evidence for the pre-cleanup snapshot.
-
-### Day 6 closure
-
-Day 6 is complete because the 30-case dataset, schema validation, deterministic evaluators, Agent execution capture, telemetry, versioned JSON/Markdown baseline artifacts, full test suite, live evaluation runner, and unsafe SQL rejection path were implemented and actually verified.
-
-
-# 9. Testing / Verification Rules
-
-Before declaring a milestone complete, use actual execution results.
-
-## Python unit tests
-
-```bash
-uv run pytest -q -m "not integration"
-```
-
-## Python integration tests
-
-```bash
-docker compose up --build -d
-docker compose exec fastapi pytest -q
-```
-
-Temporary debug tests must not be part of the final suite.
-
-## Java
-
-```bash
-cd backend/springboot
-mvn clean test
-```
-
-## End-to-end minimum
-
-```text
-React
-→ Gateway
-→ FastAPI
-→ Validator
-→ PostgreSQL
-```
-
-and:
-
-```text
-Natural language
-→ Analyst Agent
-→ SQL Validator
-→ PostgreSQL
-```
-
-Never mark a test, build, or runtime check as passed unless it was actually executed.
-
----
-
-# 10. Engineering Decisions to Preserve
-
-1. One Analyst Agent only; do not add multi-agent orchestration unless evaluation shows a real need.
-2. Generated SQL is untrusted input and must pass the SQL Validator.
-3. Analyst database access is read-only.
-4. Metadata and execution policy are separate concerns.
-5. Schema and Validator use the same allowlist.
-6. Model provider selection stays behind an abstraction.
-7. Prefer evidence-backed answers.
-8. Prefer deterministic evaluation before LLM-as-a-Judge.
-9. Local-only development configuration stays out of Git.
-10. Docker builds remain reproducible and cache-friendly.
-11. Keep commits small and reviewable.
-12. Update README / architecture / docs when behavior changes.
-13. Prefer real local execution evidence over assumptions.
-
----
-
-# 11. Current Open Work
-
-## Day 7 — README / Demo / Polish
-
-### Day 7 implementation state — COMPLETE
-
-Completed:
-
-- README rewritten around the current runnable system and portfolio engineering story
-- architecture, provider boundary, SQL security boundary, API usage, and evaluation workflow documented
-- reviewed Day 6 Mock baseline documented without presenting Mock quality as real-model capability
-- Demo walkthrough added in `docs/DEMO.md`
-- portfolio/resume/interview talking points added in `docs/PORTFOLIO.md`
-- implemented tools clearly separated from planned Python/chart/report tools
-- stale Day 3 / Day 5 public labels removed
-- default Compose build made independent of developer-specific Maven `settings.xml`
-- optional Maven mirror override retained for local optimization
-- generated caches removed from the portfolio snapshot and `.gitignore` cleaned up
-- transient `evaluation-report.*` files treated as reproducible latest-run outputs; versioned baselines remain preserved
-
-Final Day 7 verification in the normal project environment:
-
-```text
-docker compose up --build -d                         -> passed
-docker compose exec fastapi pytest -q               -> 51 passed
-docker compose exec fastapi python -m evaluation.run -> 30 cases completed
-Mock correctness                                     -> SQL 6.7%, result 3.5%, answer 0.0%
-latest evaluation avg latency                        -> 38.238 ms
-cd backend/springboot && mvn clean test              -> 5 tests passed, BUILD SUCCESS
-browser smoke test                                   -> all 4 checks passed
-```
-
-Browser checks verified:
-
-```text
-- Schema renders
-- Ask Analyst returns successfully
-- Validated SQL and result table render
-- manual Run Query succeeds
-```
-
-Day 7 is closed. Do not add further documentation-only work unless a concrete inconsistency is found.
-
-## Immediate cleanup to verify
-
-```text
-- confirm tests/test_http_debug.py is absent
-- confirm HTTP body debug code is absent from normal runtime
-- confirm Maven BuildKit secret/cache configuration remains local
-- confirm no credentials or local settings are committed
-```
-
-## Data limitation
-
-The current minimal fixture populates `city` but related tables such as `salary`, `employment`, `education`, and `economic_indicator` may be empty. Valid joins can therefore return zero rows; this is a fixture/data-expansion limitation, not automatically an Agent/API defect.
-
-## Later P1 work
-
-After Day 7 polish:
-
-```text
-- stronger evidence-backed Analyst answers
-- Python analysis tool
-- chart tool
-- report generation
-- real-model evaluation
-- security hardening
-- cost / latency optimization
-- richer data fixture
-```
-
-
-# 12. New Chat / Coding Agent Handoff
-
-When continuing this repository in a new ChatGPT / Codex / Claude Code session:
-
-1. provide the latest repository/code
-2. provide this `PROJECT-CONTEXT.md`
-3. treat this file and actual code as the current source of truth
-4. do not reconstruct implementation details from old conversation history
-5. state the exact next milestone
-6. verify actual code before claiming a feature is present
-
-Recommended continuation message:
-
-```text
-这是 P1 AI Data Analyst Platform 的项目续接。
-
-请先阅读：
-1. 最新 ai-data-analyst 代码仓库
-2. 根目录 PROJECT-CONTEXT.md
-
-以实际代码和 PROJECT-CONTEXT.md 为 source of truth。
-不要重新设计已经完成并关闭的 Day 1～Day 7。
-
-当前阶段：
-P1 → Phase 2：Real LLM Evaluation
-
-请以现有 `LLMClient` abstraction 和 Day 6 evaluation harness 为基础继续：
-- 接入并验证真实模型 provider
-- 保持 Mock baseline 不变
-- 使用同一 30-case dataset 跑真实模型 baseline
-- 记录 correctness / latency / input tokens / output tokens / estimated cost
-- 比较模型差异并分析失败 case
-- 在有测量证据后再设计 model routing / fallback / cost controls
-
-验证要求：
-- 不要削弱 evaluator 标准来提高分数
-- 不要绕过 SQL Validator
-- 不要在没有实际运行结果时声称模型效果、成本或延迟
-- 不要提前引入多 Agent 或复杂 AI Gateway 架构
-```
-
-
-# 13. Relationship to Master Portfolio Context
-
-This file intentionally does not contain:
-
-```text
-- overall AI Engineer career strategy
-- resume positioning
-- detailed P2 design
-- detailed P3 design
-- global 12-week transition plan
-```
-
-Those belong in the separate Master `PROJECT-CONTEXT.md`.
-
-The two-level model is:
-
-```text
-MASTER PROJECT-CONTEXT.md
-│
-├── P1 status / pointer
-├── P2 status / pointer
-└── P3 status / pointer
-
-        ↓ current project
-
-ai-data-analyst/PROJECT-CONTEXT.md
-│
-├── P1 architecture
-├── P1 implementation status
-├── P1 engineering decisions
-├── P1 verification state
-├── P1 open work
-└── P1 next milestone
-```
-
-When P1 is completed, this file can remain as the final project-local handoff/history, while the Master Context changes the active project to P2.
-
----
-
-
-## Phase 2 Stage model
-
-P1 no longer uses Day N naming for new work. New progress is tracked as:
-
-```text
-Phase → Stage → Task
-```
-
-Current plan:
-
-```text
-Stage 2.1 Real LLM Integration
-Stage 2.2 Real-model Baseline
-Stage 2.3 Model Comparison
-Stage 2.4 Routing Policy
-Stage 2.5 Reliability & Cost Control
-Stage 2.6 Phase 2 Evaluation & Closeout
-```
-
-### Stage 2.1 implementation state — IN PROGRESS
-
-Implemented in code:
-
-- normalized LLM usage (`input_tokens`, `output_tokens`, `total_tokens`)
-- provider/model metadata propagation
-- structured provider error classification
-- bounded retry/backoff for timeout, connection, rate-limit, and 5xx failures
-- non-retry behavior for auth/request/invalid-response failures
-- five-case real-model smoke runner (`python -m evaluation.smoke`)
-- real-model configuration and cost-rate fields documented
-
-Pending Stage 2.1 exit criterion:
-
-```text
-configure one real provider/model
-→ run five-case smoke
-→ review SQL/security/result/answer/latency/tokens/cost/errors
-→ only then close Stage 2.1
-```
-
-# 14. Current Next Action
-
-```text
-P1 → Phase 2 → Stage 2.1 Real LLM Integration
-```
-
-Next phase objective:
-
-```text
-connect a real model
-    ↓
-run the existing 30-case evaluation unchanged
-    ↓
-measure correctness / latency / token usage / cost
-    ↓
-compare models with evidence
-    ↓
-introduce routing / fallback / cost controls only where measurements justify them
-```
-
-Preserve the Day 7 portfolio baseline while Phase 2 evolves the model layer.
-
-
-### Stage 2.1A — Ollama + Qwen3 8B
-
-Current first real-model target:
-
-```text
-macOS Ollama
-  → qwen3:8b
-  → OpenAI-compatible endpoint
-  → FastAPI in Docker via host.docker.internal
-  → existing Analyst Agent
-  → existing SQL Validator
-  → PostgreSQL
-```
-
-Implementation preparation completed:
-
-- added `.env.ollama.example`
-- added `docs/PHASE2-STAGE2.1A-OLLAMA.md`
-- Docker Compose now propagates retry/backoff/cost environment settings
-- OpenAI-compatible base URL accepts both provider-root and `/v1` forms
-- local baseline API cost configured as zero
-
-Pending exit criterion: run the real five-case smoke on the developer Mac and review actual outputs.
-
-
-## Phase 2 — Stage 2.1A.1 status
-
-The first Ollama/Qwen3 8B smoke run achieved 5/5 pipeline completion but 4/5 semantic correctness. `SMOKE-003` exposed a schema-value grounding error (`California` vs stored `CA`). Stage 2.1A.1 therefore refines the SQL prompt to honor metadata value semantics, separates pipeline and semantic smoke status, and adds optional Qwen `/no_think` prompt control via `LLM_DISABLE_THINKING`. Re-run the same five smoke cases and compare correctness, latency, and tokens before closing Stage 2.1A.
-
-## Phase 2 — Stage 2.1A.2 Value Grounding + Answer-aware Smoke Evaluation
-
-Status: **IMPLEMENTED / VERIFIED AT RESULT LAYER**
-
-Reason for refinement:
-- Qwen3 8B produced valid SQL with `state = 'California'` although the database stores `CA`.
-- A correct grouped result was summarized with an incorrect total of 13 instead of 15.
-
-Implemented:
-- bounded `sample_values` for approved low-cardinality semantic types (`geography_code` currently enabled),
-- `value_hint` for natural-language state name/alias -> USPS code mapping,
-- smoke metrics split into pipeline/result/answer/semantic correctness,
-- final-answer checks that detect the previously observed grouped-total hallucination.
-
-Exit criterion: 5-case Qwen3 8B smoke should reach 5/5 pipeline, result, answer, and semantic correctness before Stage 2.1A is closed.
-
-
-## Phase 2 — Stage 2.1A.3 Multilingual Entity Normalization + Context-aware Answer Evaluation
-
-Status: **READY FOR DOCKER VERIFICATION**
-
-The latest Qwen3 8B smoke run achieved:
-
-- pipeline correctness: 5/5
-- SQL/result correctness: 5/5
-- raw smoke answer score: 3/5
-
-Manual review showed both answer failures were evaluator false negatives: translated city names were semantically correct, and `总计9个州` was incorrectly treated as a city-total claim. Stage 2.1A.3 fixes those evaluator issues without changing Agent behavior, prompts, value grounding, or SQL security.
-
-Exit criterion: full pytest passes and the five-case smoke reaches 5/5 for pipeline, result, answer, and semantic correctness. After that, close Stage 2.1A and proceed to Stage 2.1B.
-
-
-## Phase 2 — Stage 2.1B: Gemini 3.8 Flash
-
-Status: **IMPLEMENTED — READY FOR HOSTED SMOKE VERIFICATION**
-
-Stage 2.1A (Ollama + Qwen3 8B) is closed after full pytest and 5/5 pipeline/result/answer/semantic smoke verification.
-
-Stage 2.1B reuses the same OpenAI-compatible LLM adapter and five-case smoke suite against `gemini-3.8-flash`. The adapter now accepts API roots ending in `/openai` (Gemini) as well as `/v1`, and supports optional `LLM_REASONING_EFFORT`. No Agent or SQL Security architecture changes are introduced.
-
-Exit: full pytest + five-case hosted smoke reviewed before Stage 2.2.
-
-## Phase 2 — Stage 2.2 / Stage 2.3 Current Status
-
-### Stage 2.2 — Multi-model Baseline
-
-Status: **CLOSED**
-
-Frozen calibrated 30-case baselines:
-
-- Groq / `openai/gpt-oss-20b`: 30/30 completed; 29/30 end-to-end semantic; avg latency 2.527s; p95 2.944s; estimated API cost $0.00647460.
-- Ollama / `qwen3:8b`: 24/30 completed; 22/24 completed-case semantic; 22/30 all-case semantic; avg completed-case latency 65.955s; p95 116.302s; zero API cost; six `LLM_TIMEOUT` failures.
-- Both models passed the unsafe-request safety case.
-- Shared semantic failure: DA-020 omitted explicit rank output.
-- Qwen-specific completed-case answer failure: DA-027 produced malformed entity `新 York`.
-- Full project pytest was reported green after Stage 2.2 final v1.0.1.
-
-Stage 2.2 dataset/evaluator are frozen for model comparison.
-
-### Stage 2.3 — Model Comparison & Failure Analysis
-
-Status: **COMPLETE**
-
-Artifacts:
-
-- `docs/PHASE2-STAGE2.3-MODEL-COMPARISON.md`
-- `evaluation/compare_models.py`
-- `evaluation/results/stage2.3/model-comparison.json`
-- `evaluation/results/stage2.3/model-comparison.md`
-- `evaluation/results/stage2.3/failure-matrix.csv`
-
-Measured conclusions:
-
-- Groq/GPT-OSS provides the stronger current interactive path: 100% completion, 96.7% end-to-end semantic correctness, and ~26.1x lower average latency in this measured setup.
-- Qwen remains a viable local/private/offline path: completed-case semantic correctness is high (91.7%) and API cost is $0, but current local inference has substantial latency and timeout reliability limitations.
-- Model/task quality and system reliability must remain separate metrics.
-- Exact SQL match remains diagnostic only.
-- Stage 2.3 records routing evidence but does not implement routing.
-
-Next: **Stage 2.4 — Routing Policy**.
-
-### Stage 2.4 — Routing Policy
-
-Status: **IMPLEMENTED — USER VERIFICATION PENDING**
-
-Stage 2.4 converts the frozen Stage 2.3 comparison into a deterministic router without changing the Analyst Agent or SQL security boundary.
-
-Policy v1:
-
-- `auto` -> configured deterministic default; Stage 2.4 example default is `remote` based on measured Groq reliability/latency.
-- `remote` -> explicit remote route.
-- `local` -> explicit local route for privacy/offline/$0 API-cost operation.
-- The LLM never chooses the route.
-- No automatic cross-provider fallback is implemented in Stage 2.4; fallback is reserved for Stage 2.5.
-
-Implementation:
-
-- new `ai/analyst/app/llm/routing.py`,
-- separate `LLM_REMOTE_*` and `LLM_LOCAL_*` configuration,
-- backward-compatible legacy `LLM_*` path when routing is disabled,
-- model-specific thinking directive configuration,
-- `/api/analyze` accepts `routing_mode=auto|remote|local`,
-- route decision metadata is returned and logged,
-- Spring gateway passes routing mode through,
-- React demo exposes route selection,
-- machine-readable policy at `evaluation/results/stage2.4/routing-policy.json`.
-
-Packaging verification: Python compile PASS; routing unit tests 8/8 PASS. Full pytest and Maven verification remain for the developer environment because the packaging sandbox lacks `sqlglot`/`psycopg` and Maven.
-
-Next after verification: **Stage 2.5 — Reliability, Fallback & Cost Control**.
-
-
-## Phase 2 — Stage 2.5 Reliability, Fallback & Cost Control
-
-Status: IMPLEMENTED — pending user-side closeout validation.
-
-Stage 2.5 extends the deterministic Stage 2.4 router with retryable provider fallback at the LLM call boundary, not at the whole-Agent boundary. This avoids rerunning SQL when answer generation fails after a query already completed. Explicit local routing remains privacy-safe by default and does not fall back to remote unless `fallback_mode=cross_route` is explicitly requested. API responses now expose initial/final route, fallback events, route-level token usage, and estimated cost. A configurable post-usage request cost guard is available. SQL Validator and read-only DB security boundaries are unchanged.
+Do not introduce unrestricted arbitrary Python execution.
