@@ -8,6 +8,7 @@ function App() {
   const [question, setQuestion] = useState('人口最多的 5 个城市是哪几个？');
   const [analysis, setAnalysis] = useState(null);
   const [routingMode, setRoutingMode] = useState('auto');
+  const [fallbackMode, setFallbackMode] = useState('auto');
   const [sql, setSql] = useState('SELECT name, state, population, year FROM city ORDER BY population DESC LIMIT 5');
   const [result, setResult] = useState(null);
   const [schema, setSchema] = useState(null);
@@ -28,7 +29,7 @@ function App() {
       const r = await fetch(`${API}/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, routingMode })
+        body: JSON.stringify({ question, routingMode, fallbackMode })
       });
       const body = await r.json();
       if (!r.ok) throw new Error(body?.detail?.message || JSON.stringify(body));
@@ -81,6 +82,12 @@ function App() {
           <option value="remote">Remote / interactive</option>
           <option value="local">Local / privacy</option>
         </select>
+        <label htmlFor="fallback-mode">Fallback</label>
+        <select id="fallback-mode" value={fallbackMode} onChange={e => setFallbackMode(e.target.value)}>
+          <option value="auto">Auto / privacy-safe</option>
+          <option value="disabled">Disabled</option>
+          <option value="cross_route">Allow cross-route</option>
+        </select>
         <button onClick={askAnalyst} disabled={loading || !question.trim()}>
           {loading ? 'Analyzing…' : 'Ask Analyst'}
         </button>
@@ -90,7 +97,7 @@ function App() {
         <section className="card">
           <h2>Answer</h2>
           <p>{analysis.final_answer}</p>
-          <div className="meta">Model: {analysis.model || '—'} · trace: {analysis.trace_id}</div>
+          <div className="meta">Model: {analysis.model || '—'} · route: {analysis.selected_route || '—'}→{analysis.final_route || analysis.selected_route || '—'} · fallback: {analysis.fallback_used ? 'used' : 'no'} · cost: ${Number(analysis.estimated_cost_usd || 0).toFixed(6)} · trace: {analysis.trace_id}</div>
         </section>
       )}
 

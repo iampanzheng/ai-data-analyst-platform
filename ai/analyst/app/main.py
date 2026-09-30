@@ -31,6 +31,7 @@ import logging
 class AnalyzeRequest(BaseModel):
     question: str = Field(min_length=1)
     routing_mode: Literal["auto", "remote", "local"] = "auto"
+    fallback_mode: Literal["auto", "disabled", "cross_route"] = "auto"
 
 
 class AnalyzeResponse(BaseModel):
@@ -38,7 +39,14 @@ class AnalyzeResponse(BaseModel):
     question: str
     routing_mode: str
     selected_route: str | None
+    final_route: str | None
     routing_reason: str | None
+    fallback_mode: str
+    fallback_route: str | None
+    fallback_used: bool
+    fallback_events: list[dict[str, str]]
+    route_usage: dict[str, dict[str, int]]
+    estimated_cost_usd: float
     sql_candidate: str | None
     validated_sql: str | None
     query_result: dict[str, Any] | None
@@ -274,14 +282,21 @@ def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
     from .llm.routing import create_routed_llm_client
 
     try:
-        decision, llm = create_routed_llm_client(req.routing_mode)
+        decision, llm = create_routed_llm_client(req.routing_mode, fallback_mode=req.fallback_mode)
     except LLMClientError as exc:
         return AnalyzeResponse(
             trace_id=trace_id,
             question=req.question,
             routing_mode=req.routing_mode,
             selected_route=None,
+            final_route=None,
             routing_reason=None,
+            fallback_mode=req.fallback_mode,
+            fallback_route=None,
+            fallback_used=False,
+            fallback_events=[],
+            route_usage={},
+            estimated_cost_usd=0.0,
             sql_candidate=None,
             validated_sql=None,
             query_result=None,
@@ -300,15 +315,37 @@ def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
             "routing_mode": req.routing_mode,
             "selected_route": decision.selected_route,
             "routing_reason": decision.reason,
+            "fallback_mode": req.fallback_mode,
+            "fallback_route": decision.fallback_route,
         }},
     )
     state = AnalystAgent(llm).run(req.question, trace_id)
+    fallback_events = list(getattr(llm, "fallback_events", []))
+    route_usage = dict(getattr(llm, "route_usage", {}))
+    estimated_cost_usd = float(getattr(llm, "estimated_cost_usd", 0.0))
+    if fallback_events:
+        logger.warning(
+            "llm_fallback_used",
+            extra={"fields": {
+                "trace_id": trace_id,
+                "event": "llm_fallback_used",
+                "fallback_events": fallback_events,
+                "estimated_cost_usd": estimated_cost_usd,
+            }},
+        )
     return AnalyzeResponse(
         trace_id=trace_id,
         question=state.question,
         routing_mode=req.routing_mode,
         selected_route=decision.selected_route,
+        final_route=str(getattr(llm, "current_route", decision.selected_route)),
         routing_reason=decision.reason,
+        fallback_mode=req.fallback_mode,
+        fallback_route=decision.fallback_route,
+        fallback_used=bool(fallback_events),
+        fallback_events=fallback_events,
+        route_usage=route_usage,
+        estimated_cost_usd=round(estimated_cost_usd, 8),
         sql_candidate=state.sql_candidate,
         validated_sql=state.validated_sql,
         query_result=state.query_result,

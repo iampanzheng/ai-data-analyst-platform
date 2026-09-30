@@ -93,3 +93,11 @@ Conversation/history, persisted evaluation runs, authentication, and richer repo
 `POST /api/analyze` additionally accepts optional `routing_mode` with one of `auto`, `remote`, or `local` (default `auto`).
 
 The response additionally exposes `routing_mode`, `selected_route`, and `routing_reason` so routing remains observable and explainable. Routing happens before Agent construction; SQL validation remains unchanged and authoritative.
+
+## Phase 2 Stage 2.5 Analyze reliability fields
+
+`POST /api/analyze` additionally accepts `fallback_mode` with values `auto`, `disabled`, or `cross_route`.
+
+Response routing telemetry includes `selected_route`, `final_route`, `fallback_route`, `fallback_used`, `fallback_events`, `route_usage`, and `estimated_cost_usd`.
+
+Explicit `local` + `fallback_mode=auto` never sends the request to the remote provider. Use `cross_route` only when that privacy tradeoff is explicitly acceptable.

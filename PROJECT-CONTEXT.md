@@ -1211,3 +1211,10 @@ Implementation:
 Packaging verification: Python compile PASS; routing unit tests 8/8 PASS. Full pytest and Maven verification remain for the developer environment because the packaging sandbox lacks `sqlglot`/`psycopg` and Maven.
 
 Next after verification: **Stage 2.5 — Reliability, Fallback & Cost Control**.
+
+
+## Phase 2 — Stage 2.5 Reliability, Fallback & Cost Control
+
+Status: IMPLEMENTED — pending user-side closeout validation.
+
+Stage 2.5 extends the deterministic Stage 2.4 router with retryable provider fallback at the LLM call boundary, not at the whole-Agent boundary. This avoids rerunning SQL when answer generation fails after a query already completed. Explicit local routing remains privacy-safe by default and does not fall back to remote unless `fallback_mode=cross_route` is explicitly requested. API responses now expose initial/final route, fallback events, route-level token usage, and estimated cost. A configurable post-usage request cost guard is available. SQL Validator and read-only DB security boundaries are unchanged.

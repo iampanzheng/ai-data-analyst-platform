@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from ai.analyst.app.llm.client import LLMClientError, OpenAICompatibleLLMClient
+from ai.analyst.app.llm.reliability import ResilientLLMClient
 from ai.analyst.app.llm.routing import (
     RoutingSettings,
     create_routed_llm_client,
@@ -25,7 +26,7 @@ def test_auto_uses_measured_remote_default():
     decision = decide_route("auto", _settings())
     assert decision.selected_route == "remote"
     assert decision.reason == "auto_default_remote_stage2_3_measurements"
-    assert decision.fallback_route is None
+    assert decision.fallback_route == "local"
 
 
 def test_explicit_local_overrides_auto_default():
@@ -83,12 +84,17 @@ def test_remote_and_local_clients_use_separate_configuration(monkeypatch):
 
     assert remote_decision.selected_route == "remote"
     assert local_decision.selected_route == "local"
-    assert isinstance(remote, OpenAICompatibleLLMClient)
-    assert isinstance(local, OpenAICompatibleLLMClient)
-    assert remote.model == "remote-model"
-    assert remote.base_url == "https://remote.example/v1"
-    assert remote.reasoning_effort == "low"
-    assert remote.disable_thinking is False
-    assert local.model == "local-model"
-    assert local.base_url == "http://local.example:11434"
-    assert local.disable_thinking is True
+    assert isinstance(remote, ResilientLLMClient)
+    assert isinstance(local, ResilientLLMClient)
+    assert isinstance(remote.primary, OpenAICompatibleLLMClient)
+    assert isinstance(remote.fallback, OpenAICompatibleLLMClient)
+    assert isinstance(local.primary, OpenAICompatibleLLMClient)
+    assert remote.primary.model == "remote-model"
+    assert remote.primary.base_url == "https://remote.example/v1"
+    assert remote.primary.reasoning_effort == "low"
+    assert remote.primary.disable_thinking is False
+    assert remote.fallback.model == "local-model"
+    assert local.primary.model == "local-model"
+    assert local.primary.base_url == "http://local.example:11434"
+    assert local.primary.disable_thinking is True
+    assert local.fallback is None

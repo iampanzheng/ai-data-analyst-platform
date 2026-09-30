@@ -25,6 +25,8 @@ class LLMClientConfig:
     max_retry_after_seconds: float = 60.0
     reasoning_effort: str = ""
     disable_thinking: bool = False
+    input_cost_per_1m: float = 0.0
+    output_cost_per_1m: float = 0.0
 
 
 def llm_config_from_env(prefix: str = "LLM") -> LLMClientConfig:
@@ -44,6 +46,8 @@ def llm_config_from_env(prefix: str = "LLM") -> LLMClientConfig:
         reasoning_effort=value("REASONING_EFFORT").strip().lower(),
         disable_thinking=value("DISABLE_THINKING", "false").strip().lower()
         in {"1", "true", "yes", "on"},
+        input_cost_per_1m=float(value("INPUT_COST_PER_1M", "0")),
+        output_cost_per_1m=float(value("OUTPUT_COST_PER_1M", "0")),
     )
 
 
@@ -155,6 +159,8 @@ class OpenAICompatibleLLMClient(LLMClient):
         self.max_retry_after_seconds = config.max_retry_after_seconds
         self.reasoning_effort = config.reasoning_effort
         self.disable_thinking = config.disable_thinking
+        self.input_cost_per_1m = config.input_cost_per_1m
+        self.output_cost_per_1m = config.output_cost_per_1m
         if not self.base_url or not self.model:
             raise LLMClientError(
                 "LLM_CONFIGURATION_ERROR",
@@ -267,6 +273,14 @@ class OpenAICompatibleLLMClient(LLMClient):
 
         if delay > 0:
             time.sleep(delay)
+
+    def estimate_cost(self, usage: dict[str, int]) -> float:
+        input_tokens = int(usage.get("input_tokens", 0) or 0)
+        output_tokens = int(usage.get("output_tokens", 0) or 0)
+        return (
+            input_tokens * self.input_cost_per_1m / 1_000_000
+            + output_tokens * self.output_cost_per_1m / 1_000_000
+        )
 
     @staticmethod
     def _http_status_error(response: httpx.Response) -> LLMClientError:

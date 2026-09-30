@@ -37,8 +37,8 @@ public class FastApiClient {
         return send("POST", "/api/query", toJsonSql(sql), traceId);
     }
 
-    public String analyze(String question, String routingMode, String traceId) {
-        return send("POST", "/api/analyze", toJsonAnalyze(question, routingMode), traceId);
+    public String analyze(String question, String routingMode, String fallbackMode, String traceId) {
+        return send("POST", "/api/analyze", toJsonAnalyze(question, routingMode, fallbackMode), traceId);
     }
 
     private String send(String method, String path, String body, String traceId) {
@@ -108,9 +108,10 @@ public class FastApiClient {
         return "{\"sql\":\"" + escapeJson(sql) + "\"}";
     }
 
-    private static String toJsonAnalyze(String question, String routingMode) {
+    private static String toJsonAnalyze(String question, String routingMode, String fallbackMode) {
         return "{\"question\":\"" + escapeJson(question)
-                + "\",\"routing_mode\":\"" + escapeJson(routingMode) + "\"}";
+                + "\",\"routing_mode\":\"" + escapeJson(routingMode)
+                + "\",\"fallback_mode\":\"" + escapeJson(fallbackMode) + "\"}";
     }
 
     private static String escapeJson(String value) {
