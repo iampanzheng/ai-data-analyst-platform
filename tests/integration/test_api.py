@@ -28,6 +28,19 @@ def test_schema_endpoint_returns_metadata(client):
     assert "CA" in state["sample_values"]
     assert "TX" in state["sample_values"]
     assert "California/加州 -> CA" in state["value_hint"]
+    assert city["evidence"] == {
+        "row_count": 15,
+        "data_status": "available",
+        "min_year": 2025,
+        "max_year": 2025,
+        "evidence_note": "15 rows are currently loaded for year range 2025.",
+    }
+
+    salary = next(t for t in body["tables"] if t["table_name"] == "salary")
+    assert salary["evidence"]["row_count"] == 0
+    assert salary["evidence"]["data_status"] == "empty"
+    assert salary["evidence"]["min_year"] is None
+    assert salary["evidence"]["max_year"] is None
 
 
 def test_query_endpoint_propagates_trace_id(client):

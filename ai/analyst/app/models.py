@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -37,6 +37,14 @@ class ColumnMetadata(BaseModel):
     value_hint: str = ""
 
 
+class TableEvidence(BaseModel):
+    row_count: int = 0
+    data_status: Literal["available", "empty"] = "empty"
+    min_year: int | None = None
+    max_year: int | None = None
+    evidence_note: str = "No rows are currently loaded for this dataset."
+
+
 class TableMetadata(BaseModel):
     table_name: str
     business_name: str
@@ -44,6 +52,7 @@ class TableMetadata(BaseModel):
     source: str
     update_frequency: str | None
     columns: list[ColumnMetadata]
+    evidence: TableEvidence = Field(default_factory=TableEvidence)
 
 
 class SchemaResponse(BaseModel):

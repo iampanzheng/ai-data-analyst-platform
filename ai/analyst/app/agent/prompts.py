@@ -11,7 +11,9 @@ from ..llm.models import ChatMessage
 
 SQL_SYSTEM_PROMPT = """You are the SQL planner for an analytics application.
 Generate exactly one PostgreSQL SELECT/WITH query using only the supplied schema.
-Treat column descriptions, semantic types, value hints, and sample values as authoritative value semantics.
+Treat column descriptions, semantic types, value hints, sample values, and table evidence metadata as authoritative.
+If table evidence reports data_status=empty, do not assume the table contains records or invent facts from it.
+Avoid relying on an empty table unless the user explicitly asks about that dataset or its lack of data.
 When a geography column stores codes or abbreviations, filter using the stored code value rather than a spelled-out label.
 When sample_values are supplied, prefer one of those stored values instead of inventing a label.
 Do not use markdown fences. Do not explain the query. Never invent tables or columns.

@@ -20,6 +20,7 @@ from .models import (
     QueryRequest,
     QueryResponse,
     SchemaResponse,
+    TableEvidence,
     TableMetadata,
 )
 from .policy import ALLOWED_SCHEMA, ALLOWED_TABLES
@@ -203,13 +204,78 @@ def schema() -> SchemaResponse:
             )
         )
 
-    # Add bounded value grounding only for explicitly approved low-cardinality semantic types.
-    # Identifiers come from allowlisted introspection results and are still quoted defensively.
+    # Add deterministic table evidence plus bounded value grounding. Identifiers originate
+    # from allowlisted schema introspection and are quoted defensively.
     with connection() as conn:
         with conn.cursor() as cur:
             for table in grouped.values():
+                column_names = {column.name for column in table.columns}
+                aggregate_parts = [psycopg_sql.SQL("COUNT(*)")]
+                if "year" in column_names:
+                    aggregate_parts.extend(
+                        [
+                            psycopg_sql.SQL("MIN({year})").format(
+                                year=psycopg_sql.Identifier("year")
+                            ),
+                            psycopg_sql.SQL("MAX({year})").format(
+                                year=psycopg_sql.Identifier("year")
+                            ),
+                        ]
+                    )
+
+                cur.execute(
+                    psycopg_sql.SQL(
+                        "SELECT {aggregates} FROM {schema}.{table}"
+                    ).format(
+                        aggregates=psycopg_sql.SQL(", ").join(aggregate_parts),
+                        schema=psycopg_sql.Identifier(ALLOWED_SCHEMA),
+                        table=psycopg_sql.Identifier(table.table_name),
+                    )
+                )
+                evidence_row = cur.fetchone()
+                row_count = int(evidence_row[0])
+                min_year = (
+                    int(evidence_row[1])
+                    if len(evidence_row) > 1 and evidence_row[1] is not None
+                    else None
+                )
+                max_year = (
+                    int(evidence_row[2])
+                    if len(evidence_row) > 2 and evidence_row[2] is not None
+                    else None
+                )
+
+                if row_count == 0:
+                    data_status = "empty"
+                    evidence_note = "No rows are currently loaded for this dataset."
+                elif min_year is not None and max_year is not None:
+                    year_text = (
+                        str(min_year)
+                        if min_year == max_year
+                        else f"{min_year}-{max_year}"
+                    )
+                    data_status = "available"
+                    evidence_note = (
+                        f"{row_count} rows are currently loaded for year range {year_text}."
+                    )
+                else:
+                    data_status = "available"
+                    evidence_note = (
+                        f"{row_count} rows are currently loaded for this dataset."
+                    )
+
+                table.evidence = TableEvidence(
+                    row_count=row_count,
+                    data_status=data_status,
+                    min_year=min_year,
+                    max_year=max_year,
+                    evidence_note=evidence_note,
+                )
+
                 for column in table.columns:
-                    if not _is_value_grounded(table.table_name, column.name, column.semantic_type):
+                    if not _is_value_grounded(
+                        table.table_name, column.name, column.semantic_type
+                    ):
                         continue
                     cur.execute(
                         psycopg_sql.SQL(

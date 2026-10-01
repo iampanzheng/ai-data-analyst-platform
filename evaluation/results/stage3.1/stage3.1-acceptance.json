@@ -1,0 +1,41 @@
+{
+  "phase": "3",
+  "stage": "3.1",
+  "name": "Evidence Foundation",
+  "status": "implemented_pending_local_container_verification",
+  "implemented": {
+    "table_evidence_model": true,
+    "schema_row_count": true,
+    "schema_data_status": true,
+    "schema_year_range": true,
+    "planner_empty_dataset_guard": true,
+    "integration_assertions": true
+  },
+  "unchanged_boundaries": [
+    "sql_validator",
+    "read_only_database_policy",
+    "deterministic_routing",
+    "fallback_privacy_policy",
+    "phase2_evaluator_baseline"
+  ],
+  "expected_fixture": {
+    "city": {
+      "row_count": 15,
+      "data_status": "available",
+      "min_year": 2025,
+      "max_year": 2025
+    },
+    "salary": {
+      "row_count": 0,
+      "data_status": "empty",
+      "min_year": null,
+      "max_year": null
+    }
+  },
+  "verification": {
+    "compileall": "pass",
+    "container_pytest": "pending_user_environment",
+    "runtime_schema_smoke": "pending_user_environment",
+    "sandbox_docker_available": false
+  }
+}

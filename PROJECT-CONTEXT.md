@@ -1,5 +1,56 @@
 # PROJECT-CONTEXT.md — P1 AI Data Analyst Platform
 
+> Project-local source of truth for implementation status, architecture, measured results, verification state, frozen decisions, and the next starting point.
+
+# Current Status
+
+```text
+Phase 1 — MVP Foundation                         ✅ CLOSED
+Phase 2 — Real LLM Evaluation / Routing / Cost  ✅ CLOSED
+Phase 3 — Evidence-backed Analysis               🚧 ACTIVE
+
+Stage 3.1 — Evidence Foundation                  🚧 IMPLEMENTED / PENDING LOCAL CONTAINER VERIFICATION
+```
+
+## Stage 3.1
+
+`/api/schema` now exposes deterministic dataset evidence: `row_count`, `data_status`, `min_year`, `max_year`, and `evidence_note`. The SQL planner treats this evidence as authoritative and avoids assuming facts from empty datasets.
+
+Current fixture acceptance target:
+
+```text
+city   → 15 rows, available, 2025–2025
+salary → 0 rows, empty
+```
+
+Unchanged boundaries: SQL Validator, read-only database policy, deterministic routing, privacy-safe fallback, and Phase 2 evaluator baselines.
+
+Authoritative verification must run in the normal Compose FastAPI environment:
+
+```bash
+docker compose up -d --build postgres etl fastapi
+docker compose exec fastapi pytest -q
+curl -sS http://localhost:8000/api/schema
+```
+
+# Phase 3 Direction
+
+```text
+Stage 3.1 Evidence Foundation
+  ↓
+Stage 3.2 Richer Analytical Data
+  ↓
+Stage 3.3 Controlled Python Analysis
+  ↓
+Stage 3.4 Visualization
+  ↓
+Stage 3.5 Evidence-backed Reporting
+```
+
+---
+
+# Historical context
+
 > Project-local source of truth for implementation status, architecture, measured results, verification state, frozen decisions, and next starting point.
 
 # 1. Current Status

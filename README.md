@@ -403,3 +403,16 @@ See `docs/PHASE2-STAGE2.6-FINAL-EVALUATION-CLOSEOUT.md` and `PROJECT-CONTEXT.md`
 ### Next phase
 
 Phase 3 should extend evidence-backed analysis—richer data, controlled analysis tooling, visualization, and report-quality outputs—without redesigning the closed SQL-security or routing/fallback architecture.
+
+## Phase 3 — Evidence-backed Analysis
+
+Stage 3.1 adds deterministic dataset evidence to `GET /api/schema`: row count, availability status, and year range. The Analyst receives the same evidence through the existing Schema Tool and is instructed not to assume facts from empty datasets.
+
+Expected current fixture:
+
+```text
+city   → 15 rows, available, 2025–2025
+salary → 0 rows, empty
+```
+
+Stage 3.1 intentionally does not change SQL validation, routing, fallback, or provider configuration, and does not add unrestricted Python execution. See `docs/PHASE3-STAGE3.1-EVIDENCE-FOUNDATION.md`.
