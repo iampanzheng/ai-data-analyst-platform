@@ -25,7 +25,7 @@ def test_real_agent_evaluation_dataset(database_url):
     results = [run_case(case, AnalystAgent(MockLLMClient()), "mock") for case in cases]
     summary = summarize(results)
 
-    assert summary["cases"] == 30
+    assert summary["cases"] == 35
     assert summary["tokens"]["total"] == 0
     assert summary["estimated_cost"] == 0.0
     assert results[0].trace_id == "eval-DA-001"

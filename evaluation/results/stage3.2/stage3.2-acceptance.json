@@ -1,0 +1,29 @@
+{
+  "phase": "3",
+  "stage": "3.2",
+  "name": "Richer Analytical Data",
+  "status": "implemented_pending_local_compose_verification",
+  "dataset_version": "1.1-stage3.2",
+  "evaluation_cases": 35,
+  "expected_rows": {
+    "city": 15,
+    "salary": 5,
+    "employment": 5,
+    "education": 5,
+    "economic_indicator": 10
+  },
+  "source_years": {
+    "city": 2025,
+    "salary": 2023,
+    "employment": 2023,
+    "education": 2024,
+    "economic_indicator": 2024
+  },
+  "packaging_verification": {
+    "compileall": "pass",
+    "fixture_tests": "2 passed",
+    "dataset_schema": "pass",
+    "full_pytest": "pending_user_compose"
+  },
+  "frozen_phase2_reports": "unchanged"
+}

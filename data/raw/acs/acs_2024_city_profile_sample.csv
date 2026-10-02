@@ -1,0 +1,6 @@
+city,state,bachelors_degree_or_higher_pct,median_household_income,employment_rate_pct,year,source
+New York,NY,42.5,81228,59.3,2024,U.S. Census Bureau ACS 1-Year 2024 / data.census.gov profile
+Los Angeles,CA,39.9,82263,62.7,2024,U.S. Census Bureau ACS 1-Year 2024 / data.census.gov profile
+Chicago,IL,46.4,80613,64.1,2024,U.S. Census Bureau ACS 1-Year 2024 / data.census.gov profile
+Houston,TX,38.0,64361,62.9,2024,U.S. Census Bureau ACS 1-Year 2024 / data.census.gov profile
+Phoenix,AZ,35.9,85246,66.7,2024,U.S. Census Bureau ACS 1-Year 2024 / data.census.gov profile

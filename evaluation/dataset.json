@@ -1,6 +1,6 @@
 {
-  "dataset_version": "1.0",
-  "description": "P1 Analyst Agent v0.1 deterministic evaluation set",
+  "dataset_version": "1.1-stage3.2",
+  "description": "Stage 3.2 richer-data evaluation dataset. DA-001..DA-030 preserve the historical Phase 2 task set with fixture-aware expected results; DA-031..DA-035 exercise source-backed ACS/OEWS analytical data.",
   "cases": [
     {
       "question_id": "DA-001",
@@ -1042,7 +1042,28 @@
         "name",
         "median_salary"
       ],
-      "expected_result": [],
+      "expected_result": [
+        [
+          "Chicago",
+          129188.8
+        ],
+        [
+          "Houston",
+          125715.2
+        ],
+        [
+          "Los Angeles",
+          153566.4
+        ],
+        [
+          "New York",
+          149094.4
+        ],
+        [
+          "Phoenix",
+          125902.4
+        ]
+      ],
       "expected_answer_contains": [
         "工资记录"
       ],
@@ -1074,7 +1095,7 @@
         ],
         [
           "Chicago",
-          0
+          1
         ],
         [
           "Columbus",
@@ -1090,7 +1111,7 @@
         ],
         [
           "Houston",
-          0
+          1
         ],
         [
           "Jacksonville",
@@ -1098,11 +1119,11 @@
         ],
         [
           "Los Angeles",
-          0
+          1
         ],
         [
           "New York",
-          0
+          1
         ],
         [
           "Philadelphia",
@@ -1110,7 +1131,7 @@
         ],
         [
           "Phoenix",
-          0
+          1
         ],
         [
           "San Antonio",
@@ -1146,6 +1167,156 @@
       "expected_columns": [],
       "expected_result": [],
       "expected_answer_contains": []
+    },
+    {
+      "question_id": "DA-031",
+      "question": "在 2023 OEWS 样本中，软件开发者年化中位工资最高的都会区是哪一个？",
+      "category": "richer data",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "result_order": "ordered",
+      "expected_sql": "SELECT geography_name, median_salary FROM salary WHERE occupation = 'Software Developers' AND year = 2023 ORDER BY median_salary DESC LIMIT 1",
+      "expected_columns": [
+        "geography_name",
+        "median_salary"
+      ],
+      "expected_result": [
+        [
+          "Los Angeles-Long Beach-Anaheim, CA",
+          153566.4
+        ]
+      ],
+      "expected_answer_contains": [
+        "Los Angeles"
+      ],
+      "expected_tables": [
+        "salary"
+      ]
+    },
+    {
+      "question_id": "DA-032",
+      "question": "2024 ACS 样本中，家庭收入中位数最高的是哪个城市？",
+      "category": "richer data",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "result_order": "ordered",
+      "expected_sql": "SELECT c.name, e.value FROM city AS c JOIN economic_indicator AS e ON e.city_id = c.id WHERE e.indicator = 'Median household income' AND e.year = 2024 ORDER BY e.value DESC LIMIT 1",
+      "expected_columns": [
+        "name",
+        "value"
+      ],
+      "expected_result": [
+        [
+          "Phoenix",
+          85246
+        ]
+      ],
+      "expected_answer_contains": [
+        "Phoenix"
+      ],
+      "expected_tables": [
+        "city",
+        "economic_indicator"
+      ]
+    },
+    {
+      "question_id": "DA-033",
+      "question": "2024 ACS 样本中，本科及以上比例最高的是哪个城市？",
+      "category": "richer data",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "result_order": "ordered",
+      "expected_sql": "SELECT c.name, e.value FROM city AS c JOIN education AS e ON e.city_id = c.id WHERE e.education_level = 'Bachelor''s degree or higher' AND e.year = 2024 ORDER BY e.value DESC LIMIT 1",
+      "expected_columns": [
+        "name",
+        "value"
+      ],
+      "expected_result": [
+        [
+          "Chicago",
+          46.4
+        ]
+      ],
+      "expected_answer_contains": [
+        "Chicago"
+      ],
+      "expected_tables": [
+        "city",
+        "education"
+      ]
+    },
+    {
+      "question_id": "DA-034",
+      "question": "2023 OEWS 样本中，软件开发者就业人数最多的都会区是哪一个？",
+      "category": "richer data",
+      "difficulty": "medium",
+      "expected_behavior": "answer",
+      "result_order": "ordered",
+      "expected_sql": "SELECT geography_name, employment_count FROM employment WHERE occupation = 'Software Developers' AND year = 2023 ORDER BY employment_count DESC LIMIT 1",
+      "expected_columns": [
+        "geography_name",
+        "employment_count"
+      ],
+      "expected_result": [
+        [
+          "New York-Newark-Jersey City, NY-NJ-PA",
+          119010
+        ]
+      ],
+      "expected_answer_contains": [
+        "New York"
+      ],
+      "expected_tables": [
+        "employment"
+      ]
+    },
+    {
+      "question_id": "DA-035",
+      "question": "用 2025 city 人口和 2024 ACS 本科及以上比例，列出五个有教育数据的城市并按人口降序。",
+      "category": "richer data",
+      "difficulty": "hard",
+      "expected_behavior": "answer",
+      "result_order": "ordered",
+      "expected_sql": "SELECT c.name, c.population, e.value AS bachelors_pct FROM city AS c JOIN education AS e ON e.city_id = c.id WHERE c.year = 2025 AND e.education_level = 'Bachelor''s degree or higher' AND e.year = 2024 ORDER BY c.population DESC",
+      "expected_columns": [
+        "name",
+        "population",
+        "bachelors_pct"
+      ],
+      "expected_result": [
+        [
+          "New York",
+          8584629,
+          42.5
+        ],
+        [
+          "Los Angeles",
+          3869089,
+          39.9
+        ],
+        [
+          "Chicago",
+          2731585,
+          46.4
+        ],
+        [
+          "Houston",
+          2397315,
+          38.0
+        ],
+        [
+          "Phoenix",
+          1665481,
+          35.9
+        ]
+      ],
+      "expected_answer_contains": [
+        "New York"
+      ],
+      "expected_tables": [
+        "city",
+        "education"
+      ]
     }
   ]
 }

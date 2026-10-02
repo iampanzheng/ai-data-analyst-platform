@@ -416,3 +416,23 @@ salary → 0 rows, empty
 ```
 
 Stage 3.1 intentionally does not change SQL validation, routing, fallback, or provider configuration, and does not add unrestricted Python execution. See `docs/PHASE3-STAGE3.1-EVIDENCE-FOUNDATION.md`.
+
+## Stage 3.2 — Richer Analytical Data
+
+Stage 3.1 is closed: the user-side Compose pytest suite passed and `/api/schema` evidence was runtime-verified.
+
+Stage 3.2 populates the previously empty analytical domains with a small source-backed fixture while keeping source year and geography explicit:
+
+| Table | Rows | Year | Grain |
+|---|---:|---:|---|
+| `city` | 15 | 2025 | place |
+| `education` | 5 | 2024 | ACS place |
+| `economic_indicator` | 10 | 2024 | ACS place |
+| `employment` | 5 | 2023 | OEWS metro |
+| `salary` | 5 | 2023 | OEWS metro |
+
+OEWS rows carry `occupation_code`, `geography_type`, `geography_name`, and `source`. `salary.median_salary` is a derived annualized value (`median hourly × 2,080`), while `mean_salary` is the published OEWS annual mean.
+
+The current evaluation dataset is `1.1-stage3.2` with **35 cases**. The Stage 2.2 Groq/Qwen reports remain frozen historical **30-case** baselines.
+
+See `docs/PHASE3-STAGE3.2-RICHER-ANALYTICAL-DATA.md` for data provenance, migration behavior, and acceptance commands.

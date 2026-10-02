@@ -428,9 +428,13 @@ def write_report(results: list[EvaluationResult], output_dir: Path, dataset_path
     provider = os.getenv("LLM_PROVIDER", "").strip()
     model = os.getenv("LLM_MODEL", "").strip()
     run_label = os.getenv("EVALUATION_RUN_LABEL", "").strip()
+    try:
+        dataset_version = json.loads(dataset_path.read_text(encoding="utf-8")).get("dataset_version", "unknown")
+    except (OSError, json.JSONDecodeError):
+        dataset_version = "unknown"
     payload = {
         "dataset": str(dataset_path),
-        "dataset_version": "1.0",
+        "dataset_version": dataset_version,
         "provider": provider,
         "model": model,
         "run_label": run_label,

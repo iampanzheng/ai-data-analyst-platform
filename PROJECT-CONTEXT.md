@@ -1,6 +1,6 @@
 # PROJECT-CONTEXT.md — P1 AI Data Analyst Platform
 
-> Project-local source of truth for implementation status, architecture, measured results, verification state, frozen decisions, and the next starting point.
+> Project-local source of truth for current implementation status and frozen engineering decisions.
 
 # Current Status
 
@@ -9,41 +9,70 @@ Phase 1 — MVP Foundation                         ✅ CLOSED
 Phase 2 — Real LLM Evaluation / Routing / Cost  ✅ CLOSED
 Phase 3 — Evidence-backed Analysis               🚧 ACTIVE
 
-Stage 3.1 — Evidence Foundation                  🚧 IMPLEMENTED / PENDING LOCAL CONTAINER VERIFICATION
+Stage 3.1 — Evidence Foundation                  ✅ CLOSED
+Stage 3.2 — Richer Analytical Data               ✅ CLOSED
 ```
 
-## Stage 3.1
+## Stage 3.1 verification
 
-`/api/schema` now exposes deterministic dataset evidence: `row_count`, `data_status`, `min_year`, `max_year`, and `evidence_note`. The SQL planner treats this evidence as authoritative and avoids assuming facts from empty datasets.
+User-side Compose pytest passed at 100%, and `/api/schema` runtime smoke verified deterministic table evidence.
 
-Current fixture acceptance target:
+## Stage 3.2 implementation
+
+The analytical fixture is no longer city-only. Stage 3.2 adds a curated source-backed five-city evidence set:
 
 ```text
-city   → 15 rows, available, 2025–2025
-salary → 0 rows, empty
+city               15 rows / 2025 / place
+education            5 rows / 2024 / ACS place
+economic_indicator  10 rows / 2024 / ACS place
+employment           5 rows / 2023 / OEWS metropolitan area
+salary               5 rows / 2023 / OEWS metropolitan area
 ```
 
-Unchanged boundaries: SQL Validator, read-only database policy, deterministic routing, privacy-safe fallback, and Phase 2 evaluator baselines.
+Key rules:
 
-Authoritative verification must run in the normal Compose FastAPI environment:
+- OEWS records retain explicit metro geography (`geography_type`, `geography_name`).
+- `city_id` on OEWS rows is an anchor, not a claim that the estimate is city-level.
+- `salary.median_salary` is derived as OEWS median hourly wage × 2,080 and is explicitly documented as derived.
+- existing Docker volumes receive idempotent schema + metadata upgrades through ETL.
+- evaluation dataset `1.1-stage3.2` contains 35 cases; frozen Phase 2.2 reports remain 30-case historical baselines.
 
-```bash
-docker compose up -d --build postgres etl fastapi
-docker compose exec fastapi pytest -q
-curl -sS http://localhost:8000/api/schema
+Packaging verification:
+
+```text
+compileall PASS
+Stage 3.2 fixture tests: 2 passed
+35-case dataset JSON Schema: PASS
 ```
+
+User-side runtime verification completed:
+
+```text
+full Compose pytest: PASS (100%)
+/api/schema evidence: PASS
+salary join smoke: PASS — Los Angeles / 153566.40 / Los Angeles-Long Beach-Anaheim, CA
+```
+
+# Frozen Decisions
+
+Do not redesign without new measured evidence:
+
+1. SQL Validator is the deterministic database security boundary.
+2. Routing remains deterministic and outside the LLM.
+3. Explicit local mode remains privacy-safe by default.
+4. Cross-route local→remote fallback requires explicit permission.
+5. Provider fallback occurs at the LLM-call boundary, not by replaying the Agent.
+6. Model quality and runtime reliability remain separate dimensions.
+7. Statistical source year and geography grain must remain explicit evidence.
+8. Phase 3 Python analysis must not introduce unrestricted arbitrary-code execution.
 
 # Phase 3 Direction
 
 ```text
-Stage 3.1 Evidence Foundation
-  ↓
-Stage 3.2 Richer Analytical Data
-  ↓
+Stage 3.1 Evidence Foundation      ✅
+Stage 3.2 Richer Analytical Data   ✅
 Stage 3.3 Controlled Python Analysis
-  ↓
 Stage 3.4 Visualization
-  ↓
 Stage 3.5 Evidence-backed Reporting
 ```
 

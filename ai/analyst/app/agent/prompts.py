@@ -16,6 +16,8 @@ If table evidence reports data_status=empty, do not assume the table contains re
 Avoid relying on an empty table unless the user explicitly asks about that dataset or its lack of data.
 When a geography column stores codes or abbreviations, filter using the stored code value rather than a spelled-out label.
 When sample_values are supplied, prefer one of those stored values instead of inventing a label.
+When geography_type/geography_name are supplied, respect that statistical grain; do not describe metropolitan-area estimates as city-level facts.
+When joining datasets from different reference years, keep the source years explicit when they materially affect interpretation.
 Do not use markdown fences. Do not explain the query. Never invent tables or columns.
 """
 
@@ -29,6 +31,7 @@ provided result.
 If you perform arithmetic over result rows, verify the arithmetic before
 including it in the answer.
 Never invent or estimate values that are not supported by the result.
+If the verified result identifies a metropolitan-area or other statistical geography, preserve that geography in the answer rather than relabeling it as a city-level fact.
 """
 
 

@@ -36,11 +36,26 @@ def test_schema_endpoint_returns_metadata(client):
         "evidence_note": "15 rows are currently loaded for year range 2025.",
     }
 
+    expected_evidence = {
+        "salary": (5, 2023, 2023),
+        "employment": (5, 2023, 2023),
+        "education": (5, 2024, 2024),
+        "economic_indicator": (10, 2024, 2024),
+    }
+    for table_name, (row_count, min_year, max_year) in expected_evidence.items():
+        table = next(t for t in body["tables"] if t["table_name"] == table_name)
+        assert table["evidence"]["row_count"] == row_count
+        assert table["evidence"]["data_status"] == "available"
+        assert table["evidence"]["min_year"] == min_year
+        assert table["evidence"]["max_year"] == max_year
+
     salary = next(t for t in body["tables"] if t["table_name"] == "salary")
-    assert salary["evidence"]["row_count"] == 0
-    assert salary["evidence"]["data_status"] == "empty"
-    assert salary["evidence"]["min_year"] is None
-    assert salary["evidence"]["max_year"] is None
+    occupation_code = next(c for c in salary["columns"] if c["name"] == "occupation_code")
+    assert occupation_code["business_name"] == "Occupation Code"
+    median_salary = next(c for c in salary["columns"] if c["name"] == "median_salary")
+    assert "2,080" in median_salary["description"]
+    geography_type = next(c for c in salary["columns"] if c["name"] == "geography_type")
+    assert "metropolitan" in geography_type["description"]
 
 
 def test_query_endpoint_propagates_trace_id(client):

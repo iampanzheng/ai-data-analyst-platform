@@ -16,10 +16,10 @@ from evaluation.evaluator import (
 DATASET = Path(__file__).parents[1] / "evaluation" / "dataset.json"
 
 
-def test_dataset_has_30_cases_and_unique_ids():
+def test_stage32_dataset_has_35_cases_and_unique_ids():
     cases = load_cases(DATASET)
-    assert len(cases) == 30
-    assert len({case.question_id for case in cases}) == 30
+    assert len(cases) == 35
+    assert len({case.question_id for case in cases}) == 35
     assert {case.category for case in cases} >= {
         "filtering",
         "aggregation",
@@ -49,7 +49,7 @@ def test_dataset_json_schema_is_enforced(tmp_path):
 
 def test_reject_case_requires_non_empty_error_code(tmp_path):
     payload = json.loads(DATASET.read_text(encoding="utf-8"))
-    payload["cases"][-1]["expected_error_code"] = None
+    next(case for case in payload["cases"] if case["question_id"] == "DA-030")["expected_error_code"] = None
     invalid_dataset = tmp_path / "dataset.json"
     invalid_dataset.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
     schema_path = DATASET.parent / "dataset.schema.json"
