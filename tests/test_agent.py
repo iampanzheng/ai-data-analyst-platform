@@ -53,3 +53,187 @@ def test_mock_agent_routes_unsafe_request_to_sql_validator(monkeypatch):
             "message": "Only SELECT or WITH SELECT queries are allowed",
         }
     ]
+
+
+def test_agent_runs_controlled_analysis_only_for_analysis_question(monkeypatch):
+    from ai.analyst.app.llm.client import LLMClient
+    from ai.analyst.app.llm.models import LLMResponse
+
+    class AnalysisLLM(LLMClient):
+        provider = "test"
+        disable_thinking = False
+
+        def __init__(self):
+            self.calls = []
+
+        def chat(self, messages, *, temperature=0.0):
+            user = next((m.content for m in reversed(messages) if m.role == "user"), "")
+            self.calls.append(user)
+            if "Generate SQL" in user:
+                return LLMResponse(
+                    content="SELECT population, year FROM city ORDER BY year",
+                    model="test-model",
+                    provider=self.provider,
+                )
+            if "Generate analysis plan" in user:
+                return LLMResponse(
+                    content='{"operations":[{"operation":"percent_change","column":"population"}]}',
+                    model="test-model",
+                    provider=self.provider,
+                )
+            return LLMResponse(
+                content="population increased by 50%",
+                model="test-model",
+                provider=self.provider,
+            )
+
+    monkeypatch.setattr(
+        "ai.analyst.app.agent.graph.get_database_schema",
+        lambda: {"schema_name": "public", "tables": []},
+    )
+    monkeypatch.setattr(
+        "ai.analyst.app.agent.graph.execute_sql",
+        lambda sql, trace_id: {
+            "columns": ["population", "year"],
+            "rows": [[100, 2024], [150, 2025]],
+            "row_count": 2,
+            "execution_ms": 1.0,
+            "tables": ["city"],
+        },
+    )
+
+    llm = AnalysisLLM()
+    state = AnalystAgent(llm).run("人口增长率是多少？", "test-analysis-001")
+
+    assert state.errors == []
+    assert state.analysis_result == {
+        "operations": [
+            {
+                "operation": "percent_change",
+                "column": "population",
+                "first": 100.0,
+                "last": 150.0,
+                "percent_change": 50.0,
+            }
+        ]
+    }
+    assert len(llm.calls) == 3
+    assert "Controlled analysis result" in llm.calls[-1]
+
+
+def test_agent_skips_controlled_analysis_for_plain_query(monkeypatch):
+    monkeypatch.setattr(
+        "ai.analyst.app.agent.graph.get_database_schema",
+        lambda: {"schema_name": "public", "tables": []},
+    )
+    monkeypatch.setattr(
+        "ai.analyst.app.agent.graph.execute_sql",
+        lambda sql, trace_id: {
+            "columns": ["name", "population"],
+            "rows": [["New York", 8584629]],
+            "row_count": 1,
+            "execution_ms": 1.0,
+            "tables": ["city"],
+        },
+    )
+
+    state = AnalystAgent(MockLLMClient()).run("人口最多的城市是什么？", "test-analysis-skip-001")
+
+    assert state.errors == []
+    assert state.analysis_result is None
+
+
+def test_agent_repairs_precomputed_correlation_sql_before_execution(monkeypatch):
+    from ai.analyst.app.llm.client import LLMClient
+    from ai.analyst.app.llm.models import LLMResponse
+
+    class RepairLLM(LLMClient):
+        provider = "test"
+        disable_thinking = False
+
+        def __init__(self):
+            self.calls = []
+
+        def chat(self, messages, *, temperature=0.0):
+            user = next((m.content for m in reversed(messages) if m.role == "user"), "")
+            self.calls.append(user)
+            if "Regenerate raw-row SQL" in user:
+                return LLMResponse(
+                    content=(
+                        "SELECT c.population, e.value AS bachelor_pct "
+                        "FROM city c JOIN education e ON c.id = e.city_id "
+                        "WHERE c.year = 2025 AND e.year = 2024 "
+                        "AND e.education_level = 'Bachelor''s degree or higher'"
+                    ),
+                    model="test-model",
+                    provider=self.provider,
+                )
+            if "Generate SQL" in user:
+                return LLMResponse(
+                    content=(
+                        "SELECT CORR(c.population::numeric, e.value::numeric) AS correlation "
+                        "FROM city c JOIN education e ON c.id = e.city_id"
+                    ),
+                    model="test-model",
+                    provider=self.provider,
+                )
+            if "Generate analysis plan" in user:
+                return LLMResponse(
+                    content='{"operations":[{"operation":"correlation","x":"population","y":"bachelor_pct"}]}',
+                    model="test-model",
+                    provider=self.provider,
+                )
+            return LLMResponse(
+                content="相关系数为 1.0。",
+                model="test-model",
+                provider=self.provider,
+            )
+
+    monkeypatch.setattr(
+        "ai.analyst.app.agent.graph.get_database_schema",
+        lambda: {"schema_name": "public", "tables": []},
+    )
+    executed = []
+    def fake_execute(sql, trace_id):
+        executed.append(sql)
+        return {
+            "columns": ["population", "bachelor_pct"],
+            "rows": [[100, 10], [200, 20], [300, 30]],
+            "row_count": 3,
+            "execution_ms": 1.0,
+            "tables": ["city", "education"],
+        }
+    monkeypatch.setattr("ai.analyst.app.agent.graph.execute_sql", fake_execute)
+
+    llm = RepairLLM()
+    state = AnalystAgent(llm).run("分析人口与本科及以上比例的相关性。", "test-analysis-repair-001")
+
+    assert state.errors == []
+    assert len(executed) == 1
+    assert "CORR(" not in executed[0].upper()
+    assert state.analysis_result["operations"][0]["operation"] == "correlation"
+    assert state.analysis_result["operations"][0]["pearson_r"] == 1.0
+    assert len(llm.calls) == 4
+
+
+def test_sql_precompute_guard_is_scoped_by_analysis_kind():
+    from ai.analyst.app.agent.graph import _sql_precomputes_controlled_analysis
+
+    assert _sql_precomputes_controlled_analysis(
+        "SELECT CORR(x, y) FROM city", "correlation"
+    )
+    assert _sql_precomputes_controlled_analysis(
+        "SELECT MIN(x), MAX(x), AVG(x) FROM city", "descriptive_stats"
+    )
+    assert _sql_precomputes_controlled_analysis(
+        "SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY x) FROM city", "descriptive_stats"
+    )
+    assert _sql_precomputes_controlled_analysis(
+        "SELECT LAG(x) OVER (ORDER BY id) FROM city", "percent_change"
+    )
+    assert not _sql_precomputes_controlled_analysis(
+        "SELECT MIN(x) FROM city", "correlation"
+    )
+    assert not _sql_precomputes_controlled_analysis(
+        "SELECT x, y FROM city", "correlation"
+    )

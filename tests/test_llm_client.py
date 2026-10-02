@@ -4,7 +4,12 @@ from types import SimpleNamespace
 import httpx
 import pytest
 
-from ai.analyst.app.agent.prompts import build_answer_messages
+from ai.analyst.app.agent.prompts import (
+    build_analysis_messages,
+    build_answer_messages,
+    build_raw_analysis_sql_retry_messages,
+    build_sql_messages,
+)
 from ai.analyst.app.llm.client import (
     LLMClientError,
     OpenAICompatibleLLMClient,
@@ -515,3 +520,32 @@ def test_retry_after_above_cap_fails_fast(monkeypatch):
 
     assert exc.value.code == "LLM_RATE_LIMIT"
     assert sleeps == []
+
+
+def test_sql_prompt_delegates_controlled_statistics_to_analysis_runtime():
+    messages = build_sql_messages("分析相关性", {"tables": []})
+    system_prompt = messages[0].content.lower()
+    assert "underlying rows" in system_prompt
+    assert "do not calculate those statistics in sql" in system_prompt
+
+
+def test_analysis_prompt_explains_descriptive_stats_is_single_operation():
+    messages = build_analysis_messages(
+        "做描述统计",
+        {"columns": ["value"], "rows": [[1], [2]], "row_count": 2},
+    )
+    system_prompt = messages[0].content.lower()
+    assert "single descriptive_stats operation" in system_prompt
+    assert '"operations":[]' in system_prompt
+
+
+def test_raw_analysis_retry_prompt_requires_row_level_data():
+    messages = build_raw_analysis_sql_retry_messages(
+        "分析相关性",
+        {"tables": []},
+        "correlation",
+        "SELECT CORR(x, y) FROM city",
+    )
+    system_prompt = messages[0].content.lower()
+    assert "underlying row-level numeric columns" in system_prompt
+    assert "do not compute correlation" in system_prompt

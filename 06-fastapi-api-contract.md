@@ -101,3 +101,10 @@ The response additionally exposes `routing_mode`, `selected_route`, and `routing
 Response routing telemetry includes `selected_route`, `final_route`, `fallback_route`, `fallback_used`, `fallback_events`, `route_usage`, and `estimated_cost_usd`.
 
 Explicit `local` + `fallback_mode=auto` never sends the request to the remote provider. Use `cross_route` only when that privacy tradeoff is explicitly acceptable.
+
+
+## Stage 3.3 controlled analysis response
+
+`POST /api/analyze` may additionally return `analysis_result` when the question explicitly requires a controlled post-SQL computation such as correlation, percent change, or descriptive statistics.
+
+The field is `null` for ordinary SQL-answer requests. The runtime never executes model-generated Python source. The model may only propose a JSON plan using allowlisted operations, and the application validates and executes that plan over the already-verified SQL result.

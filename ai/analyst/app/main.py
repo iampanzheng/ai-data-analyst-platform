@@ -51,6 +51,7 @@ class AnalyzeResponse(BaseModel):
     sql_candidate: str | None
     validated_sql: str | None
     query_result: dict[str, Any] | None
+    analysis_result: dict[str, Any] | None
     final_answer: str | None
     model: str | None
     provider: str | None
@@ -366,6 +367,7 @@ def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
             sql_candidate=None,
             validated_sql=None,
             query_result=None,
+            analysis_result=None,
             final_answer=None,
             model=None,
             provider=None,
@@ -415,6 +417,7 @@ def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
         sql_candidate=state.sql_candidate,
         validated_sql=state.validated_sql,
         query_result=state.query_result,
+        analysis_result=state.analysis_result,
         final_answer=state.final_answer,
         model=state.model,
         provider=state.provider,

@@ -436,3 +436,29 @@ OEWS rows carry `occupation_code`, `geography_type`, `geography_name`, and `sour
 The current evaluation dataset is `1.1-stage3.2` with **35 cases**. The Stage 2.2 Groq/Qwen reports remain frozen historical **30-case** baselines.
 
 See `docs/PHASE3-STAGE3.2-RICHER-ANALYTICAL-DATA.md` for data provenance, migration behavior, and acceptance commands.
+
+
+## Stage 3.3 — Controlled Python Analysis
+
+Stage 3.3 adds bounded post-SQL computation without arbitrary code execution.
+
+Pipeline:
+
+```text
+question -> schema -> LLM SQL -> SQL Validator -> PostgreSQL
+         -> deterministic analysis-intent trigger
+         -> LLM JSON analysis plan
+         -> strict plan validation
+         -> controlled Python executor
+         -> analysis_result -> LLM final answer
+```
+
+Allowed operations are currently:
+
+- `descriptive_stats`
+- `correlation` (Pearson r)
+- `percent_change`
+
+The executor accepts at most 1,000 SQL-result rows and at most 3 operations. It has no `eval`, `exec`, shell, filesystem, network, or arbitrary-import path. Column names must exist in the verified SQL result and numeric values are validated at runtime.
+
+`POST /api/analyze` now includes an optional `analysis_result` field. Ordinary questions keep this field `null`.

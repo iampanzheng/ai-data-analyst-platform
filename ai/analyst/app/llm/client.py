@@ -83,6 +83,12 @@ class MockLLMClient(LLMClient):
 
     def chat(self, messages: list[ChatMessage], *, temperature: float = 0.0) -> LLMResponse:
         user = next((m.content for m in reversed(messages) if m.role == "user"), "")
+        if "Generate analysis plan" in user:
+            return LLMResponse(
+                content='{"operations":[{"operation":"descriptive_stats","column":"population"}]}',
+                model="mock-analyst-v0.1",
+                provider=self.provider,
+            )
         if "Generate SQL" in user or "生成 SQL" in user:
             if "DROP TABLE" in user.upper():
                 return LLMResponse(

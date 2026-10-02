@@ -11,6 +11,8 @@ Phase 3 — Evidence-backed Analysis               🚧 ACTIVE
 
 Stage 3.1 — Evidence Foundation                  ✅ CLOSED
 Stage 3.2 — Richer Analytical Data               ✅ CLOSED
+Stage 3.3 — Controlled Python Analysis            ✅ CLOSED
+Stage 3.4 — Visualization                         ▶️ NEXT
 ```
 
 ## Stage 3.1 verification
@@ -325,3 +327,34 @@ Before implementation:
 4. preserve the existing SQL security and routing/fallback contracts.
 
 Do not introduce unrestricted arbitrary Python execution.
+
+# Stage 3.3 — Controlled Python Analysis ✅ CLOSED
+
+Goal: add bounded post-SQL numerical analysis while preserving deterministic execution control.
+
+Final implementation baseline: `v0.1.3` hotfix, archived as the Stage 3.3 v1.0 closeout package. The hotfix corrected the `_sql_precomputes_controlled_analysis` raw-regex double-escaping regression introduced in v0.1.2.
+
+Implemented:
+- deterministic analysis-intent trigger for explicit correlation / percent-change / descriptive-statistics questions
+- LLM emits JSON analysis plan only; no model-generated Python source is executed
+- strict allowlist: `descriptive_stats`, `correlation`, `percent_change`
+- max 1,000 input rows and max 3 operations
+- strict column validation against verified SQL result
+- numeric / finite-value checks and deterministic errors
+- `analysis_result` carried through `AnalystState` and `/api/analyze`
+- final-answer prompt may use verified SQL evidence plus controlled-analysis evidence
+- deterministic guard prevents SQL from precomputing controlled statistics
+- regression coverage includes correlation, descriptive aggregates / percentile, percent-change windows, and raw-row negative cases
+
+Security invariant:
+`LLM -> structured plan -> deterministic validator/executor`; never `LLM -> arbitrary Python -> exec`.
+
+Final verification:
+- Compose full pytest on v0.1.3: PASS, 100%
+- remote correlation smoke: PASS; `pearson_r = 0.36675379037073685`, no fallback, no errors
+- remote descriptive-statistics smoke: PASS; count/min/max/mean/median verified, no fallback, no errors
+- v0.1.2 malformed-regex regression: CLOSED
+
+# Stage 3.4 — Visualization ▶️ NEXT
+
+Starting rule: visualization consumes verified SQL results and/or controlled `analysis_result`; it must preserve the SQL Validator boundary and must not introduce arbitrary Python execution.
