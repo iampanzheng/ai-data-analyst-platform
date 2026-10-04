@@ -8,6 +8,7 @@ from .prompts import (
     build_answer_messages,
     build_chart_messages,
     build_raw_analysis_sql_retry_messages,
+    build_report_messages,
     build_sql_messages,
 )
 from .state import AnalystState
@@ -17,9 +18,18 @@ from ..tools.schema import get_database_schema
 from ..tools.sql import execute_sql
 from ..tools.python_analysis import AnalysisValidationError, execute_analysis_plan
 from ..tools.visualization import ChartValidationError, execute_chart_plan
+from ..tools.reporting import ReportValidationError, execute_report_plan
 
 
 _SQL_FENCE_RE = re.compile(r"^```(?:sql)?\s*|\s*```$", re.IGNORECASE)
+
+
+_REPORT_KEYWORDS = ("report", "报告", "分析报告", "简报", "brief")
+
+
+def _requires_report(question: str) -> bool:
+    normalized = question.casefold()
+    return any(keyword in normalized for keyword in _REPORT_KEYWORDS)
 
 
 _VISUALIZATION_KEYWORDS = (
@@ -186,8 +196,37 @@ class AnalystAgent:
             state.provider = answer_response.provider
             for key, value in answer_response.usage.items():
                 state.usage[key] = state.usage.get(key, 0) + value
+
+            if _requires_report(question):
+                report_response = self.llm.chat(
+                    build_report_messages(
+                        question,
+                        state.query_result,
+                        state.analysis_result,
+                        state.chart_artifact,
+                        disable_thinking=getattr(self.llm, "disable_thinking", False),
+                    )
+                )
+                state.model = report_response.model
+                state.provider = report_response.provider
+                for key, value in report_response.usage.items():
+                    state.usage[key] = state.usage.get(key, 0) + value
+                try:
+                    report_plan = json.loads(report_response.content.strip())
+                except json.JSONDecodeError as exc:
+                    raise ReportValidationError(
+                        "REPORT_PLAN_INVALID_JSON",
+                        "Report planner returned invalid JSON",
+                    ) from exc
+                state.report_artifact = execute_report_plan(
+                    report_plan,
+                    query_result=state.query_result,
+                    analysis_result=state.analysis_result,
+                    chart_artifact=state.chart_artifact,
+                    final_answer=state.final_answer,
+                )
             return state
-        except (LLMClientError, SQLValidationError, AnalysisValidationError, ChartValidationError) as exc:
+        except (LLMClientError, SQLValidationError, AnalysisValidationError, ChartValidationError, ReportValidationError) as exc:
             code = getattr(exc, "code", "LLM_ERROR")
             message = getattr(exc, "message", str(exc))
             state.errors.append({"code": code, "message": message})

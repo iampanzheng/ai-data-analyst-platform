@@ -24,3 +24,14 @@ details table { margin-top: 10px; }
 .line-mark { stroke: #2563eb; stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
 .axis-label { fill: #374151; font-size: 13px; font-weight: 600; }
 .tick-label { fill: #6b7280; font-size: 11px; }
+.report-wrap h2 { margin: 0; }
+.report-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.report-heading button { margin-top: 0; white-space: nowrap; }
+.report-section { margin-top: 20px; }
+.report-section h3 { margin: 0 0 8px; font-size: 16px; }
+.finding-list, .evidence-list { margin: 0; padding-left: 22px; }
+.finding-list li { margin: 10px 0; }
+.finding-list code { margin-right: 8px; }
+.finding-list small { display: block; margin-top: 4px; color: #6b7280; }
+.evidence-list li { margin: 6px 0; }
+.meta-inline { color: #6b7280; font-size: 13px; margin-left: 6px; }

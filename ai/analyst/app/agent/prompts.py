@@ -53,6 +53,15 @@ The exact schema is {"chart_type":"bar|line|scatter","x":"column","y":"column","
 Do not include markdown or extra keys.
 """
 
+
+REPORT_SYSTEM_PROMPT = """You are the report planner for a controlled analytics application.
+Return JSON only. Never write report prose, factual findings, SQL, Python, JavaScript, HTML, or Markdown.
+You may only select which already-verified artifacts the deterministic report assembler should include.
+The exact schema is {"title":"short non-factual title","include_summary":true,"include_query_evidence":true,"analysis_operation_indexes":[0],"include_chart":true}.
+Use only valid analysis operation indexes that are actually present. Set include_chart=false when no chart artifact is available.
+Do not include extra keys.
+"""
+
 ANSWER_SYSTEM_PROMPT = """You are an analytics assistant.
 Answer using only the verified SQL query result and controlled analysis result supplied by the application.
 Be concise, mention important numbers, and do not invent facts.
@@ -174,6 +183,29 @@ def build_chart_messages(
                 f"Question: {question}\n"
                 f"Verified SQL result:\n{json.dumps(to_json_safe(result), ensure_ascii=False)}\n"
                 f"Controlled analysis result:\n{json.dumps(to_json_safe(analysis_result), ensure_ascii=False)}"
+            ),
+        ),
+    ]
+
+
+def build_report_messages(
+    question: str,
+    result: dict[str, Any],
+    analysis_result: dict[str, Any] | None,
+    chart_artifact: dict[str, Any] | None,
+    *,
+    disable_thinking: bool | None = None,
+) -> list[ChatMessage]:
+    return [
+        ChatMessage(role="system", content=REPORT_SYSTEM_PROMPT),
+        ChatMessage(
+            role="user",
+            content=(
+                f"{_thinking_directive(disable_thinking)}Generate report plan for this question.\n"
+                f"Question: {question}\n"
+                f"Verified SQL result metadata: {json.dumps({'columns': result.get('columns'), 'row_count': result.get('row_count'), 'tables': result.get('tables')}, ensure_ascii=False)}\n"
+                f"Controlled analysis result: {json.dumps(to_json_safe(analysis_result), ensure_ascii=False)}\n"
+                f"Controlled chart artifact: {json.dumps(to_json_safe(chart_artifact), ensure_ascii=False)}"
             ),
         ),
     ]

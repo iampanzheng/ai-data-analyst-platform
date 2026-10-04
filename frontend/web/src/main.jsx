@@ -74,6 +74,68 @@ function ChartView({ chart }) {
   );
 }
 
+function ReportView({ report }) {
+  if (!report) return null;
+
+  function downloadJson() {
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'analysis-report.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="report-wrap">
+      <div className="report-heading">
+        <div>
+          <h2>{report.title}</h2>
+          <div className="meta">source: {report.source}</div>
+        </div>
+        <button onClick={downloadJson}>Export JSON</button>
+      </div>
+
+      {report.summary && (
+        <div className="report-section">
+          <h3>Summary</h3>
+          <p>{report.summary}</p>
+        </div>
+      )}
+
+      {report.key_findings?.length > 0 && (
+        <div className="report-section">
+          <h3>Verified findings</h3>
+          <ul className="finding-list">
+            {report.key_findings.map((finding, i) => (
+              <li key={i}>
+                <code>{finding.type}</code>
+                <span>{Object.entries(finding)
+                  .filter(([key]) => !['type', 'evidence_ref'].includes(key))
+                  .map(([key, value]) => `${key}=${String(value)}`)
+                  .join(' · ')}</span>
+                <small>evidence: {finding.evidence_ref}</small>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="report-section">
+        <h3>Evidence</h3>
+        <ul className="evidence-list">
+          {report.evidence?.map(item => (
+            <li key={item.id}>
+              <strong>{item.id}</strong> <span className="meta-inline">{item.type}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [question, setQuestion] = useState('人口最多的 5 个城市是哪几个？');
   const [analysis, setAnalysis] = useState(null);
@@ -140,7 +202,7 @@ function App() {
     <main className="container">
       <header>
         <h1>AI Data Analyst</h1>
-        <p>Question → validated SQL → controlled analysis → controlled visualization → evidence-backed answer</p>
+        <p>Question → validated SQL → controlled analysis → controlled visualization → controlled reporting → evidence-backed answer</p>
       </header>
 
       <section className="card">
@@ -174,6 +236,12 @@ function App() {
       {analysis?.chart_artifact && (
         <section className="card">
           <ChartView chart={analysis.chart_artifact} />
+        </section>
+      )}
+
+      {analysis?.report_artifact && (
+        <section className="card">
+          <ReportView report={analysis.report_artifact} />
         </section>
       )}
 

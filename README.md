@@ -290,7 +290,7 @@ The current portfolio fixture intentionally keeps the dataset small and reproduc
 - `salary`, `employment`, `education`, and `economic_indicator` may currently be empty.
 - Valid multi-table joins can therefore return zero rows.
 - The current Agent does not yet expose unrestricted Python execution.
-- Python analysis, chart generation, and report-generation tools remain later P1 work.
+- Controlled Python analysis and visualization are complete; Stage 3.5 adds controlled evidence-backed reporting.
 - The Mock provider is a deterministic engineering fixture, not a quality benchmark for real LLMs.
 
 These constraints are kept explicit so that evaluation failures are not confused with infrastructure defects.
@@ -464,6 +464,11 @@ The executor accepts at most 1,000 SQL-result rows and at most 3 operations. It 
 `POST /api/analyze` now includes an optional `analysis_result` field. Ordinary questions keep this field `null`.
 
 
-## Controlled visualization (Stage 3.4 candidate)
+## Controlled visualization (Stage 3.4 closed)
 
 Explicit visualization questions may return a validated `chart_artifact` from `POST /api/analyze`. The model only proposes a structured bar/line/scatter plan; application code validates it against verified SQL rows and the React UI renders the resulting data artifact. No model-generated plotting code is executed.
+
+## Controlled reporting (Stage 3.5 candidate)
+
+Explicit report questions may return `report_artifact`. The LLM only proposes a bounded artifact-selection plan; application code validates references and deterministically assembles evidence from `query_result`, controlled `analysis_result`, and optional `chart_artifact`. The React UI renders the report and can export the controlled artifact as JSON. The model is not permitted to inject freeform report facts or executable HTML/JavaScript/Python.
+

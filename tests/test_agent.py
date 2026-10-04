@@ -326,3 +326,87 @@ def test_agent_skips_chart_for_plain_question(monkeypatch):
     state = AnalystAgent(MockLLMClient()).run("人口最多的城市是什么？", "test-chart-skip-001")
     assert state.errors == []
     assert state.chart_artifact is None
+
+
+def test_agent_builds_controlled_report_only_for_report_question(monkeypatch):
+    from ai.analyst.app.llm.client import LLMClient
+    from ai.analyst.app.llm.models import LLMResponse
+
+    class ReportLLM(LLMClient):
+        provider = "test"
+        disable_thinking = False
+
+        def __init__(self):
+            self.calls = []
+
+        def chat(self, messages, *, temperature=0.0):
+            user = next((m.content for m in reversed(messages) if m.role == "user"), "")
+            self.calls.append(user)
+            if "Generate SQL" in user:
+                return LLMResponse(
+                    content="SELECT name, population FROM city ORDER BY population DESC LIMIT 5",
+                    model="test-model",
+                    provider=self.provider,
+                )
+            if "Generate report plan" in user:
+                return LLMResponse(
+                    content=(
+                        '{"title":"Top city population report","include_summary":true,'
+                        '"include_query_evidence":true,"analysis_operation_indexes":[],'
+                        '"include_chart":false}'
+                    ),
+                    model="test-model",
+                    provider=self.provider,
+                )
+            return LLMResponse(
+                content="A has the largest population.",
+                model="test-model",
+                provider=self.provider,
+            )
+
+    monkeypatch.setattr(
+        "ai.analyst.app.agent.graph.get_database_schema",
+        lambda: {"schema_name": "public", "tables": []},
+    )
+    monkeypatch.setattr(
+        "ai.analyst.app.agent.graph.execute_sql",
+        lambda sql, trace_id: {
+            "columns": ["name", "population"],
+            "rows": [["A", 30], ["B", 20]],
+            "row_count": 2,
+            "execution_ms": 1.0,
+            "tables": ["city"],
+        },
+    )
+
+    llm = ReportLLM()
+    state = AnalystAgent(llm).run("生成人口排名分析报告。", "test-report-001")
+
+    assert state.errors == []
+    assert state.report_artifact["title"] == "Top city population report"
+    assert state.report_artifact["summary"] == "A has the largest population."
+    assert state.report_artifact["evidence"][0]["id"] == "query_result"
+    assert state.report_artifact["source"] == "verified_artifacts"
+    assert len(llm.calls) == 3
+    assert "Generate report plan" in llm.calls[-1]
+
+
+def test_agent_skips_report_for_plain_question(monkeypatch):
+    monkeypatch.setattr(
+        "ai.analyst.app.agent.graph.get_database_schema",
+        lambda: {"schema_name": "public", "tables": []},
+    )
+    monkeypatch.setattr(
+        "ai.analyst.app.agent.graph.execute_sql",
+        lambda sql, trace_id: {
+            "columns": ["name", "population"],
+            "rows": [["New York", 8584629]],
+            "row_count": 1,
+            "execution_ms": 1.0,
+            "tables": ["city"],
+        },
+    )
+
+    state = AnalystAgent(MockLLMClient()).run("人口最多的城市是什么？", "test-report-skip-001")
+    assert state.errors == []
+    assert state.report_artifact is None

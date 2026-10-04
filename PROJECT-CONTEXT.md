@@ -13,7 +13,7 @@ Stage 3.1 — Evidence Foundation                  ✅ CLOSED
 Stage 3.2 — Richer Analytical Data               ✅ CLOSED
 Stage 3.3 — Controlled Python Analysis            ✅ CLOSED
 Stage 3.4 — Controlled Visualization              ✅ CLOSED
-Stage 3.5 — Controlled Reporting                  ▶️ NEXT
+Stage 3.5 — Controlled Reporting                  ✅ CLOSED
 ```
 
 ## Stage 3.1 verification
@@ -76,7 +76,7 @@ Stage 3.1 Evidence Foundation      ✅
 Stage 3.2 Richer Analytical Data   ✅
 Stage 3.3 Controlled Python Analysis  ✅
 Stage 3.4 Controlled Visualization    ✅
-Stage 3.5 Controlled Reporting        ▶️
+Stage 3.5 Controlled Reporting        ✅
 ```
 
 ---
@@ -298,6 +298,9 @@ estimated_cost_usd
 sql_candidate
 validated_sql
 query_result
+analysis_result
+chart_artifact
+report_artifact
 final_answer
 model
 provider
@@ -369,7 +372,37 @@ Final verification:
 
 Security invariant remains `LLM -> structured chart plan -> deterministic validator -> chart artifact`; no executable plotting code is accepted.
 
-# Stage 3.5 — Controlled Reporting ▶️ NEXT
+# Stage 3.5 — Controlled Reporting ✅ CLOSED
 
-Starting rule: reporting may consume verified `query_result`, controlled `analysis_result`, controlled `chart_artifact`, and the evidence-backed final answer, but must not introduce arbitrary code execution or an unvalidated factual surface.
+Stage 3.5 is frozen on the verified v0.1 implementation and archived as the v1.0 closeout baseline.
+
+Architecture:
+
+```text
+verified artifacts
+→ JSON-only report selection plan
+→ deterministic reference validation / assembler
+→ report_artifact
+→ React Report Panel / JSON export
+```
+
+Key controls:
+- explicit report intent only
+- report planner selects existing artifacts but does not write factual findings
+- strict plan keys and bounded analysis-operation references
+- deterministic key findings copied from controlled `analysis_result`
+- chart references allowed only when a controlled `chart_artifact` exists
+- extra/freeform payload keys rejected
+- no HTML/Markdown/Python/JavaScript report execution
+
+Final verification:
+- Compose full pytest: PASS, 100%
+- frontend production build: PASS (`vite v8.3.1`, 15 modules transformed)
+- report-only remote smoke: PASS; 5 verified city rows, `report_artifact.source = verified_artifacts`, query evidence present, no fallback, no errors
+- combined correlation + scatter + report smoke: PASS; 5 rows, `pearson_r = 0.36675379037073685`, scatter artifact present, report evidence bound to query/analysis/chart, no fallback, no errors
+- deterministic report finding matched the controlled analysis value exactly
+
+# Stage 3.6 — Export / Deliverable Packaging ▶️ NEXT
+
+Starting point: build user-facing export/deliverable packaging strictly from existing verified artifacts (`query_result`, `analysis_result`, `chart_artifact`, `report_artifact`) without creating a new factual surface or arbitrary execution path.
 
