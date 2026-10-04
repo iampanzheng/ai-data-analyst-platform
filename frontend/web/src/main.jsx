@@ -4,6 +4,76 @@ import './styles.css';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
+
+function ChartView({ chart }) {
+  if (!chart?.points?.length) return null;
+
+  const width = 920;
+  const height = 360;
+  const pad = { left: 64, right: 24, top: 28, bottom: 72 };
+  const innerW = width - pad.left - pad.right;
+  const innerH = height - pad.top - pad.bottom;
+  const points = chart.points;
+  const yValues = points.map(p => Number(p.y));
+  const minY = Math.min(...yValues, 0);
+  const maxYRaw = Math.max(...yValues, 0);
+  const maxY = maxYRaw === minY ? minY + 1 : maxYRaw;
+  const yScale = y => pad.top + innerH - ((Number(y) - minY) / (maxY - minY)) * innerH;
+  const baselineY = yScale(0);
+
+  if (chart.chart_type === 'scatter') {
+    const xValues = points.map(p => Number(p.x));
+    const minX = Math.min(...xValues);
+    const maxXRaw = Math.max(...xValues);
+    const maxX = maxXRaw === minX ? minX + 1 : maxXRaw;
+    const xScale = x => pad.left + ((Number(x) - minX) / (maxX - minX)) * innerW;
+    return (
+      <div className="chart-wrap">
+        <h2>{chart.title}</h2>
+        <svg className="chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={chart.title}>
+          <line x1={pad.left} y1={pad.top + innerH} x2={pad.left + innerW} y2={pad.top + innerH} className="axis" />
+          <line x1={pad.left} y1={pad.top} x2={pad.left} y2={pad.top + innerH} className="axis" />
+          {points.map((p, i) => (
+            <circle key={i} cx={xScale(p.x)} cy={yScale(p.y)} r="5" className="mark" />
+          ))}
+          <text x={pad.left + innerW / 2} y={height - 18} textAnchor="middle" className="axis-label">{chart.x.column}</text>
+          <text x="18" y={pad.top + innerH / 2} textAnchor="middle" className="axis-label" transform={`rotate(-90 18 ${pad.top + innerH / 2})`}>{chart.y.column}</text>
+        </svg>
+        <div className="meta">{chart.point_count} points · source: {chart.source}</div>
+      </div>
+    );
+  }
+
+  const step = innerW / points.length;
+  const centerX = i => pad.left + step * i + step / 2;
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${centerX(i)} ${yScale(p.y)}`).join(' ');
+  const labelEvery = Math.max(1, Math.ceil(points.length / 10));
+
+  return (
+    <div className="chart-wrap">
+      <h2>{chart.title}</h2>
+      <svg className="chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={chart.title}>
+        <line x1={pad.left} y1={baselineY} x2={pad.left + innerW} y2={baselineY} className="axis" />
+        <line x1={pad.left} y1={pad.top} x2={pad.left} y2={pad.top + innerH} className="axis" />
+        {chart.chart_type === 'bar' && points.map((p, i) => {
+          const y = yScale(p.y);
+          const top = Math.min(y, baselineY);
+          const barH = Math.max(1, Math.abs(baselineY - y));
+          return <rect key={i} x={pad.left + step * i + step * 0.16} y={top} width={step * 0.68} height={barH} rx="3" className="mark" />;
+        })}
+        {chart.chart_type === 'line' && <path d={linePath} fill="none" className="line-mark" />}
+        {chart.chart_type === 'line' && points.map((p, i) => <circle key={i} cx={centerX(i)} cy={yScale(p.y)} r="4" className="mark" />)}
+        {points.map((p, i) => i % labelEvery === 0 ? (
+          <text key={`label-${i}`} x={centerX(i)} y={height - 34} textAnchor="middle" className="tick-label">{String(p.x)}</text>
+        ) : null)}
+        <text x={pad.left + innerW / 2} y={height - 10} textAnchor="middle" className="axis-label">{chart.x.column}</text>
+        <text x="18" y={pad.top + innerH / 2} textAnchor="middle" className="axis-label" transform={`rotate(-90 18 ${pad.top + innerH / 2})`}>{chart.y.column}</text>
+      </svg>
+      <div className="meta">{chart.point_count} points · source: {chart.source}</div>
+    </div>
+  );
+}
+
 function App() {
   const [question, setQuestion] = useState('人口最多的 5 个城市是哪几个？');
   const [analysis, setAnalysis] = useState(null);
@@ -70,7 +140,7 @@ function App() {
     <main className="container">
       <header>
         <h1>AI Data Analyst</h1>
-        <p>Day 5: Question → Schema → LLM → Validator → PostgreSQL → Answer</p>
+        <p>Question → validated SQL → controlled analysis → controlled visualization → evidence-backed answer</p>
       </header>
 
       <section className="card">
@@ -98,6 +168,12 @@ function App() {
           <h2>Answer</h2>
           <p>{analysis.final_answer}</p>
           <div className="meta">Model: {analysis.model || '—'} · route: {analysis.selected_route || '—'}→{analysis.final_route || analysis.selected_route || '—'} · fallback: {analysis.fallback_used ? 'used' : 'no'} · cost: ${Number(analysis.estimated_cost_usd || 0).toFixed(6)} · trace: {analysis.trace_id}</div>
+        </section>
+      )}
+
+      {analysis?.chart_artifact && (
+        <section className="card">
+          <ChartView chart={analysis.chart_artifact} />
         </section>
       )}
 

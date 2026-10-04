@@ -16,3 +16,11 @@ table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eee; vertical-align: top; }
 summary { cursor: pointer; font-weight: 600; margin: 8px 0; }
 details table { margin-top: 10px; }
+.chart-wrap { width: 100%; }
+.chart-wrap h2 { margin-top: 0; }
+.chart { display: block; width: 100%; min-width: 640px; height: auto; }
+.axis { stroke: #9ca3af; stroke-width: 1; }
+.mark { fill: #2563eb; }
+.line-mark { stroke: #2563eb; stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.axis-label { fill: #374151; font-size: 13px; font-weight: 600; }
+.tick-label { fill: #6b7280; font-size: 11px; }

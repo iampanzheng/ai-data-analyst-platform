@@ -12,7 +12,8 @@ Phase 3 — Evidence-backed Analysis               🚧 ACTIVE
 Stage 3.1 — Evidence Foundation                  ✅ CLOSED
 Stage 3.2 — Richer Analytical Data               ✅ CLOSED
 Stage 3.3 — Controlled Python Analysis            ✅ CLOSED
-Stage 3.4 — Visualization                         ▶️ NEXT
+Stage 3.4 — Controlled Visualization              ✅ CLOSED
+Stage 3.5 — Controlled Reporting                  ▶️ NEXT
 ```
 
 ## Stage 3.1 verification
@@ -73,9 +74,9 @@ Do not redesign without new measured evidence:
 ```text
 Stage 3.1 Evidence Foundation      ✅
 Stage 3.2 Richer Analytical Data   ✅
-Stage 3.3 Controlled Python Analysis
-Stage 3.4 Visualization
-Stage 3.5 Evidence-backed Reporting
+Stage 3.3 Controlled Python Analysis  ✅
+Stage 3.4 Controlled Visualization    ✅
+Stage 3.5 Controlled Reporting        ▶️
 ```
 
 ---
@@ -355,6 +356,20 @@ Final verification:
 - remote descriptive-statistics smoke: PASS; count/min/max/mean/median verified, no fallback, no errors
 - v0.1.2 malformed-regex regression: CLOSED
 
-# Stage 3.4 — Visualization ▶️ NEXT
+# Stage 3.4 — Controlled Visualization ✅ CLOSED
 
-Starting rule: visualization consumes verified SQL results and/or controlled `analysis_result`; it must preserve the SQL Validator boundary and must not introduce arbitrary Python execution.
+Stage 3.4 is frozen on the verified v0.1.1 implementation and archived as the v1.0 closeout baseline.
+
+Final verification:
+- full Compose pytest: PASS, 100%
+- remote bar-chart smoke: PASS; 5 verified points, no fallback, no errors
+- combined correlation + scatter smoke: PASS; 5 rows, `pearson_r = 0.36675379037073685`, 5 scatter points, no fallback, no errors
+- `education.education_level` exact-value grounding regression: CLOSED (`Bachelor's degree or higher`)
+- frontend production build: PASS (`vite v8.3.1`, 15 modules transformed)
+
+Security invariant remains `LLM -> structured chart plan -> deterministic validator -> chart artifact`; no executable plotting code is accepted.
+
+# Stage 3.5 — Controlled Reporting ▶️ NEXT
+
+Starting rule: reporting may consume verified `query_result`, controlled `analysis_result`, controlled `chart_artifact`, and the evidence-backed final answer, but must not introduce arbitrary code execution or an unvalidated factual surface.
+

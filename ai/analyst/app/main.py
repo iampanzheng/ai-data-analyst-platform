@@ -52,6 +52,7 @@ class AnalyzeResponse(BaseModel):
     validated_sql: str | None
     query_result: dict[str, Any] | None
     analysis_result: dict[str, Any] | None
+    chart_artifact: dict[str, Any] | None
     final_answer: str | None
     model: str | None
     provider: str | None
@@ -67,7 +68,7 @@ MAX_ROWS = int(os.getenv("SQL_MAX_ROWS", "1000"))
 STATEMENT_TIMEOUT_MS = int(os.getenv("SQL_STATEMENT_TIMEOUT_MS", "3000"))
 VALUE_GROUNDING_MAX_VALUES = int(os.getenv("VALUE_GROUNDING_MAX_VALUES", "20"))
 VALUE_GROUNDING_SEMANTIC_TYPES = {"geography_code"}
-VALUE_GROUNDING_COLUMNS = {("city", "state")}
+VALUE_GROUNDING_COLUMNS = {("city", "state"), ("education", "education_level")}
 
 
 def _is_value_grounded(table_name: str, column_name: str, semantic_type: str) -> bool:
@@ -80,6 +81,11 @@ def _value_hint(table_name: str, column_name: str, semantic_type: str) -> str:
             "Stored values are two-letter U.S. postal abbreviations. Map natural-language state "
             "names or common aliases to the stored code before filtering; for example "
             "California/加州 -> CA, Texas/德州 -> TX, New York/纽约州 -> NY."
+        )
+    if (table_name, column_name) == ("education", "education_level"):
+        return (
+            "Categorical label. When filtering, use an exact stored sample value rather than "
+            "paraphrasing or shortening the category name."
         )
     return ""
 
@@ -368,6 +374,7 @@ def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
             validated_sql=None,
             query_result=None,
             analysis_result=None,
+            chart_artifact=None,
             final_answer=None,
             model=None,
             provider=None,
@@ -418,6 +425,7 @@ def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
         validated_sql=state.validated_sql,
         query_result=state.query_result,
         analysis_result=state.analysis_result,
+        chart_artifact=state.chart_artifact,
         final_answer=state.final_answer,
         model=state.model,
         provider=state.provider,

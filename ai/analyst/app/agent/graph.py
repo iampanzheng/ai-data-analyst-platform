@@ -6,6 +6,7 @@ import re
 from .prompts import (
     build_analysis_messages,
     build_answer_messages,
+    build_chart_messages,
     build_raw_analysis_sql_retry_messages,
     build_sql_messages,
 )
@@ -15,9 +16,21 @@ from ..security import SQLValidationError, validate_sql
 from ..tools.schema import get_database_schema
 from ..tools.sql import execute_sql
 from ..tools.python_analysis import AnalysisValidationError, execute_analysis_plan
+from ..tools.visualization import ChartValidationError, execute_chart_plan
 
 
 _SQL_FENCE_RE = re.compile(r"^```(?:sql)?\s*|\s*```$", re.IGNORECASE)
+
+
+_VISUALIZATION_KEYWORDS = (
+    "chart", "plot", "visualize", "visualization",
+    "图表", "可视化", "柱状图", "条形图", "折线图", "散点图", "趋势图", "画图",
+)
+
+
+def _requires_visualization(question: str) -> bool:
+    normalized = question.casefold()
+    return any(keyword in normalized for keyword in _VISUALIZATION_KEYWORDS)
 
 
 _ANALYSIS_KEYWORDS = (
@@ -137,6 +150,28 @@ class AnalystAgent:
                     ) from exc
                 state.analysis_result = execute_analysis_plan(analysis_plan, state.query_result)
 
+            if _requires_visualization(question):
+                chart_response = self.llm.chat(
+                    build_chart_messages(
+                        question,
+                        state.query_result,
+                        state.analysis_result,
+                        disable_thinking=getattr(self.llm, "disable_thinking", False),
+                    )
+                )
+                state.model = chart_response.model
+                state.provider = chart_response.provider
+                for key, value in chart_response.usage.items():
+                    state.usage[key] = state.usage.get(key, 0) + value
+                try:
+                    chart_plan = json.loads(chart_response.content.strip())
+                except json.JSONDecodeError as exc:
+                    raise ChartValidationError(
+                        "CHART_PLAN_INVALID_JSON",
+                        "Chart planner returned invalid JSON",
+                    ) from exc
+                state.chart_artifact = execute_chart_plan(chart_plan, state.query_result)
+
             answer_response = self.llm.chat(
                 build_answer_messages(
                     question,
@@ -152,7 +187,7 @@ class AnalystAgent:
             for key, value in answer_response.usage.items():
                 state.usage[key] = state.usage.get(key, 0) + value
             return state
-        except (LLMClientError, SQLValidationError, AnalysisValidationError) as exc:
+        except (LLMClientError, SQLValidationError, AnalysisValidationError, ChartValidationError) as exc:
             code = getattr(exc, "code", "LLM_ERROR")
             message = getattr(exc, "message", str(exc))
             state.errors.append({"code": code, "message": message})

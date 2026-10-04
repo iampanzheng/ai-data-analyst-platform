@@ -42,6 +42,17 @@ The exact schema is: {"operations":[{"operation":"descriptive_stats","column":"c
 Do not include markdown or extra keys.
 """
 
+
+
+CHART_SYSTEM_PROMPT = """You are the chart planner for a controlled analytics application.
+Return JSON only. Never return JavaScript, Python, SQL, HTML, SVG, or plotting-library code.
+Allowed chart types are bar, line, and scatter.
+Use only columns present in the verified SQL result.
+Choose bar for categorical comparisons/rankings, line for ordered time/progression, and scatter for relationships between two numeric variables.
+The exact schema is {"chart_type":"bar|line|scatter","x":"column","y":"column","title":"short title"}.
+Do not include markdown or extra keys.
+"""
+
 ANSWER_SYSTEM_PROMPT = """You are an analytics assistant.
 Answer using only the verified SQL query result and controlled analysis result supplied by the application.
 Be concise, mention important numbers, and do not invent facts.
@@ -142,6 +153,27 @@ def build_answer_messages(
                 f"Verified result:\n{json.dumps(to_json_safe(result), ensure_ascii=False)}\n"
                 f"Controlled analysis result:\n{json.dumps(to_json_safe(analysis_result), ensure_ascii=False)}\n"
                 "Write the final answer."
+            ),
+        ),
+    ]
+
+
+def build_chart_messages(
+    question: str,
+    result: dict[str, Any],
+    analysis_result: dict[str, Any] | None = None,
+    *,
+    disable_thinking: bool | None = None,
+) -> list[ChatMessage]:
+    return [
+        ChatMessage(role="system", content=CHART_SYSTEM_PROMPT),
+        ChatMessage(
+            role="user",
+            content=(
+                f"{_thinking_directive(disable_thinking)}Generate chart plan for this question.\n"
+                f"Question: {question}\n"
+                f"Verified SQL result:\n{json.dumps(to_json_safe(result), ensure_ascii=False)}\n"
+                f"Controlled analysis result:\n{json.dumps(to_json_safe(analysis_result), ensure_ascii=False)}"
             ),
         ),
     ]

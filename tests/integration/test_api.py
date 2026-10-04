@@ -57,6 +57,11 @@ def test_schema_endpoint_returns_metadata(client):
     geography_type = next(c for c in salary["columns"] if c["name"] == "geography_type")
     assert "metropolitan" in geography_type["description"]
 
+    education = next(t for t in body["tables"] if t["table_name"] == "education")
+    education_level = next(c for c in education["columns"] if c["name"] == "education_level")
+    assert "Bachelor's degree or higher" in education_level["sample_values"]
+    assert "exact stored sample value" in education_level["value_hint"]
+
 
 def test_query_endpoint_propagates_trace_id(client):
     trace_id = "day3-query-test"

@@ -237,3 +237,92 @@ def test_sql_precompute_guard_is_scoped_by_analysis_kind():
     assert not _sql_precomputes_controlled_analysis(
         "SELECT x, y FROM city", "correlation"
     )
+
+
+def test_agent_builds_controlled_chart_only_for_visualization_question(monkeypatch):
+    from ai.analyst.app.llm.client import LLMClient
+    from ai.analyst.app.llm.models import LLMResponse
+
+    class ChartLLM(LLMClient):
+        provider = "test"
+        disable_thinking = False
+
+        def __init__(self):
+            self.calls = []
+
+        def chat(self, messages, *, temperature=0.0):
+            user = next((m.content for m in reversed(messages) if m.role == "user"), "")
+            self.calls.append(user)
+            if "Generate SQL" in user:
+                return LLMResponse(
+                    content="SELECT name, population FROM city ORDER BY population DESC LIMIT 5",
+                    model="test-model",
+                    provider=self.provider,
+                )
+            if "Generate chart plan" in user:
+                return LLMResponse(
+                    content='{"chart_type":"bar","x":"name","y":"population","title":"Top city population"}',
+                    model="test-model",
+                    provider=self.provider,
+                )
+            return LLMResponse(
+                content="A has the largest population.",
+                model="test-model",
+                provider=self.provider,
+            )
+
+    monkeypatch.setattr(
+        "ai.analyst.app.agent.graph.get_database_schema",
+        lambda: {"schema_name": "public", "tables": []},
+    )
+    monkeypatch.setattr(
+        "ai.analyst.app.agent.graph.execute_sql",
+        lambda sql, trace_id: {
+            "columns": ["name", "population"],
+            "rows": [["A", 30], ["B", 20], ["C", 10]],
+            "row_count": 3,
+            "execution_ms": 1.0,
+            "tables": ["city"],
+        },
+    )
+
+    llm = ChartLLM()
+    state = AnalystAgent(llm).run("用柱状图显示人口最多的城市。", "test-chart-001")
+
+    assert state.errors == []
+    assert state.chart_artifact == {
+        "chart_type": "bar",
+        "title": "Top city population",
+        "x": {"column": "name"},
+        "y": {"column": "population"},
+        "points": [
+            {"x": "A", "y": 30.0},
+            {"x": "B", "y": 20.0},
+            {"x": "C", "y": 10.0},
+        ],
+        "point_count": 3,
+        "source": "verified_query_result",
+    }
+    assert len(llm.calls) == 3
+    assert "Generate chart plan" in llm.calls[1]
+
+
+def test_agent_skips_chart_for_plain_question(monkeypatch):
+    monkeypatch.setattr(
+        "ai.analyst.app.agent.graph.get_database_schema",
+        lambda: {"schema_name": "public", "tables": []},
+    )
+    monkeypatch.setattr(
+        "ai.analyst.app.agent.graph.execute_sql",
+        lambda sql, trace_id: {
+            "columns": ["name", "population"],
+            "rows": [["New York", 8584629]],
+            "row_count": 1,
+            "execution_ms": 1.0,
+            "tables": ["city"],
+        },
+    )
+
+    state = AnalystAgent(MockLLMClient()).run("人口最多的城市是什么？", "test-chart-skip-001")
+    assert state.errors == []
+    assert state.chart_artifact is None

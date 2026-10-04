@@ -462,3 +462,8 @@ Allowed operations are currently:
 The executor accepts at most 1,000 SQL-result rows and at most 3 operations. It has no `eval`, `exec`, shell, filesystem, network, or arbitrary-import path. Column names must exist in the verified SQL result and numeric values are validated at runtime.
 
 `POST /api/analyze` now includes an optional `analysis_result` field. Ordinary questions keep this field `null`.
+
+
+## Controlled visualization (Stage 3.4 candidate)
+
+Explicit visualization questions may return a validated `chart_artifact` from `POST /api/analyze`. The model only proposes a structured bar/line/scatter plan; application code validates it against verified SQL rows and the React UI renders the resulting data artifact. No model-generated plotting code is executed.
