@@ -14,6 +14,9 @@ Stage 3.2 — Richer Analytical Data               ✅ CLOSED
 Stage 3.3 — Controlled Python Analysis            ✅ CLOSED
 Stage 3.4 — Controlled Visualization              ✅ CLOSED
 Stage 3.5 — Controlled Reporting                  ✅ CLOSED
+Stage 3.6 — Export / Deliverable Packaging        ✅ CLOSED
+Stage 3.7 — Analyst Workspace / Frontend Polish   ✅ CLOSED
+Stage 3.8 — End-to-End Acceptance & Regression    ▶️ NEXT
 ```
 
 ## Stage 3.1 verification
@@ -72,11 +75,14 @@ Do not redesign without new measured evidence:
 # Phase 3 Direction
 
 ```text
-Stage 3.1 Evidence Foundation      ✅
-Stage 3.2 Richer Analytical Data   ✅
-Stage 3.3 Controlled Python Analysis  ✅
-Stage 3.4 Controlled Visualization    ✅
-Stage 3.5 Controlled Reporting        ✅
+Stage 3.1 Evidence Foundation                 ✅
+Stage 3.2 Richer Analytical Data                  ✅
+Stage 3.3 Controlled Python Analysis              ✅
+Stage 3.4 Controlled Visualization                ✅
+Stage 3.5 Controlled Reporting                    ✅
+Stage 3.6 Export / Deliverable Packaging          ✅
+Stage 3.7 Analyst Workspace / Frontend Polish     ✅
+Stage 3.8 End-to-End Acceptance & Regression      ▶️ NEXT
 ```
 
 ---
@@ -449,9 +455,69 @@ Final hotfix verification:
 - report-only smoke: PASS; `summary_source = deterministic_evidence`, unsupported source attribution isolated to top-level LLM answer only
 - combined correlation + scatter + report + delivery smoke: PASS; deterministic summary retained controlled analysis/chart evidence, no fallback, no errors
 
-# Stage 3.7 — Analyst Workspace / Frontend Integration Polish 🚧 IN PROGRESS
+# Stage 3.7 — Analyst Workspace / Frontend Integration Polish ✅ CLOSED
 
 Goal: consolidate the verified Answer / SQL / Query Result / Analysis / Chart / Report / Delivery / Provenance surfaces into a portfolio-ready analyst workspace without changing the backend artifact contracts.
 
 Stage 3.7 is frontend-focused. The backend `/api/analyze` response contract and all Stage 3.1–3.6 trust boundaries remain frozen unless a concrete regression requires otherwise.
 
+Stage 3.7 v0.1.1 presentation-polish candidate implements:
+- portfolio-oriented hero + explicit trust-model summary
+- responsive two-column analyst workspace
+- sticky request/routing control panel
+- answer execution-status strip (route, fallback, rows, latency, cost, trace)
+- Data / Analysis / Chart / Report / Provenance workspace tabs
+- progressive-disclosure manual SQL and schema browser
+- deterministic delivery downloads retained in the Report tab
+- no new frontend runtime dependency and no backend contract change
+
+Closeout gates: full backend pytest, frontend production build, browser smoke for basic and full artifact flows, and delivery download verification.
+
+
+
+## Stage 3.7 v0.1.1 presentation-polish update
+
+Browser validation of v0.1 confirmed the five-tab workspace and Report JSON/Markdown downloads. The remaining presentation issues were raw Markdown in the LLM Answer and developer-oriented verified findings. v0.1.1 changes only the frontend:
+
+- safe Markdown rendering for Answer
+- human-readable verified findings and rounded display metrics
+- Evidence-backed UI label for deterministic report summaries
+- presentation summary separated from expandable technical evidence
+
+Backend `/api/analyze`, report/delivery artifacts, export payloads, and Stage 3.1–3.6 trust boundaries remain unchanged. Stage 3.7 remains IN PROGRESS pending production build and browser validation of v0.1.1.
+
+## Stage 3.7 v0.1.2 visualization / presentation final-polish update
+
+This frontend-only candidate follows the v0.1.1 browser review. It keeps `/api/analyze`, verified artifacts, exports, and all Stage 3.1–3.6 trust boundaries unchanged.
+
+Changes:
+- Data table presentation formats numeric values without changing raw query values; percentage-like columns render as percentages while years/IDs remain literal.
+- Analysis cards map internal operation/field names to human-readable labels and preserve rounded display precision only at the UI layer.
+- Controlled charts add readable axes, ticks, grid lines, human-friendly axis labels, and browser-native hover value inspection without inferring point labels absent from `chart_artifact`.
+- Report presentation uses localized friendly field labels where the report title is Chinese; raw artifact fields remain unchanged.
+- Provenance adds trace-ID copy affordance, presentation-friendly `Verified artifacts`, and manifest badges.
+- The conversational Answer is explicitly labeled `LLM-generated`, preserving the visual distinction from verified artifacts.
+
+Verification pending for closeout: full backend pytest, frontend production build, and browser regression for Data / Analysis / Chart / Report / Provenance plus delivery downloads.
+
+### Stage 3.7 v0.1.3 — Final Presentation Polish candidate
+
+Final UI-only closeout pass:
+- safe inline Markdown emphasis (`*italic*` / `_italic_`)
+- rounded nice-scale chart domains/ticks
+- localized presentation aliases for `bachelor_percent`-style fields
+
+No backend/API/artifact contract changes. Final closeout requires Docker pytest, Web production build, and browser verification.
+
+
+## Stage 3.7 Closeout
+
+Stage 3.7 is frozen on the verified v0.1.3 frontend implementation and archived as the v1.0 closeout baseline.
+
+Final verification:
+- backend regression suite: PASS
+- frontend production build: PASS
+- Data / Analysis / Chart / Report / Provenance browser regression: PASS
+- Report JSON / Markdown downloads: PASS
+- safe Markdown presentation, nice chart ticks, friendly report mappings: PASS
+- no backend API or verified-artifact contract changes
