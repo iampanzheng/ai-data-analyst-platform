@@ -8,6 +8,9 @@
 Phase 1 — MVP Foundation                         ✅ CLOSED
 Phase 2 — Real LLM Evaluation / Routing / Cost  ✅ CLOSED
 Phase 3 — Evidence-backed Analysis               ✅ CLOSED
+Phase 4 — Production / Portfolio Readiness       🚧 ACTIVE
+
+Stage 4.1 — Local Production Baseline            🚧 ACTIVE
 
 Stage 3.1 — Evidence Foundation                  ✅ CLOSED
 Stage 3.2 — Richer Analytical Data               ✅ CLOSED
@@ -99,7 +102,21 @@ Real-stack acceptance: 7/7 PASS
 
 The final acceptance suite covers gateway health, unsafe SQL rejection, ranked query execution, controlled descriptive statistics, controlled visualization, evidence-bound report/delivery, and the full controlled analysis chain.
 
-Phase 3 is CLOSED. The next starting point is Phase 4 — Production / Portfolio Readiness.
+Phase 3 is CLOSED.
+
+## Phase 4 current direction
+
+```text
+Stage 4.1 Local Production Baseline          🚧 ACTIVE
+Stage 4.2 Security / Configuration Cleanup   planned
+Stage 4.3 Portfolio Documentation & Demo     planned
+Stage 4.4 GitHub Repository & CI             planned
+Stage 4.5 Deployment / Final Release         planned
+```
+
+Stage 4.1 is intentionally local-only. GitHub publication is deferred until the repository, documentation, secret hygiene, and repeatable verification baseline are stable.
+
+Stage 4.1 v0.1 adds `.dockerignore`, health-gated FastAPI → Gateway startup, an explicit `make verify` local production gate, clearer verification Make targets, and a complete safe `.env.example`. Frontend npm dependency locking remains a known Phase 4 item because no lockfile should be fabricated offline.
 
 ---
 

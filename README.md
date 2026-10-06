@@ -4,7 +4,7 @@ Production-oriented AI application engineering portfolio project.
 
 The platform accepts a natural-language analytics question, retrieves database schema metadata, asks an LLM provider to generate SQL, validates the generated SQL as untrusted input, executes it against a read-only PostgreSQL connection, and returns the query evidence together with an Analyst answer.
 
-The current repository also includes a deterministic 30-case evaluation harness, structured observability, a Spring Boot gateway, and a React demo UI.
+The current repository also includes a deterministic evaluation harness, controlled Python analysis, controlled visualization, evidence-bound reporting and delivery artifacts, structured observability, a Spring Boot gateway, and a React Analyst Workspace.
 
 ## What this project demonstrates
 
@@ -37,23 +37,26 @@ request → validate → execute → evidence
 ## Current architecture
 
 ```text
-React :5173
+React Analyst Workspace :5173
    ↓
 Spring Boot Gateway :8080
    ↓
 FastAPI AI Service :8000
    ↓
-Analyst Agent v0.1
-   ├── Schema Tool
-   ├── LLM Client
-   └── SQL Tool
-          ↓
-      SQL Validator
-          ↓
-     PostgreSQL :5432
+Deterministic Router / Resilient LLM Client
+   ↓
+Analyst Agent
+   ├── Schema + bounded value grounding
+   ├── SQL generation
+   ├── deterministic SQL validation
+   ├── read-only PostgreSQL execution
+   ├── controlled Python analysis
+   ├── controlled visualization
+   ├── evidence-bound reporting
+   └── deterministic delivery packaging
 ```
 
-The model provider is behind a provider-independent `LLMClient` abstraction. Development and baseline evaluation use a deterministic Mock provider; an OpenAI-compatible adapter is implemented and Phase 2 is hardening it for real-model evaluation with normalized usage, structured provider errors, and bounded retry/backoff.
+The model provider is behind a provider-independent `LLMClient` abstraction. Development defaults to a deterministic Mock provider. OpenAI-compatible remote/local providers, deterministic routing, bounded retry/backoff, privacy-aware fallback, token usage, and estimated-cost telemetry were validated and closed in Phase 2.
 
 ## Technology stack
 
@@ -229,34 +232,38 @@ Current evaluator semantics are documented in `evaluation/README.md`. In particu
 
 ## Tests and verification
 
-Run the complete Python suite against the Compose environment:
+Phase 4.1 defines a deterministic local production baseline. With Docker available, run:
 
 ```bash
-docker compose up --build -d
-docker compose exec fastapi pytest -q
+make verify
 ```
 
-Run the evaluation baseline:
+That gate validates Compose configuration, builds/starts the stack, runs the FastAPI/Python test suite, runs deterministic frontend tests, creates the frontend production build, and checks the Gateway health endpoint.
+
+Individual commands remain available:
 
 ```bash
-docker compose exec fastapi python -m evaluation.run
+make test
+make web-test
+make web-build
 ```
 
-Run Spring Boot tests locally when Maven is available:
+The real-stack Stage 3.8 acceptance suite is intentionally separate because it can depend on a configured real-model route:
 
 ```bash
-cd backend/springboot
-mvn clean test
+make acceptance
 ```
 
-Day 7 verification completed successfully:
+Phase 3 closeout evidence:
 
-- **51 Python tests passed** in the Compose FastAPI environment
-- the **30-case evaluation runner completed successfully**
-- SQL / result / answer correctness remained **6.7% / 3.5% / 0.0%** with the deterministic Mock provider
-- the latest Day 7 verification run averaged **38.238 ms** end-to-end Agent latency; local latency is environment-sensitive and is not treated as a fixed model-quality score
-- **5 Spring Boot tests passed** with `BUILD SUCCESS`
-- browser smoke tests passed for Schema, Ask Analyst, validated SQL/result rendering, and manual Run Query
+```text
+FastAPI pytest                 PASS (100%)
+Frontend deterministic tests  PASS (4/4)
+Frontend production build     PASS
+Real-stack acceptance          PASS (7/7)
+```
+
+The checked-in acceptance reports are under `acceptance/results/`.
 
 ## Phase 2 — Real LLM Integration
 
@@ -284,16 +291,19 @@ Phase 2 now builds on this baseline: first stabilize one real-model path, then r
 
 ## Data and current limitations
 
-The current portfolio fixture intentionally keeps the dataset small and reproducible.
+The portfolio fixture intentionally remains small and reproducible while covering multiple analytical domains.
 
-- `city` contains 15 rows and supports the primary demo/evaluation path.
-- `salary`, `employment`, `education`, and `economic_indicator` may currently be empty.
-- Valid multi-table joins can therefore return zero rows.
-- The current Agent does not yet expose unrestricted Python execution.
-- Controlled Python analysis and visualization are complete; Stage 3.5 adds controlled evidence-backed reporting.
-- The Mock provider is a deterministic engineering fixture, not a quality benchmark for real LLMs.
+- `city`: 15 rows / 2025 / place grain.
+- `education`: 5 rows / 2024 / ACS place grain.
+- `economic_indicator`: 10 rows / 2024 / ACS place grain.
+- `employment`: 5 rows / 2023 / OEWS metropolitan-area grain.
+- `salary`: 5 rows / 2023 / OEWS metropolitan-area grain.
+- Controlled Python analysis is allowlisted; the application intentionally does **not** execute arbitrary model-generated Python.
+- Visualization, reporting, and delivery packaging are built from verified artifacts rather than trusted free-form model output.
+- The Mock provider remains an engineering fixture, not a quality benchmark for real LLMs.
+- The frontend currently has no committed npm lockfile; reproducible dependency locking is a remaining Phase 4 item and should be resolved in a networked development environment rather than fabricated offline.
 
-These constraints are kept explicit so that evaluation failures are not confused with infrastructure defects.
+These constraints are explicit so product limitations are not confused with infrastructure defects.
 
 ## Repository structure
 
@@ -344,27 +354,21 @@ See [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) for concise resume/interview wordin
 7. Record actual latency/token/cost evidence instead of estimating quality from demos.
 8. Prefer reproducible Docker-based verification and explicit known limitations.
 
-## Next P1 phase
+## Current P1 phase
 
-After the Day 7 portfolio/documentation baseline, planned work includes:
+Phases 1–3 are closed. The project is now in **Phase 4 — Production / Portfolio Readiness**.
+
+Current Stage 4.1 focuses on a local production baseline before any public GitHub repository is created:
 
 ```text
-Real LLM integration
-    ↓
-Real-model evaluation
-    ↓
-Model comparison
-    ↓
-Token / latency / cost measurement
-    ↓
-Model routing + fallback
-    ↓
-Cost controls
-    ↓
-Richer data + stronger evidence-backed analysis
+repeatable local verification
+→ Docker build hygiene
+→ health-gated service startup
+→ configuration / secret hygiene
+→ CI-ready commands
 ```
 
-The existing `LLMClient` abstraction and Day 6 evaluation harness are intentionally designed to support this progression.
+GitHub Actions and public repository polish are intentionally deferred until the local baseline and portfolio documentation are stable.
 
 ## Phase 2 routing
 
