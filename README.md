@@ -468,7 +468,35 @@ The executor accepts at most 1,000 SQL-result rows and at most 3 operations. It 
 
 Explicit visualization questions may return a validated `chart_artifact` from `POST /api/analyze`. The model only proposes a structured bar/line/scatter plan; application code validates it against verified SQL rows and the React UI renders the resulting data artifact. No model-generated plotting code is executed.
 
-## Controlled reporting (Stage 3.5 candidate)
+## Controlled reporting (Stage 3.5 closed)
 
 Explicit report questions may return `report_artifact`. The LLM only proposes a bounded artifact-selection plan; application code validates references and deterministically assembles evidence from `query_result`, controlled `analysis_result`, and optional `chart_artifact`. The React UI renders the report and can export the controlled artifact as JSON. The model is not permitted to inject freeform report facts or executable HTML/JavaScript/Python.
 
+
+
+## Stage 3.8 acceptance
+
+Phase 3 final acceptance is intentionally separate from the earlier model-quality evaluation harness. With the normal stack running:
+
+```bash
+python -m acceptance.run
+```
+
+This verifies stable HTTP/artifact contracts for health, SQL security, controlled analysis, visualization, evidence-bound reporting, delivery packaging, and the full combined chain. Reports are written to `acceptance/results/`.
+
+Frontend presentation regressions use Node 22's built-in test runner and add no new test dependency:
+
+```bash
+cd frontend/web
+npm test
+```
+
+The acceptance suite does not assert exact LLM prose; it asserts verified artifacts and deterministic boundaries.
+
+## Phase 3 closeout
+
+Phase 3 is CLOSED. Final integrated verification passed across backend regression, deterministic frontend presentation tests, production frontend build, and the 7-case real-stack acceptance suite. The final acceptance evidence lives in `acceptance/results/`.
+
+The Phase 3 product surface now includes controlled Python analysis, controlled visualization, evidence-bound reporting, deterministic delivery packaging, a five-tab Analyst Workspace, provenance, and end-to-end acceptance coverage.
+
+Next: **Phase 4 — Production / Portfolio Readiness**.

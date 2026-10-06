@@ -1,117 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
+import { formatDisplayValue, formatNumber, friendlyField, friendlyOperation, hasCjk, isPercentageField, niceScale, tokenizeInlineMarkdown } from './presentation.js';
 
 const API = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
 
-function hasCjk(text = '') {
-  return /[\u3400-\u9fff]/.test(text);
-}
-
-function formatNumber(value, digits = 3) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) return String(value ?? '—');
-  return new Intl.NumberFormat(undefined, { maximumFractionDigits: digits }).format(number);
-}
-
-function friendlyField(name = '', chinese = false) {
-  const labels = chinese ? {
-    population: '人口',
-    bachelor_pct: '本科及以上人口比例',
-    bachelor_percent: '本科及以上人口比例',
-    bachelor_percentage: '本科及以上人口比例',
-    bachelors_or_higher_pct: '本科及以上人口比例',
-    bachelors_or_higher_percent: '本科及以上人口比例',
-    edu_pct: '本科及以上人口比例',
-    median_salary: '中位工资',
-    city_name: '城市',
-    name: '名称',
-    state: '州',
-    count: '样本数',
-    min: '最小值',
-    max: '最大值',
-    mean: '均值',
-    median: '中位数',
-    pearson_r: 'Pearson r',
-  } : {
-    population: 'Population',
-    bachelor_pct: "Bachelor’s degree or higher",
-    bachelor_percent: "Bachelor’s degree or higher",
-    bachelor_percentage: "Bachelor’s degree or higher",
-    bachelors_or_higher_pct: "Bachelor’s degree or higher",
-    bachelors_or_higher_percent: "Bachelor’s degree or higher",
-    edu_pct: "Bachelor’s degree or higher",
-    median_salary: 'Median salary',
-    city_name: 'City',
-    name: 'Name',
-  };
-  return labels[name] || String(name).replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
-}
-
-function friendlyOperation(name = '', chinese = false) {
-  const labels = chinese ? {
-    descriptive_stats: '描述统计',
-    correlation: 'Pearson 相关性',
-    percent_change: '百分比变化',
-    percentile: '百分位数',
-  } : {
-    descriptive_stats: 'Descriptive statistics',
-    correlation: 'Pearson correlation',
-    percent_change: 'Percent change',
-    percentile: 'Percentile',
-  };
-  return labels[name] || friendlyField(name, chinese);
-}
-
-function isPercentageField(name = '') {
-  return /(pct|percent|percentage|ratio|share)/i.test(name);
-}
-
-function formatDisplayValue(value, column = '', digits = 3) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) return String(value ?? '—');
-  if (/(^|_)year$|_id$|^id$/i.test(column)) return String(value);
-  if (isPercentageField(column)) return `${formatNumber(number, 2)}%`;
-  return formatNumber(number, digits);
-}
-
-function niceScale(min, max, count = 5, { includeZero = false } = {}) {
-  if (!Number.isFinite(min) || !Number.isFinite(max)) return { min, max, ticks: [] };
-  if (min === max) {
-    const pad = Math.max(Math.abs(min) * 0.1, 1);
-    min -= pad;
-    max += pad;
-  }
-  if (includeZero) {
-    min = Math.min(0, min);
-    max = Math.max(0, max);
-  }
-  const span = Math.max(max - min, Number.EPSILON);
-  const rawStep = span / Math.max(1, count - 1);
-  const magnitude = 10 ** Math.floor(Math.log10(rawStep));
-  const normalized = rawStep / magnitude;
-  const nice = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 2.5 ? 2.5 : normalized <= 5 ? 5 : 10;
-  const step = nice * magnitude;
-  const niceMin = Math.floor(min / step) * step;
-  const niceMax = Math.ceil(max / step) * step;
-  const ticks = [];
-  for (let value = niceMin; value <= niceMax + step * 0.001; value += step) {
-    const rounded = Math.abs(value) < step * 1e-9 ? 0 : Number(value.toPrecision(12));
-    ticks.push(rounded);
-  }
-  return { min: niceMin, max: niceMax, ticks: ticks.slice(0, 8) };
-}
-
 function renderInlineMarkdown(text, keyPrefix = 'inline') {
-  const value = String(text ?? '');
-  const parts = value.split(/(\*\*[^*]+\*\*|`[^`]+`|\*[^*\n]+\*|_[^_\n]+_)/g).filter(Boolean);
-  return parts.map((part, index) => {
+  return tokenizeInlineMarkdown(text).map((part, index) => {
     const key = `${keyPrefix}-${index}`;
-    if (part.startsWith('**') && part.endsWith('**')) return <strong key={key}>{part.slice(2, -2)}</strong>;
-    if (part.startsWith('`') && part.endsWith('`')) return <code key={key}>{part.slice(1, -1)}</code>;
-    if ((part.startsWith('*') && part.endsWith('*')) || (part.startsWith('_') && part.endsWith('_'))) return <em key={key}>{part.slice(1, -1)}</em>;
-    return <React.Fragment key={key}>{part}</React.Fragment>;
+    if (part.type === 'strong') return <strong key={key}>{part.text}</strong>;
+    if (part.type === 'code') return <code key={key}>{part.text}</code>;
+    if (part.type === 'em') return <em key={key}>{part.text}</em>;
+    return <React.Fragment key={key}>{part.text}</React.Fragment>;
   });
 }
 

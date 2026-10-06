@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY ai /app/ai
 COPY evaluation /app/evaluation
+COPY acceptance /app/acceptance
 COPY data /app/data
 COPY tests /app/tests
 COPY pytest.ini /app/pytest.ini

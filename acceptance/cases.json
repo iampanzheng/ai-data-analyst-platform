@@ -1,0 +1,245 @@
+{
+  "version": "1.0-stage3.8",
+  "cases": [
+    {
+      "id": "ACC-001",
+      "name": "Health check",
+      "method": "GET",
+      "path": "/api/health",
+      "assertions": [
+        {
+          "path": "status",
+          "op": "eq",
+          "value": "ok"
+        }
+      ]
+    },
+    {
+      "id": "ACC-002",
+      "name": "Unsafe SQL is rejected",
+      "method": "POST",
+      "path": "/api/query",
+      "body": {
+        "sql": "DELETE FROM city"
+      },
+      "expected_status": 400,
+      "assertions": [
+        {
+          "path": "detail.code",
+          "op": "eq",
+          "value": "STATEMENT_NOT_READ_ONLY"
+        },
+        {
+          "path": "detail.trace_id",
+          "op": "nonempty"
+        }
+      ]
+    },
+    {
+      "id": "ACC-003",
+      "name": "Basic ranked query",
+      "method": "POST",
+      "path": "/api/analyze",
+      "body": {
+        "question": "2025 年人口最多的 5 个城市是哪几个？",
+        "routing_mode": "remote",
+        "fallback_mode": "auto"
+      },
+      "assertions": [
+        {
+          "path": "query_result.row_count",
+          "op": "eq",
+          "value": 5
+        },
+        {
+          "path": "query_result.tables",
+          "op": "contains",
+          "value": "city"
+        },
+        {
+          "path": "validated_sql",
+          "op": "nonempty"
+        },
+        {
+          "path": "errors",
+          "op": "length_eq",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "id": "ACC-004",
+      "name": "Controlled descriptive statistics",
+      "method": "POST",
+      "path": "/api/analyze",
+      "body": {
+        "question": "对现有 2023 年 occupation 为 Software Developers 的都会区 median_salary 做描述统计，包括最小值、最大值、均值和中位数。",
+        "routing_mode": "remote",
+        "fallback_mode": "auto"
+      },
+      "assertions": [
+        {
+          "path": "query_result.row_count",
+          "op": "eq",
+          "value": 5
+        },
+        {
+          "path": "analysis_result.operations",
+          "op": "collection_field_contains",
+          "field": "operation",
+          "value": "descriptive_stats"
+        },
+        {
+          "path": "errors",
+          "op": "length_eq",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "id": "ACC-005",
+      "name": "Controlled visualization",
+      "method": "POST",
+      "path": "/api/analyze",
+      "body": {
+        "question": "用柱状图显示 2025 年人口最多的 5 个城市及人口。",
+        "routing_mode": "remote",
+        "fallback_mode": "auto"
+      },
+      "assertions": [
+        {
+          "path": "query_result.row_count",
+          "op": "eq",
+          "value": 5
+        },
+        {
+          "path": "chart_artifact.chart_type",
+          "op": "eq",
+          "value": "bar"
+        },
+        {
+          "path": "chart_artifact.point_count",
+          "op": "eq",
+          "value": 5
+        },
+        {
+          "path": "chart_artifact.source",
+          "op": "eq",
+          "value": "verified_query_result"
+        },
+        {
+          "path": "errors",
+          "op": "length_eq",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "id": "ACC-006",
+      "name": "Evidence-bound report and delivery",
+      "method": "POST",
+      "path": "/api/analyze",
+      "body": {
+        "question": "生成一份 2025 年人口最多的 5 个城市分析报告。",
+        "routing_mode": "remote",
+        "fallback_mode": "auto"
+      },
+      "assertions": [
+        {
+          "path": "report_artifact.source",
+          "op": "eq",
+          "value": "verified_artifacts"
+        },
+        {
+          "path": "report_artifact.summary_source",
+          "op": "eq",
+          "value": "deterministic_evidence"
+        },
+        {
+          "path": "delivery_artifact.format_version",
+          "op": "eq",
+          "value": "p1.delivery.v1"
+        },
+        {
+          "path": "delivery_artifact.source",
+          "op": "eq",
+          "value": "verified_artifacts"
+        },
+        {
+          "path": "delivery_artifact.manifest.row_count",
+          "op": "eq",
+          "value": 5
+        },
+        {
+          "path": "errors",
+          "op": "length_eq",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "id": "ACC-007",
+      "name": "Full controlled analysis chain",
+      "method": "POST",
+      "path": "/api/analyze",
+      "body": {
+        "question": "生成分析报告，并用散点图展示现有数据中城市人口与本科及以上人口比例的关系，同时给出相关系数。",
+        "routing_mode": "remote",
+        "fallback_mode": "auto"
+      },
+      "assertions": [
+        {
+          "path": "query_result.row_count",
+          "op": "eq",
+          "value": 5
+        },
+        {
+          "path": "analysis_result.operations",
+          "op": "collection_field_contains",
+          "field": "operation",
+          "value": "correlation"
+        },
+        {
+          "path": "chart_artifact.chart_type",
+          "op": "eq",
+          "value": "scatter"
+        },
+        {
+          "path": "chart_artifact.point_count",
+          "op": "eq",
+          "value": 5
+        },
+        {
+          "path": "report_artifact.summary_source",
+          "op": "eq",
+          "value": "deterministic_evidence"
+        },
+        {
+          "path": "delivery_artifact.manifest.has_analysis",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "path": "delivery_artifact.manifest.has_chart",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "path": "delivery_artifact.manifest.has_report",
+          "op": "eq",
+          "value": true
+        },
+        {
+          "path": "fallback_used",
+          "op": "eq",
+          "value": false
+        },
+        {
+          "path": "errors",
+          "op": "length_eq",
+          "value": 0
+        }
+      ]
+    }
+  ]
+}

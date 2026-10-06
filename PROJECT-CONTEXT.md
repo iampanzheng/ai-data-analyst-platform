@@ -7,7 +7,7 @@
 ```text
 Phase 1 — MVP Foundation                         ✅ CLOSED
 Phase 2 — Real LLM Evaluation / Routing / Cost  ✅ CLOSED
-Phase 3 — Evidence-backed Analysis               🚧 ACTIVE
+Phase 3 — Evidence-backed Analysis               ✅ CLOSED
 
 Stage 3.1 — Evidence Foundation                  ✅ CLOSED
 Stage 3.2 — Richer Analytical Data               ✅ CLOSED
@@ -16,7 +16,7 @@ Stage 3.4 — Controlled Visualization              ✅ CLOSED
 Stage 3.5 — Controlled Reporting                  ✅ CLOSED
 Stage 3.6 — Export / Deliverable Packaging        ✅ CLOSED
 Stage 3.7 — Analyst Workspace / Frontend Polish   ✅ CLOSED
-Stage 3.8 — End-to-End Acceptance & Regression    ▶️ NEXT
+Stage 3.8 — End-to-End Acceptance & Regression    ✅ CLOSED
 ```
 
 ## Stage 3.1 verification
@@ -82,8 +82,24 @@ Stage 3.4 Controlled Visualization                ✅
 Stage 3.5 Controlled Reporting                    ✅
 Stage 3.6 Export / Deliverable Packaging          ✅
 Stage 3.7 Analyst Workspace / Frontend Polish     ✅
-Stage 3.8 End-to-End Acceptance & Regression      ▶️ NEXT
+Stage 3.8 End-to-End Acceptance & Regression      ✅
 ```
+
+
+## Phase 3 closeout verification
+
+Final Stage 3.8 acceptance completed on the integrated stack:
+
+```text
+FastAPI pytest: PASS (100%)
+Frontend deterministic tests: 4/4 PASS
+Frontend production build: PASS
+Real-stack acceptance: 7/7 PASS
+```
+
+The final acceptance suite covers gateway health, unsafe SQL rejection, ranked query execution, controlled descriptive statistics, controlled visualization, evidence-bound report/delivery, and the full controlled analysis chain.
+
+Phase 3 is CLOSED. The next starting point is Phase 4 — Production / Portfolio Readiness.
 
 ---
 
@@ -484,7 +500,7 @@ Browser validation of v0.1 confirmed the five-tab workspace and Report JSON/Mark
 - Evidence-backed UI label for deterministic report summaries
 - presentation summary separated from expandable technical evidence
 
-Backend `/api/analyze`, report/delivery artifacts, export payloads, and Stage 3.1–3.6 trust boundaries remain unchanged. Stage 3.7 remains IN PROGRESS pending production build and browser validation of v0.1.1.
+Backend `/api/analyze`, report/delivery artifacts, export payloads, and Stage 3.1–3.6 trust boundaries remained unchanged. This was an intermediate v0.1.1 candidate before the final Stage 3.7 closeout.
 
 ## Stage 3.7 v0.1.2 visualization / presentation final-polish update
 
@@ -498,7 +514,7 @@ Changes:
 - Provenance adds trace-ID copy affordance, presentation-friendly `Verified artifacts`, and manifest badges.
 - The conversational Answer is explicitly labeled `LLM-generated`, preserving the visual distinction from verified artifacts.
 
-Verification pending for closeout: full backend pytest, frontend production build, and browser regression for Data / Analysis / Chart / Report / Provenance plus delivery downloads.
+This was an intermediate v0.1.2 candidate; the final v0.1.3 closeout verification is recorded below.
 
 ### Stage 3.7 v0.1.3 — Final Presentation Polish candidate
 
@@ -507,7 +523,7 @@ Final UI-only closeout pass:
 - rounded nice-scale chart domains/ticks
 - localized presentation aliases for `bachelor_percent`-style fields
 
-No backend/API/artifact contract changes. Final closeout requires Docker pytest, Web production build, and browser verification.
+No backend/API/artifact contract changes. Final closeout verification subsequently passed and is recorded below.
 
 
 ## Stage 3.7 Closeout
@@ -521,3 +537,42 @@ Final verification:
 - Report JSON / Markdown downloads: PASS
 - safe Markdown presentation, nice chart ticks, friendly report mappings: PASS
 - no backend API or verified-artifact contract changes
+
+# Stage 3.8 — End-to-End Acceptance & Regression 🚧 ACTIVE
+
+Goal: verify the complete P1 product path with repeatable HTTP acceptance checks and deterministic frontend presentation tests before Phase 3 closeout. No new business capability is introduced.
+
+Implemented in v0.1 candidate:
+- HTTP acceptance runner using only Python standard library
+- acceptance cases for health, SQL security, ranked query, controlled descriptive statistics, controlled visualization, evidence-bound report/delivery, and the full analysis chain
+- JSON + Markdown acceptance reports
+- frontend pure presentation helpers extracted for deterministic Node 22 tests
+- frontend regression coverage for display formatting, friendly labels, nice chart scale, and safe inline Markdown emphasis
+- no new frontend runtime dependency
+
+Closeout gates:
+1. full backend pytest
+2. `npm test` frontend deterministic regression
+3. frontend production build
+4. real-stack acceptance suite (`python -m acceptance.run`)
+5. review generated acceptance report and record known limitations
+
+
+## Stage 3.8 v0.1.1 — FastAPI container packaging hotfix
+
+The v0.1 candidate added `tests/test_acceptance.py`, which imports `acceptance.run`, but the FastAPI Docker image copied `tests/` without copying the new `acceptance/` package. In Compose this caused pytest collection to fail with `ModuleNotFoundError: No module named 'acceptance'`.
+
+The FastAPI Dockerfile now includes:
+
+```dockerfile
+COPY acceptance /app/acceptance
+```
+
+No acceptance logic or runtime API behavior changed. The existing `tests/test_acceptance.py` import now also acts as a container-packaging regression check.
+
+### Stage 3.8 v0.1.2 acceptance hardening
+
+- Corrected the gateway health acceptance path from `/health` to `/api/health`.
+- Stabilized ACC-004 around its intended descriptive-statistics contract by providing the exact stored occupation category `Software Developers`; synonym/category grounding is not the target of this acceptance case.
+- Failed acceptance cases now persist a bounded diagnostic snapshot (trace, validated SQL, route/fallback, errors, row count/tables/columns, analysis operation names) without copying result rows or LLM prose.
+

@@ -1,0 +1,78 @@
+{
+  "suite": "P1 Stage 3.8 End-to-End Acceptance",
+  "cases": 7,
+  "passed": 7,
+  "failed": 0,
+  "results": [
+    {
+      "case_id": "ACC-001",
+      "name": "Health check",
+      "passed": true,
+      "status": 200,
+      "elapsed_ms": 86.32,
+      "failures": [],
+      "error": null,
+      "diagnostics": null
+    },
+    {
+      "case_id": "ACC-002",
+      "name": "Unsafe SQL is rejected",
+      "passed": true,
+      "status": 400,
+      "elapsed_ms": 37.33,
+      "failures": [],
+      "error": null,
+      "diagnostics": null
+    },
+    {
+      "case_id": "ACC-003",
+      "name": "Basic ranked query",
+      "passed": true,
+      "status": 200,
+      "elapsed_ms": 5500.39,
+      "failures": [],
+      "error": null,
+      "diagnostics": null
+    },
+    {
+      "case_id": "ACC-004",
+      "name": "Controlled descriptive statistics",
+      "passed": true,
+      "status": 200,
+      "elapsed_ms": 35029.11,
+      "failures": [],
+      "error": null,
+      "diagnostics": null
+    },
+    {
+      "case_id": "ACC-005",
+      "name": "Controlled visualization",
+      "passed": true,
+      "status": 200,
+      "elapsed_ms": 33850.59,
+      "failures": [],
+      "error": null,
+      "diagnostics": null
+    },
+    {
+      "case_id": "ACC-006",
+      "name": "Evidence-bound report and delivery",
+      "passed": true,
+      "status": 200,
+      "elapsed_ms": 30847.52,
+      "failures": [],
+      "error": null,
+      "diagnostics": null
+    },
+    {
+      "case_id": "ACC-007",
+      "name": "Full controlled analysis chain",
+      "passed": true,
+      "status": 200,
+      "elapsed_ms": 47864.97,
+      "failures": [],
+      "error": null,
+      "diagnostics": null
+    }
+  ]
+}
