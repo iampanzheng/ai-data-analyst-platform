@@ -301,6 +301,7 @@ query_result
 analysis_result
 chart_artifact
 report_artifact
+delivery_artifact
 final_answer
 model
 provider
@@ -402,7 +403,55 @@ Final verification:
 - combined correlation + scatter + report smoke: PASS; 5 rows, `pearson_r = 0.36675379037073685`, scatter artifact present, report evidence bound to query/analysis/chart, no fallback, no errors
 - deterministic report finding matched the controlled analysis value exactly
 
-# Stage 3.6 — Export / Deliverable Packaging ▶️ NEXT
+# Stage 3.6 — Export / Deliverable Packaging ✅ CLOSED
 
-Starting point: build user-facing export/deliverable packaging strictly from existing verified artifacts (`query_result`, `analysis_result`, `chart_artifact`, `report_artifact`) without creating a new factual surface or arbitrary execution path.
+Stage 3.6 is frozen on the verified v0.1.2 implementation and archived as the v1.0 closeout baseline. It adds a deterministic delivery-packaging layer on top of verified Stage 3.5 artifacts and closes the evidence-boundary leak found during v0.1 closeout review.
+
+Architecture:
+
+```text
+report_artifact + verified evidence
+→ deterministic delivery packager
+→ delivery_artifact
+→ JSON / Markdown browser downloads
+```
+
+Implemented in v0.1/v0.1.2 candidate:
+- no additional LLM call for export/delivery packaging
+- packaging only allowed when `report_artifact.source = verified_artifacts`
+- `delivery_artifact` added to Analyst state and `/api/analyze`
+- versioned manifest (`p1.delivery.v1`)
+- trace/question/validated-SQL provenance
+- deterministic query evidence snapshot
+- optional controlled analysis/chart snapshots
+- deterministic Markdown renderer
+- stable JSON/Markdown filenames
+- React export actions for delivery JSON and Markdown
+- delivery unit tests
+- evidence-bound report summaries: `summary_source = deterministic_evidence`
+- LLM `final_answer` remains top-level conversational output and is not copied into verified report/delivery summaries
+- regression coverage prevents unsupported source-attribution text from entering verified summaries/Markdown exports
+- reporting + delivery hotfix tests: 13/13 pass in packaging environment
+- v0.1.2 aligns the stale Agent regression test with the deterministic-summary trust boundary; runtime behavior/API unchanged
+
+Security invariant:
+`verified artifacts -> deterministic packager -> inert JSON/Markdown`; no new factual source, model-authored export code, template execution, or arbitrary code execution.
+
+v0.1 functional gates already verified:
+- Compose full pytest: PASS, 100%
+- frontend production build: PASS (`vite v8.3.1`, 15 modules transformed)
+- report-only delivery smoke: PASS
+- combined analysis + chart + report + delivery smoke: PASS
+
+Final hotfix verification:
+- full Compose pytest on v0.1.2: PASS, 100%
+- frontend production build: PASS (`vite v8.3.1`, 15 modules transformed)
+- report-only smoke: PASS; `summary_source = deterministic_evidence`, unsupported source attribution isolated to top-level LLM answer only
+- combined correlation + scatter + report + delivery smoke: PASS; deterministic summary retained controlled analysis/chart evidence, no fallback, no errors
+
+# Stage 3.7 — Analyst Workspace / Frontend Integration Polish 🚧 IN PROGRESS
+
+Goal: consolidate the verified Answer / SQL / Query Result / Analysis / Chart / Report / Delivery / Provenance surfaces into a portfolio-ready analyst workspace without changing the backend artifact contracts.
+
+Stage 3.7 is frontend-focused. The backend `/api/analyze` response contract and all Stage 3.1–3.6 trust boundaries remain frozen unless a concrete regression requires otherwise.
 

@@ -15,6 +15,7 @@ class AnalystState:
     analysis_result: dict[str, Any] | None = None
     chart_artifact: dict[str, Any] | None = None
     report_artifact: dict[str, Any] | None = None
+    delivery_artifact: dict[str, Any] | None = None
     final_answer: str | None = None
     errors: list[dict[str, str]] = field(default_factory=list)
     trace_id: str = ""

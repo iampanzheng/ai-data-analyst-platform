@@ -74,17 +74,28 @@ function ChartView({ chart }) {
   );
 }
 
-function ReportView({ report }) {
+function ReportView({ report, delivery }) {
   if (!report) return null;
 
-  function downloadJson() {
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+  function downloadBlob(content, type, filename) {
+    const blob = new Blob([content], { type });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'analysis-report.json';
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function downloadJson() {
+    const payload = delivery || report;
+    const filename = delivery?.exports?.json_filename || 'analysis-report.json';
+    downloadBlob(JSON.stringify(payload, null, 2), 'application/json', filename);
+  }
+
+  function downloadMarkdown() {
+    if (!delivery?.exports?.markdown) return;
+    downloadBlob(delivery.exports.markdown, 'text/markdown;charset=utf-8', delivery.exports.markdown_filename || 'analysis-report.md');
   }
 
   return (
@@ -94,7 +105,10 @@ function ReportView({ report }) {
           <h2>{report.title}</h2>
           <div className="meta">source: {report.source}</div>
         </div>
-        <button onClick={downloadJson}>Export JSON</button>
+        <div className="export-actions">
+          <button onClick={downloadJson}>{delivery ? 'Export Delivery JSON' : 'Export JSON'}</button>
+          {delivery?.exports?.markdown && <button onClick={downloadMarkdown}>Export Markdown</button>}
+        </div>
       </div>
 
       {report.summary && (
@@ -202,7 +216,7 @@ function App() {
     <main className="container">
       <header>
         <h1>AI Data Analyst</h1>
-        <p>Question → validated SQL → controlled analysis → controlled visualization → controlled reporting → evidence-backed answer</p>
+        <p>Question → validated SQL → controlled analysis → controlled visualization → controlled reporting → deterministic delivery packaging → evidence-backed answer</p>
       </header>
 
       <section className="card">
@@ -241,7 +255,7 @@ function App() {
 
       {analysis?.report_artifact && (
         <section className="card">
-          <ReportView report={analysis.report_artifact} />
+          <ReportView report={analysis.report_artifact} delivery={analysis.delivery_artifact} />
         </section>
       )}
 

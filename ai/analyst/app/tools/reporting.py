@@ -163,12 +163,112 @@ def execute_report_plan(
 
     return {
         "title": validated.title,
-        "summary": final_answer if validated.include_summary else None,
+        "summary": _build_evidence_summary(
+            query_result=query_result,
+            selected_operations=[operations[index] for index in validated.analysis_operation_indexes],
+            chart_artifact=chart_artifact if validated.include_chart else None,
+            language_hint=validated.title,
+        ) if validated.include_summary else None,
+        "summary_source": "deterministic_evidence" if validated.include_summary else None,
         "key_findings": key_findings,
         "evidence": evidence,
         "chart_refs": chart_refs,
         "source": "verified_artifacts",
     }
+
+
+def _build_evidence_summary(
+    *,
+    query_result: dict[str, Any],
+    selected_operations: list[dict[str, Any]],
+    chart_artifact: dict[str, Any] | None,
+    language_hint: str,
+) -> str:
+    row_count = query_result.get("row_count")
+    tables = [str(value) for value in (query_result.get("tables") or [])]
+    columns = [str(value) for value in (query_result.get("columns") or [])]
+    use_zh = any("\u4e00" <= char <= "\u9fff" for char in language_hint)
+
+    parts: list[str] = []
+    if use_zh:
+        if isinstance(row_count, int) and row_count >= 0:
+            base = f"已验证 SQL 返回 {row_count} 行结果"
+        else:
+            base = "已验证 SQL 返回结果集"
+        if tables:
+            base += f"，来源表为 {', '.join(tables)}"
+        if columns:
+            base += f"，包含列 {', '.join(columns)}"
+        parts.append(base + "。")
+    else:
+        if isinstance(row_count, int) and row_count >= 0:
+            base = f"Verified SQL returned {row_count} row{'s' if row_count != 1 else ''}"
+        else:
+            base = "Verified SQL returned a result set"
+        if tables:
+            base += f" from {', '.join(tables)}"
+        if columns:
+            base += f" with columns {', '.join(columns)}"
+        parts.append(base + ".")
+
+    for operation in selected_operations:
+        kind = operation.get("operation")
+        if kind == "correlation":
+            if use_zh:
+                parts.append(
+                    "受控相关性分析计算得到 "
+                    f"{operation.get('x')} 与 {operation.get('y')} 的 Pearson r={operation.get('pearson_r')}，"
+                    f"使用 {operation.get('count')} 对数值样本。"
+                )
+            else:
+                parts.append(
+                    "Controlled correlation analysis computed "
+                    f"Pearson r={operation.get('pearson_r')} for "
+                    f"{operation.get('x')} versus {operation.get('y')} "
+                    f"using {operation.get('count')} numeric pairs."
+                )
+        elif kind == "descriptive_stats":
+            if use_zh:
+                parts.append(
+                    "受控描述统计计算得到 "
+                    f"{operation.get('column')} 的 count={operation.get('count')}、min={operation.get('min')}、"
+                    f"max={operation.get('max')}、mean={operation.get('mean')}、median={operation.get('median')}。"
+                )
+            else:
+                parts.append(
+                    "Controlled descriptive analysis computed "
+                    f"count={operation.get('count')}, min={operation.get('min')}, "
+                    f"max={operation.get('max')}, mean={operation.get('mean')}, "
+                    f"median={operation.get('median')} for {operation.get('column')}."
+                )
+        elif kind == "percent_change":
+            if use_zh:
+                parts.append(
+                    "受控百分比变化分析计算得到 "
+                    f"{operation.get('column')} 从 {operation.get('first')} 到 {operation.get('last')} 的变化为 "
+                    f"{operation.get('percent_change')}%。"
+                )
+            else:
+                parts.append(
+                    "Controlled percent-change analysis computed "
+                    f"{operation.get('percent_change')}% for {operation.get('column')} "
+                    f"from {operation.get('first')} to {operation.get('last')}."
+                )
+
+    if chart_artifact is not None:
+        if use_zh:
+            parts.append(
+                "受控可视化根据已验证查询数据生成 "
+                f"{chart_artifact.get('chart_type')} 图，共 {chart_artifact.get('point_count')} 个数据点。"
+            )
+        else:
+            parts.append(
+                "Controlled visualization produced a "
+                f"{chart_artifact.get('chart_type')} chart with "
+                f"{chart_artifact.get('point_count')} points from verified query data."
+            )
+
+    return " ".join(parts)
 
 
 def _finding_from_operation(operation: dict[str, Any], evidence_ref: str) -> dict[str, Any]:

@@ -35,3 +35,5 @@ details table { margin-top: 10px; }
 .finding-list small { display: block; margin-top: 4px; color: #6b7280; }
 .evidence-list li { margin: 6px 0; }
 .meta-inline { color: #6b7280; font-size: 13px; margin-left: 6px; }
+
+.export-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }

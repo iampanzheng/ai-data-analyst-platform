@@ -19,6 +19,7 @@ from ..tools.sql import execute_sql
 from ..tools.python_analysis import AnalysisValidationError, execute_analysis_plan
 from ..tools.visualization import ChartValidationError, execute_chart_plan
 from ..tools.reporting import ReportValidationError, execute_report_plan
+from ..tools.delivery import DeliveryValidationError, build_delivery_artifact
 
 
 _SQL_FENCE_RE = re.compile(r"^```(?:sql)?\s*|\s*```$", re.IGNORECASE)
@@ -225,8 +226,17 @@ class AnalystAgent:
                     chart_artifact=state.chart_artifact,
                     final_answer=state.final_answer,
                 )
+                state.delivery_artifact = build_delivery_artifact(
+                    question=state.question,
+                    trace_id=state.trace_id,
+                    validated_sql=state.validated_sql,
+                    query_result=state.query_result,
+                    analysis_result=state.analysis_result,
+                    chart_artifact=state.chart_artifact,
+                    report_artifact=state.report_artifact,
+                )
             return state
-        except (LLMClientError, SQLValidationError, AnalysisValidationError, ChartValidationError, ReportValidationError) as exc:
+        except (LLMClientError, SQLValidationError, AnalysisValidationError, ChartValidationError, ReportValidationError, DeliveryValidationError) as exc:
             code = getattr(exc, "code", "LLM_ERROR")
             message = getattr(exc, "message", str(exc))
             state.errors.append({"code": code, "message": message})

@@ -384,7 +384,13 @@ def test_agent_builds_controlled_report_only_for_report_question(monkeypatch):
 
     assert state.errors == []
     assert state.report_artifact["title"] == "Top city population report"
-    assert state.report_artifact["summary"] == "A has the largest population."
+    assert state.final_answer == "A has the largest population."
+    assert (
+        state.report_artifact["summary"]
+        == "Verified SQL returned 2 rows from city with columns name, population."
+    )
+    assert state.report_artifact["summary_source"] == "deterministic_evidence"
+    assert "largest population" not in state.report_artifact["summary"]
     assert state.report_artifact["evidence"][0]["id"] == "query_result"
     assert state.report_artifact["source"] == "verified_artifacts"
     assert len(llm.calls) == 3
@@ -410,3 +416,61 @@ def test_agent_skips_report_for_plain_question(monkeypatch):
     state = AnalystAgent(MockLLMClient()).run("人口最多的城市是什么？", "test-report-skip-001")
     assert state.errors == []
     assert state.report_artifact is None
+
+
+def test_agent_builds_delivery_artifact_after_controlled_report(monkeypatch):
+    from ai.analyst.app.llm.client import LLMClient
+    from ai.analyst.app.llm.models import LLMResponse
+
+    class ReportLLM(LLMClient):
+        provider = "test"
+        disable_thinking = False
+
+        def chat(self, messages, *, temperature=0.0):
+            user = next((m.content for m in reversed(messages) if m.role == "user"), "")
+            if "Generate SQL" in user:
+                return LLMResponse(
+                    content="SELECT name, population FROM city ORDER BY population DESC LIMIT 5",
+                    model="test-model",
+                    provider=self.provider,
+                )
+            if "Generate report plan" in user:
+                return LLMResponse(
+                    content=(
+                        '{"title":"Population report","include_summary":true,'
+                        '"include_query_evidence":true,"analysis_operation_indexes":[],'
+                        '"include_chart":false}'
+                    ),
+                    model="test-model",
+                    provider=self.provider,
+                )
+            return LLMResponse(
+                content="Verified population report.",
+                model="test-model",
+                provider=self.provider,
+            )
+
+    monkeypatch.setattr(
+        "ai.analyst.app.agent.graph.get_database_schema",
+        lambda: {"schema_name": "public", "tables": []},
+    )
+    monkeypatch.setattr(
+        "ai.analyst.app.agent.graph.execute_sql",
+        lambda sql, trace_id: {
+            "columns": ["name", "population"],
+            "rows": [["New York", 8584629]],
+            "row_count": 1,
+            "execution_ms": 1.0,
+            "tables": ["city"],
+        },
+    )
+
+    state = AnalystAgent(ReportLLM()).run("生成一份人口分析报告。", "test-delivery-001")
+
+    assert state.errors == []
+    assert state.report_artifact is not None
+    assert state.delivery_artifact is not None
+    assert state.delivery_artifact["source"] == "verified_artifacts"
+    assert state.delivery_artifact["manifest"]["trace_id"] == "test-delivery-001"
+    assert state.delivery_artifact["evidence_snapshot"]["query_result"]["row_count"] == 1
+    assert state.delivery_artifact["exports"]["markdown_filename"].endswith(".md")

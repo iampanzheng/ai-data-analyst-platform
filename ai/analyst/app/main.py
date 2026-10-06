@@ -54,6 +54,7 @@ class AnalyzeResponse(BaseModel):
     analysis_result: dict[str, Any] | None
     chart_artifact: dict[str, Any] | None
     report_artifact: dict[str, Any] | None
+    delivery_artifact: dict[str, Any] | None
     final_answer: str | None
     model: str | None
     provider: str | None
@@ -377,6 +378,7 @@ def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
             analysis_result=None,
             chart_artifact=None,
             report_artifact=None,
+            delivery_artifact=None,
             final_answer=None,
             model=None,
             provider=None,
@@ -429,6 +431,7 @@ def analyze(req: AnalyzeRequest, request: Request) -> AnalyzeResponse:
         analysis_result=state.analysis_result,
         chart_artifact=state.chart_artifact,
         report_artifact=state.report_artifact,
+        delivery_artifact=state.delivery_artifact,
         final_answer=state.final_answer,
         model=state.model,
         provider=state.provider,
