@@ -1,0 +1,38 @@
+# Local repository / editor state
+.git
+.gitignore
+.vscode
+.DS_Store
+
+# Secrets and machine-local environment
+.env
+.env.*
+!.env.example
+!.env.gemini.example
+!.env.groq.example
+!.env.ollama.example
+!.env.routing.example
+.venv
+
+# Python caches / test state
+**/__pycache__
+**/*.pyc
+**/*.pyo
+.pytest_cache
+.coverage
+htmlcov
+
+# Frontend generated state
+**/node_modules
+**/dist
+
+# Reproducible generated reports (baselines remain in source when named explicitly)
+acceptance/results
+evaluation/results/evaluation-report.json
+evaluation/results/evaluation-report.md
+
+# Local artifacts / packages
+*.zip
+*.tar
+*.tar.gz
+temp
