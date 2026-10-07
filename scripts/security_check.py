@@ -14,12 +14,25 @@ def main() -> None:
     compose = (ROOT / "docker-compose.yml").read_text()
     gitignore = (ROOT / ".gitignore").read_text().splitlines()
     dockerignore = (ROOT / ".dockerignore").read_text().splitlines()
+    env_example = (ROOT / ".env.example").read_text()
 
     require(".env" in gitignore, ".env must be ignored by Git")
     require(".env" in dockerignore, ".env must be excluded from Docker build context")
     require(
         "POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-analyst}" in compose,
         "Compose database password must be environment-configurable with the local compatibility default",
+    )
+    expected_database_url = (
+        "postgresql://${POSTGRES_USER:-analyst}:${POSTGRES_PASSWORD:-analyst}"
+        "@postgres:5432/${POSTGRES_DB:-ai_analyst}"
+    )
+    require(
+        compose.count(expected_database_url) >= 2,
+        "FastAPI and ETL database URLs must use the same environment-configurable local compatibility defaults",
+    )
+    require(
+        "changing it does not rotate an existing PostgreSQL volume" in env_example,
+        ".env.example must document that POSTGRES_PASSWORD does not rotate an existing PostgreSQL volume",
     )
     require("CORS_ALLOWED_ORIGIN: http://localhost:5173" not in compose, "CORS origin must be environment-configurable")
 

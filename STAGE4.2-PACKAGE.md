@@ -1,6 +1,6 @@
 # Stage 4.2 Package — Security / Configuration Cleanup
 
-Version: **v0.1 candidate**  
+Version: **v0.1.2 candidate**  
 Status: **ACTIVE**
 
 ## Goal
@@ -16,6 +16,7 @@ Improve the local/default security posture and remove configuration inconsistenc
 - Redact sensitive structured-log fields recursively.
 - Add `scripts/security_check.py` and run it as the first `make verify` gate.
 - Add deterministic logging-redaction regression tests.
+- Keep repository-orchestration checks in the host security gate rather than requiring Compose/.env files inside the FastAPI runtime image.
 
 ## Non-goals
 
@@ -35,3 +36,5 @@ Local artifact checks completed:
 Closeout gate: run `make verify` in the real Docker environment.
 
 Stage 4.2 v0.1.1 fixes a local-volume compatibility regression: PostgreSQL credentials remain environment-configurable, but the local default returns to `analyst` so existing `postgres_data` volumes continue to authenticate. Changing `POSTGRES_PASSWORD` is documented as a fresh-initialization setting, not an automatic password rotation for an existing PostgreSQL volume.
+
+Stage 4.2 v0.1.2 fixes a test-boundary regression found in the real Docker verification: repository orchestration files such as `docker-compose.yml` and `.env.example` are host-side inputs and are intentionally not copied into the FastAPI runtime image. Their compatibility assertions now live in the host `scripts/security_check.py` gate, while container pytest remains limited to portable application/runtime tests.
