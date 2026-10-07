@@ -72,3 +72,13 @@ Examples:
 - No cloud deployment yet.
 - No new authentication/tenant platform layer.
 - No architecture redesign.
+
+
+## v0.2 publication preparation
+
+Stage 4.3 now includes two publication-preparation artifacts while intentionally deferring the actual GitHub push to Stage 4.4:
+
+- `docs/GITHUB-METADATA.md` — repository name, About description, topics, README ordering, social-preview guidance, and public-claim guardrails.
+- `docs/DEMO-CAPTURE-CHECKLIST.md` — canonical screenshots, optional short-video sequence, interview-demo flow, and capture hygiene.
+
+The goal is to make Stage 4.4 operational rather than editorial: repository publication should not require reinventing the portfolio narrative.

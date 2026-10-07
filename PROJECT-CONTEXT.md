@@ -673,3 +673,9 @@ Stage 4.2 v0.1.1 fixes a local-volume compatibility regression: PostgreSQL crede
 Stage 4.2 v0.1.2 fixes a test-boundary regression found in the real Docker verification: repository orchestration files such as `docker-compose.yml` and `.env.example` are host-side inputs and are intentionally not copied into the FastAPI runtime image. Their compatibility assertions now live in the host `scripts/security_check.py` gate, while container pytest remains limited to portable application/runtime tests.
 
 Stage 4.2 v0.2 adds container runtime hardening. FastAPI, ETL, Gateway, and Web now declare non-root runtime users while PostgreSQL retains the official image's user model. The host security gate statically enforces non-root Dockerfile policy, and `make verify` now performs a runtime UID check for all four application images before running regressions. Final user-side `make verify` passed all 8 gates. Runtime UIDs were FastAPI 10001, ETL 10001, Gateway 10001, and Web 1000; backend regressions, frontend deterministic tests, frontend production build, and Gateway health also passed. Stage 4.2 is CLOSED.
+
+Stage 4.3 v0.2 prepares the final publication surface without creating the GitHub repository yet:
+
+- GitHub repository metadata / About / topics / public-claim guardrails are fixed in `docs/GITHUB-METADATA.md`;
+- final README screenshot and optional short-video capture requirements are fixed in `docs/DEMO-CAPTURE-CHECKLIST.md`;
+- actual repository creation, first push, and CI remain deferred to Stage 4.4.

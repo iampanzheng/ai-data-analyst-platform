@@ -2,7 +2,7 @@
 
 ## Version
 
-`v0.1 — candidate`
+`v0.2 — candidate`
 
 ## Goal
 
@@ -40,3 +40,18 @@ Portfolio documentation must distinguish:
 - Decide whether to add a short architecture image beyond Mermaid.
 - Prepare final GitHub repository description/topics and demo capture checklist.
 - Close Stage 4.3 after documentation review.
+
+
+## v0.2 scope
+
+- Add a ready-to-use GitHub repository metadata specification without publishing the repository yet.
+- Define recommended repository name, About description, focused topics, website-field policy, README ordering, social-preview guidance, and public-claim guardrails.
+- Add a final demo capture checklist for the four README screenshots and an optional 60–90 second portfolio video.
+- Keep actual repository creation, first push, and CI in Stage 4.4.
+
+## v0.2 validation
+
+- GitHub metadata wording matches the implemented system and does not overclaim deployment.
+- README links to both new Stage 4.3 guides.
+- Existing screenshot filenames remain the canonical demo assets.
+- No runtime/API code changes are introduced.
