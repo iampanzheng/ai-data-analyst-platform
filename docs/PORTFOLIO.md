@@ -91,3 +91,13 @@ until deployment evidence exists.
 React · Spring Boot · FastAPI · PostgreSQL · LLM Routing · SQL Security · Controlled Analysis · Evaluation
 
 > Built an evidence-backed AI analytics workflow that separates probabilistic model output from deterministic execution and reporting boundaries, with measured model routing, provenance, end-to-end acceptance, and hardened Docker-based verification.
+
+
+## Publication assets
+
+Before the first public GitHub push, use:
+
+- [`GITHUB-METADATA.md`](GITHUB-METADATA.md) for repository About text, topics, and public-claim guardrails;
+- [`DEMO-CAPTURE-CHECKLIST.md`](DEMO-CAPTURE-CHECKLIST.md) for the final screenshot and optional short-video capture plan.
+
+Actual GitHub repository creation and CI remain Stage 4.4 work.

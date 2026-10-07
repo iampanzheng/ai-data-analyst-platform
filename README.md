@@ -88,6 +88,8 @@ See [`02-architecture.md`](02-architecture.md) for service boundaries and trust 
 
 A repeatable 5–7 minute walkthrough is documented in [`docs/DEMO.md`](docs/DEMO.md).
 
+Repository publication metadata is prepared in [`docs/GITHUB-METADATA.md`](docs/GITHUB-METADATA.md), and final screenshot/video capture guidance is in [`docs/DEMO-CAPTURE-CHECKLIST.md`](docs/DEMO-CAPTURE-CHECKLIST.md).
+
 ## Trust boundaries
 
 ### Generated SQL is untrusted
