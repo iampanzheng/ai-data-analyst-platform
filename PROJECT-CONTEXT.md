@@ -13,7 +13,8 @@ Phase 4 — Production / Portfolio Readiness       🚧 ACTIVE
 Stage 4.1 — Local Production Baseline            ✅ CLOSED
 Stage 4.2 — Security / Configuration Cleanup       ✅ CLOSED
 Stage 4.3 — Portfolio Documentation & Demo          ✅ CLOSED
-Stage 4.4 — GitHub Repository & CI                  🚧 ACTIVE
+Stage 4.4 — GitHub Repository & CI                  ✅ CLOSED
+Stage 4.5 — Deployment / Final Release               🚧 ACTIVE
 
 Stage 3.1 — Evidence Foundation                  ✅ CLOSED
 Stage 3.2 — Richer Analytical Data               ✅ CLOSED
@@ -113,11 +114,35 @@ Phase 3 is CLOSED.
 Stage 4.1 Local Production Baseline          ✅ CLOSED
 Stage 4.2 Security / Configuration Cleanup   ✅ CLOSED
 Stage 4.3 Portfolio Documentation & Demo     ✅ CLOSED
-Stage 4.4 GitHub Repository & CI             🚧 ACTIVE
-Stage 4.5 Deployment / Final Release         planned
+Stage 4.4 GitHub Repository & CI             ✅ CLOSED
+Stage 4.5 Deployment / Final Release          🚧 ACTIVE
 ```
 
 Stage 4.1 is CLOSED. GitHub publication remains deferred until the repository, documentation, secret hygiene, and repeatable verification baseline are stable.
+
+## Stage 4.4 closeout verification
+
+The repository was published publicly at:
+
+```text
+https://github.com/iampanzheng/ai-data-analyst-platform
+```
+
+Final publication evidence:
+
+```text
+make repo-check: PASS
+make publish-check: PASS
+make verify: PASS
+initial push to main: PASS
+first GitHub Actions run: PASS (1m 34s)
+public README/assets review: PASS
+MIT License: added
+```
+
+The versioned portfolio demo remains in `docs/assets/p1-ai-data-analyst-demo.mp4`. GitHub user-attachment URLs are not treated as canonical because an unsubmitted Issue attachment was observed to return 404 when opened anonymously. Stage 4.5 may additionally publish the demo as a GitHub Release asset.
+
+Stage 4.4 is CLOSED.
 
 ## Stage 4.4 v0.1 — GitHub / CI preparation
 

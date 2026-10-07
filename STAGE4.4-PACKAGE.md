@@ -1,13 +1,13 @@
 # Stage 4.4 Package — GitHub Repository & CI
 
-**Version:** v0.1  
-**Status:** CANDIDATE
+**Version:** v1.0  
+**Status:** CLOSED
 
 ## Goal
 
 Prepare P1 for its first public GitHub publication without changing the application feature set.
 
-## Implemented in v0.1
+## Implemented
 
 - GitHub Actions deterministic CI workflow;
 - current-tree publication hygiene check;
@@ -20,12 +20,16 @@ Prepare P1 for its first public GitHub publication without changing the applicat
 
 Default GitHub CI intentionally runs deterministic Mock configuration only. Real-provider acceptance remains an explicit/manual verification because it depends on external credentials, quotas, network behavior, and provider availability.
 
-## Closeout gates
+## Final closeout evidence
 
-Stage 4.4 is not CLOSED until the actual remote repository exists and:
+- public repository: `https://github.com/iampanzheng/ai-data-analyst-platform`;
+- `make repo-check`: PASS;
+- `make publish-check`: PASS;
+- `make verify`: PASS;
+- initial `main` push: PASS;
+- first GitHub Actions run: PASS in 1m 34s;
+- public README/assets reviewed successfully;
+- MIT License added;
+- versioned MP4 remains the canonical demo asset; GitHub Release publishing is deferred to Stage 4.5.
 
-1. the first push succeeds;
-2. public README/assets render correctly;
-3. GitHub Actions passes on `main`;
-4. repository About description/topics are configured;
-5. publication hygiene/history checks pass before the public push.
+Stage 4.4 is CLOSED.

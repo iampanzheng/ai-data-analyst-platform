@@ -297,7 +297,7 @@ Host-side Python commands use `uv run python`. Web dependencies are locked with 
 - Controlled Python analysis intentionally supports only a small allowlist of operations.
 - Chart artifacts do not currently carry arbitrary point-label metadata; the UI does not infer labels that are absent from verified chart evidence.
 - Model quality still depends on the configured provider and prompt behavior; deterministic controls limit what the model can execute or promote into trusted artifacts, but they do not make model prose infallible.
-- Public cloud deployment and GitHub CI are intentionally deferred to later Phase 4 stages.
+- Public cloud deployment is intentionally deferred to Stage 4.5; GitHub publication and deterministic CI are complete.
 
 ## Project status
 
@@ -310,10 +310,12 @@ Phase 4 — Production / Portfolio Readiness       ACTIVE
 Stage 4.1 — Local Production Baseline            CLOSED
 Stage 4.2 — Security / Configuration Cleanup     CLOSED
 Stage 4.3 — Portfolio Documentation & Demo       CLOSED
-Stage 4.4 — GitHub Repository & CI               ACTIVE
+Stage 4.4 — GitHub Repository & CI               CLOSED
+Stage 4.5 — Deployment / Final Release           ACTIVE
 
-Stage 4.4 local preparation now includes a SHA-pinned GitHub Actions workflow plus `make repo-check` / `make publish-check`; remote repository creation and the first green GitHub Actions run are the remaining closeout evidence.
-Stage 4.5 — Deployment / Final Release           planned
+Public repository: https://github.com/iampanzheng/ai-data-analyst-platform
+
+Stage 4.4 closeout evidence includes a successful first `main` push, a green GitHub Actions run, repository/history publication checks, and the MIT License.
 ```
 
 Detailed development history and frozen engineering decisions are maintained in [`PROJECT-CONTEXT.md`](PROJECT-CONTEXT.md).
@@ -321,3 +323,8 @@ Detailed development history and frozen engineering decisions are maintained in 
 ## Portfolio / interview positioning
 
 See [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) for concise resume bullets, a 60-second project explanation, deep-dive interview topics, and claims that should remain explicitly bounded by measured evidence.
+
+
+## License
+
+MIT License. See [LICENSE](LICENSE).

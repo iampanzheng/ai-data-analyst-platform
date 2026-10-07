@@ -35,6 +35,20 @@ The official `astral-sh/setup-uv` action is used to install uv. The selected wor
 
 `--history` additionally scans Git history for forbidden paths and strong secret patterns. It is specifically intended for the first public publication of this long-lived local repository.
 
-## Current Stage 4.4 state
+## Final Stage 4.4 state
 
-v0.1 prepares the repository files locally. Actual GitHub creation, first push, first remote CI result, and About/topics configuration remain the runtime closeout evidence.
+Stage 4.4 is CLOSED. The public repository is available at:
+
+`https://github.com/iampanzheng/ai-data-analyst-platform`
+
+Final evidence:
+
+- local current-tree publication check: PASS;
+- full Git-history publication check: PASS;
+- deterministic local verification: PASS;
+- initial `main` push: PASS;
+- first GitHub Actions run: PASS in 1m 34s;
+- public README/assets review: PASS;
+- MIT License added.
+
+The repository keeps `docs/assets/p1-ai-data-analyst-demo.mp4` as the canonical versioned demo. A temporary GitHub user-attachment URL created from an unsubmitted Issue was observed to return 404 anonymously, so Stage 4.4 does not depend on that mechanism. Stage 4.5 may publish the same MP4 as a GitHub Release asset.
