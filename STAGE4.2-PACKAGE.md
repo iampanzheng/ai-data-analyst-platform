@@ -1,7 +1,7 @@
 # Stage 4.2 Package — Security / Configuration Cleanup
 
-Version: **v0.1.2 candidate**  
-Status: **ACTIVE**
+Version: **v1.0**  
+Status: **CLOSED**
 
 ## Goal
 
@@ -23,7 +23,7 @@ Improve the local/default security posture and remove configuration inconsistenc
 - No authentication/authorization feature is introduced.
 - No business/API artifact contract changes.
 - No GitHub Actions or public deployment configuration.
-- Non-root container execution is deferred until ownership and in-container test behavior can be validated independently.
+- No authentication/authorization feature is introduced in this stage beyond configuration/runtime hardening.
 
 ## Candidate validation
 
@@ -58,4 +58,18 @@ Local artifact validation completed:
 - Python compileall — PASS
 - `scripts/verify_local.sh` shell syntax — PASS
 
-Closeout gate: run the updated `make verify` in the real Docker environment and confirm all 8 steps pass.
+Final user-side closeout verification: PASS.
+
+```text
+FastAPI runtime uid: 10001
+ETL runtime uid: 10001
+Gateway runtime uid: 10001
+Web runtime uid: 1000
+FastAPI/Python regression suite: PASS (100%)
+Frontend deterministic tests: PASS (4/4)
+Frontend production build: PASS
+Gateway health: PASS
+Local production baseline: PASS
+```
+
+Stage 4.2 is CLOSED.

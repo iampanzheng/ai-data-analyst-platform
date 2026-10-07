@@ -371,7 +371,7 @@ repeatable local verification
 → CI-ready commands
 ```
 
-Stage 4.2 — Security / Configuration Cleanup is now active. GitHub Actions and public repository polish remain intentionally deferred until configuration/secret hygiene and portfolio documentation are stable.
+Stage 4.2 — Security / Configuration Cleanup is CLOSED. Stage 4.3 — Portfolio Documentation & Demo is now active. GitHub Actions and public repository publication remain intentionally deferred until portfolio documentation and demo assets are stable.
 
 Stage 4.2 v0.1 adds a local security/configuration baseline: Compose-published ports are loopback-only by default, database/CORS/host-port settings are environment-configurable, structured logs redact sensitive fields, and `make security-check` validates the security-sensitive configuration assumptions. `make verify` runs this security check before the existing build/test/health gates.
 
@@ -515,3 +515,8 @@ Stage 4.2 v0.1.1 fixes a local-volume compatibility regression: PostgreSQL crede
 Stage 4.2 v0.1.2 fixes a test-boundary regression found in the real Docker verification: repository orchestration files such as `docker-compose.yml` and `.env.example` are host-side inputs and are intentionally not copied into the FastAPI runtime image. Their compatibility assertions now live in the host `scripts/security_check.py` gate, while container pytest remains limited to portable application/runtime tests.
 
 Stage 4.2 v0.2 adds non-root application containers. FastAPI, ETL, Gateway, and Web now run with explicit non-root runtime identities; PostgreSQL retains its official-image user model. `make verify` includes a runtime UID gate before backend/frontend regression checks.
+
+
+### Stage 4.2 closeout
+
+Security/configuration cleanup is complete. The local stack now uses loopback-only published ports by default, environment-configurable security-sensitive settings, structured-log redaction, deterministic host security checks, and non-root application runtime containers. Final `make verify` passed all eight gates; runtime UIDs were FastAPI 10001, ETL 10001, Gateway 10001, and Web 1000.

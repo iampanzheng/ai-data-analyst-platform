@@ -11,7 +11,8 @@ Phase 3 — Evidence-backed Analysis               ✅ CLOSED
 Phase 4 — Production / Portfolio Readiness       🚧 ACTIVE
 
 Stage 4.1 — Local Production Baseline            ✅ CLOSED
-Stage 4.2 — Security / Configuration Cleanup       🚧 ACTIVE
+Stage 4.2 — Security / Configuration Cleanup       ✅ CLOSED
+Stage 4.3 — Portfolio Documentation & Demo          🚧 ACTIVE
 
 Stage 3.1 — Evidence Foundation                  ✅ CLOSED
 Stage 3.2 — Richer Analytical Data               ✅ CLOSED
@@ -109,8 +110,8 @@ Phase 3 is CLOSED.
 
 ```text
 Stage 4.1 Local Production Baseline          ✅ CLOSED
-Stage 4.2 Security / Configuration Cleanup   🚧 ACTIVE
-Stage 4.3 Portfolio Documentation & Demo     planned
+Stage 4.2 Security / Configuration Cleanup   ✅ CLOSED
+Stage 4.3 Portfolio Documentation & Demo     🚧 ACTIVE
 Stage 4.4 GitHub Repository & CI             planned
 Stage 4.5 Deployment / Final Release         planned
 ```
@@ -137,7 +138,7 @@ Frontend production build          PASS
 Gateway /api/health                PASS
 ```
 
-Stage 4.2 is now the active starting point.
+Stage 4.2 is CLOSED. Stage 4.3 is now the active starting point.
 
 Stage 4.1 v0.1.1 fixes host portability discovered during the first real `make verify` run: host-side Python execution is standardized on `uv run python` instead of assuming a `python` command exists. The Docker-container Python commands remain unchanged.
 
@@ -156,6 +157,28 @@ Stage 4.2 v0.1 establishes the first security/configuration cleanup baseline wit
 - Stage 4.2 does not yet force non-root containers; that is deferred until ownership/test behavior is validated separately.
 
 Current Stage 4.2 v0.1 deterministic checks: security configuration baseline PASS, logging redaction tests 3/3 PASS, Python compileall PASS. A full local `make verify` remains the candidate closeout gate.
+
+
+## Stage 4.2 closeout verification
+
+Final user-side verification completed on the hardened runtime:
+
+```text
+Security/configuration baseline      PASS
+Docker Compose validation            PASS
+Full stack build/start               PASS
+FastAPI runtime UID                  10001
+ETL runtime UID                      10001
+Gateway runtime UID                  10001
+Web runtime UID                      1000
+FastAPI/Python regression suite      PASS (100%)
+Frontend deterministic tests         PASS (4/4)
+Frontend production build            PASS
+Gateway /api/health                  PASS
+Local production baseline            PASS
+```
+
+Stage 4.2 is CLOSED.
 
 ---
 
@@ -637,4 +660,4 @@ Stage 4.2 v0.1.1 fixes a local-volume compatibility regression: PostgreSQL crede
 
 Stage 4.2 v0.1.2 fixes a test-boundary regression found in the real Docker verification: repository orchestration files such as `docker-compose.yml` and `.env.example` are host-side inputs and are intentionally not copied into the FastAPI runtime image. Their compatibility assertions now live in the host `scripts/security_check.py` gate, while container pytest remains limited to portable application/runtime tests.
 
-Stage 4.2 v0.2 adds container runtime hardening. FastAPI, ETL, Gateway, and Web now declare non-root runtime users while PostgreSQL retains the official image's user model. The host security gate statically enforces non-root Dockerfile policy, and `make verify` now performs a runtime UID check for all four application images before running regressions. Candidate artifact checks pass; full Docker `make verify` is the remaining v0.2 validation gate.
+Stage 4.2 v0.2 adds container runtime hardening. FastAPI, ETL, Gateway, and Web now declare non-root runtime users while PostgreSQL retains the official image's user model. The host security gate statically enforces non-root Dockerfile policy, and `make verify` now performs a runtime UID check for all four application images before running regressions. Final user-side `make verify` passed all 8 gates. Runtime UIDs were FastAPI 10001, ETL 10001, Gateway 10001, and Web 1000; backend regressions, frontend deterministic tests, frontend production build, and Gateway health also passed. Stage 4.2 is CLOSED.
