@@ -1,6 +1,6 @@
 # Stage 4.1 — Local Production Baseline
 
-Status: **v0.1 candidate**
+Status: **v0.1.1 candidate**
 
 ## Goal
 
@@ -48,3 +48,11 @@ It may exercise configured real-model routing and therefore is not part of the d
 - `.env` / `.git` / caches are excluded from Docker build context.
 - FastAPI reaches healthy state before Gateway startup dependency is satisfied.
 - Existing Phase 3 acceptance behavior remains unchanged.
+
+
+## v0.1.1 portability hotfix
+
+- Host-side Python commands now use `uv run python` instead of assuming a `python` executable exists.
+- `scripts/verify_local.sh` fails fast with a clear error when `uv` is unavailable.
+- Container-internal Python commands remain unchanged because the Docker image controls that runtime.
+- Recommended Git commit: `fix(build): use uv Python in local verification`.

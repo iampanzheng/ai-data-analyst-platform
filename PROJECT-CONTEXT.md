@@ -118,6 +118,8 @@ Stage 4.1 is intentionally local-only. GitHub publication is deferred until the 
 
 Stage 4.1 v0.1 adds `.dockerignore`, health-gated FastAPI → Gateway startup, an explicit `make verify` local production gate, clearer verification Make targets, and a complete safe `.env.example`. Frontend npm dependency locking remains a known Phase 4 item because no lockfile should be fabricated offline.
 
+Stage 4.1 v0.1.1 fixes host portability discovered during the first real `make verify` run: host-side Python execution is standardized on `uv run python` instead of assuming a `python` command exists. The Docker-container Python commands remain unchanged.
+
 ---
 
 # Historical context

@@ -3,6 +3,11 @@ set -eu
 
 COMPOSE="${COMPOSE:-docker compose}"
 
+if ! command -v uv >/dev/null 2>&1; then
+  echo "ERROR: uv is required for host-side Python verification." >&2
+  exit 127
+fi
+
 echo "[1/6] Validate Docker Compose configuration"
 $COMPOSE config --quiet
 
@@ -19,7 +24,7 @@ echo "[5/6] Run frontend production build"
 $COMPOSE exec -T web npm run build
 
 echo "[6/6] Verify Gateway health endpoint"
-python - <<'PY'
+uv run python - <<'PY'
 import json
 import urllib.request
 

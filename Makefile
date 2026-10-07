@@ -1,4 +1,4 @@
-PYTHON ?= python
+PYTHON ?= uv run python
 COMPOSE ?= docker compose
 
 .PHONY: help data-download etl up down logs ps compile test test-backend eval smoke smoke-docker acceptance web-test web-build compose-check verify

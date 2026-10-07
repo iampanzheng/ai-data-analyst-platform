@@ -236,6 +236,8 @@ Phase 4.1 defines a deterministic local production baseline. With Docker availab
 
 ```bash
 make verify
+
+Host-side Python commands use `uv run python`; Docker-container commands use the interpreter provided by the image.
 ```
 
 That gate validates Compose configuration, builds/starts the stack, runs the FastAPI/Python test suite, runs deterministic frontend tests, creates the frontend production build, and checks the Gateway health endpoint.
