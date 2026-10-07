@@ -82,3 +82,15 @@ Stage 4.3 now includes two publication-preparation artifacts while intentionally
 - `docs/DEMO-CAPTURE-CHECKLIST.md` — canonical screenshots, optional short-video sequence, interview-demo flow, and capture hygiene.
 
 The goal is to make Stage 4.4 operational rather than editorial: repository publication should not require reinventing the portfolio narrative.
+
+## Final closeout
+
+Stage 4.3 v1.0 is CLOSED. The final short demo was captured from the real Analyst Workspace and accepted as the canonical video asset:
+
+```text
+docs/assets/p1-ai-data-analyst-demo.mp4
+```
+
+Verified media properties: 1920×1080, H.264, 30 fps, ~69.8 seconds. The demo follows the intended product narrative and ends on Provenance.
+
+The repository now has a complete portfolio-facing documentation surface. GitHub repository creation and CI remain intentionally deferred to Stage 4.4.

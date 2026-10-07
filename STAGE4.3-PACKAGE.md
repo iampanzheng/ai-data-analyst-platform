@@ -2,7 +2,7 @@
 
 ## Version
 
-`v0.2 — candidate`
+`v1.0 — CLOSED`
 
 ## Goal
 
@@ -34,13 +34,6 @@ Portfolio documentation must distinguish:
 - README status matches `PROJECT-CONTEXT.md`.
 - Runtime code and API contracts are unchanged.
 
-## Remaining Stage 4.3 work
-
-- Review screenshot selection and public-facing README rendering.
-- Decide whether to add a short architecture image beyond Mermaid.
-- Prepare final GitHub repository description/topics and demo capture checklist.
-- Close Stage 4.3 after documentation review.
-
 
 ## v0.2 scope
 
@@ -55,3 +48,20 @@ Portfolio documentation must distinguish:
 - README links to both new Stage 4.3 guides.
 - Existing screenshot filenames remain the canonical demo assets.
 - No runtime/API code changes are introduced.
+
+## v1.0 closeout
+
+Stage 4.3 is CLOSED.
+
+Final portfolio surface includes:
+
+- public-facing README and current architecture;
+- four canonical UI screenshots;
+- finalized ~70-second MP4 demo (`1920x1080`, H.264, 30 fps);
+- GitHub repository metadata/topics/public-claim guidance;
+- 5–7 minute interview demo walkthrough;
+- resume/interview positioning and measured-evidence guardrails.
+
+No runtime/API behavior changed in Stage 4.3.
+
+Next stage: Stage 4.4 — GitHub Repository & CI.

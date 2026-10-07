@@ -12,7 +12,8 @@ Phase 4 — Production / Portfolio Readiness       🚧 ACTIVE
 
 Stage 4.1 — Local Production Baseline            ✅ CLOSED
 Stage 4.2 — Security / Configuration Cleanup       ✅ CLOSED
-Stage 4.3 — Portfolio Documentation & Demo          🚧 ACTIVE
+Stage 4.3 — Portfolio Documentation & Demo          ✅ CLOSED
+Stage 4.4 — GitHub Repository & CI                  🚧 ACTIVE
 
 Stage 3.1 — Evidence Foundation                  ✅ CLOSED
 Stage 3.2 — Richer Analytical Data               ✅ CLOSED
@@ -111,8 +112,8 @@ Phase 3 is CLOSED.
 ```text
 Stage 4.1 Local Production Baseline          ✅ CLOSED
 Stage 4.2 Security / Configuration Cleanup   ✅ CLOSED
-Stage 4.3 Portfolio Documentation & Demo     🚧 ACTIVE
-Stage 4.4 GitHub Repository & CI             planned
+Stage 4.3 Portfolio Documentation & Demo     ✅ CLOSED
+Stage 4.4 GitHub Repository & CI             🚧 ACTIVE
 Stage 4.5 Deployment / Final Release         planned
 ```
 
@@ -138,7 +139,7 @@ Frontend production build          PASS
 Gateway /api/health                PASS
 ```
 
-Stage 4.2 is CLOSED. Stage 4.3 is now the active starting point.
+Stage 4.2 and Stage 4.3 are CLOSED. Stage 4.4 — GitHub Repository & CI is now the active starting point.
 
 Stage 4.1 v0.1.1 fixes host portability discovered during the first real `make verify` run: host-side Python execution is standardized on `uv run python` instead of assuming a `python` command exists. The Docker-container Python commands remain unchanged.
 
@@ -190,7 +191,7 @@ Stage 4.3 v0.1 establishes the first portfolio-facing documentation baseline wit
 - `docs/PORTFOLIO.md` now uses measured current capabilities, resume bullets, interview narrative, and explicit overclaim boundaries;
 - verified Stage 3.7 UI screenshots are added under `docs/assets/` for README/demo use.
 
-Stage 4.3 remains ACTIVE pending public-facing documentation review and final portfolio/GitHub preparation.
+Stage 4.3 is CLOSED. The public-facing README, current architecture, four canonical screenshots, finalized ~70-second demo video, GitHub metadata guidance, and portfolio/interview material are complete. Stage 4.4 is now the active starting point.
 
 ---
 
@@ -679,3 +680,10 @@ Stage 4.3 v0.2 prepares the final publication surface without creating the GitHu
 - GitHub repository metadata / About / topics / public-claim guardrails are fixed in `docs/GITHUB-METADATA.md`;
 - final README screenshot and optional short-video capture requirements are fixed in `docs/DEMO-CAPTURE-CHECKLIST.md`;
 - actual repository creation, first push, and CI remain deferred to Stage 4.4.
+
+
+## Stage 4.3 closeout
+
+Stage 4.3 v1.0 is CLOSED. Final portfolio evidence includes four canonical UI screenshots and `docs/assets/p1-ai-data-analyst-demo.mp4` (1920×1080, H.264, 30 fps, ~69.8 seconds). The video uses the real application and ends on the Provenance view. Runtime/API behavior was unchanged throughout Stage 4.3.
+
+Next starting point: Stage 4.4 — GitHub Repository & CI.
