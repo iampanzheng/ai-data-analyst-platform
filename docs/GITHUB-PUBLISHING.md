@@ -149,3 +149,15 @@ initial GitHub Actions CI PASS
 About description / topics configured
 no public-secret regression found
 ```
+
+
+## Publication completed
+
+The first public publication completed successfully:
+
+- repository: `https://github.com/iampanzheng/ai-data-analyst-platform`;
+- default branch: `main`;
+- first GitHub Actions run: PASS;
+- MIT License selected.
+
+The repository-owned MP4 remains the canonical demo asset. A GitHub Release asset can be added in Stage 4.5 for a more polished download/playback surface.

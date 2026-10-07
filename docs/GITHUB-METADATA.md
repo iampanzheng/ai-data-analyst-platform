@@ -128,3 +128,8 @@ Before creating the GitHub repository:
 - [ ] Stage tags intended for publication are present.
 
 Stage 4.4 owns the actual repository creation, first push, and CI configuration. Follow [`GITHUB-PUBLISHING.md`](GITHUB-PUBLISHING.md) for the prepared first-publication procedure.
+
+
+## License
+
+Public repository license: **MIT License**. The repository root `LICENSE` file is a required publication asset and is enforced by `make repo-check`.

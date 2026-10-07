@@ -39,6 +39,7 @@ SECRET_PATTERNS = {
 
 REQUIRED_PUBLIC_ASSETS = (
     "README.md",
+    "LICENSE",
     "docs/GITHUB-METADATA.md",
     "docs/DEMO.md",
     "docs/PORTFOLIO.md",
