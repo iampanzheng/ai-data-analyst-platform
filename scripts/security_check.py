@@ -17,7 +17,10 @@ def main() -> None:
 
     require(".env" in gitignore, ".env must be ignored by Git")
     require(".env" in dockerignore, ".env must be excluded from Docker build context")
-    require("POSTGRES_PASSWORD: analyst" not in compose, "Compose must not hard-code the legacy database password")
+    require(
+        "POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-analyst}" in compose,
+        "Compose database password must be environment-configurable with the local compatibility default",
+    )
     require("CORS_ALLOWED_ORIGIN: http://localhost:5173" not in compose, "CORS origin must be environment-configurable")
 
     expected_bindings = (

@@ -36,3 +36,5 @@ The existing application log events use constant messages and bounded metadata. 
 ## Deferred item: non-root containers
 
 The current application containers still use their base-image default user. Converting them to non-root is desirable, but it affects file ownership, in-container pytest/cache behavior, and build/runtime permissions. It is deliberately deferred to a separately validated change rather than being mixed into this configuration-hardening candidate.
+
+Stage 4.2 v0.1.1 fixes a local-volume compatibility regression: PostgreSQL credentials remain environment-configurable, but the local default returns to `analyst` so existing `postgres_data` volumes continue to authenticate. Changing `POSTGRES_PASSWORD` is documented as a fresh-initialization setting, not an automatic password rotation for an existing PostgreSQL volume.

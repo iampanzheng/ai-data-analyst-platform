@@ -33,3 +33,5 @@ Local artifact checks completed:
 - `uv run python -m compileall -q ai scripts tests` — PASS
 
 Closeout gate: run `make verify` in the real Docker environment.
+
+Stage 4.2 v0.1.1 fixes a local-volume compatibility regression: PostgreSQL credentials remain environment-configurable, but the local default returns to `analyst` so existing `postgres_data` volumes continue to authenticate. Changing `POSTGRES_PASSWORD` is documented as a fresh-initialization setting, not an automatic password rotation for an existing PostgreSQL volume.

@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-ai_analyst}
       POSTGRES_USER: ${POSTGRES_USER:-analyst}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-analyst-local-dev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-analyst}
     ports:
       - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
@@ -21,7 +21,7 @@ services:
       context: .
       dockerfile: etl/Dockerfile
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-analyst}:${POSTGRES_PASSWORD:-analyst-local-dev}@postgres:5432/${POSTGRES_DB:-ai_analyst}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-analyst}:${POSTGRES_PASSWORD:-analyst}@postgres:5432/${POSTGRES_DB:-ai_analyst}
     depends_on:
       postgres:
         condition: service_healthy
@@ -31,7 +31,7 @@ services:
       context: .
       dockerfile: ai/analyst/Dockerfile
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-analyst}:${POSTGRES_PASSWORD:-analyst-local-dev}@postgres:5432/${POSTGRES_DB:-ai_analyst}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-analyst}:${POSTGRES_PASSWORD:-analyst}@postgres:5432/${POSTGRES_DB:-ai_analyst}
       SQL_MAX_ROWS: ${SQL_MAX_ROWS:-1000}
       SQL_STATEMENT_TIMEOUT_MS: ${SQL_STATEMENT_TIMEOUT_MS:-3000}
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}

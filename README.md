@@ -509,3 +509,5 @@ Phase 3 is CLOSED. Final integrated verification passed across backend regressio
 The Phase 3 product surface now includes controlled Python analysis, controlled visualization, evidence-bound reporting, deterministic delivery packaging, a five-tab Analyst Workspace, provenance, and end-to-end acceptance coverage.
 
 Next: **Phase 4 — Production / Portfolio Readiness**.
+
+Stage 4.2 v0.1.1 fixes a local-volume compatibility regression: PostgreSQL credentials remain environment-configurable, but the local default returns to `analyst` so existing `postgres_data` volumes continue to authenticate. Changing `POSTGRES_PASSWORD` is documented as a fresh-initialization setting, not an automatic password rotation for an existing PostgreSQL volume.

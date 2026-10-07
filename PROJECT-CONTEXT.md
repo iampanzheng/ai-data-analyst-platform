@@ -632,3 +632,5 @@ No acceptance logic or runtime API behavior changed. The existing `tests/test_ac
 - Stabilized ACC-004 around its intended descriptive-statistics contract by providing the exact stored occupation category `Software Developers`; synonym/category grounding is not the target of this acceptance case.
 - Failed acceptance cases now persist a bounded diagnostic snapshot (trace, validated SQL, route/fallback, errors, row count/tables/columns, analysis operation names) without copying result rows or LLM prose.
 
+
+Stage 4.2 v0.1.1 fixes a local-volume compatibility regression: PostgreSQL credentials remain environment-configurable, but the local default returns to `analyst` so existing `postgres_data` volumes continue to authenticate. Changing `POSTGRES_PASSWORD` is documented as a fresh-initialization setting, not an automatic password rotation for an existing PostgreSQL volume.
