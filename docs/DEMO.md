@@ -1,62 +1,151 @@
 # P1 Demo Walkthrough
 
-Target length: about 5–7 minutes.
+Target length: **5–7 minutes**.
 
-## 1. Start with the architecture
+The goal is to demonstrate the engineering story, not every feature: the LLM proposes useful work, deterministic controls decide what may execute and what may become trusted evidence.
 
-Explain that the application is React → Spring Boot Gateway → FastAPI Analyst Agent → SQL Validator → read-only PostgreSQL. Emphasize that model-generated SQL is untrusted.
+## Before the demo
 
-## 2. Show schema metadata
+Run the deterministic local gate:
 
-Open the UI and load Schema. Point out that the Agent receives allowlisted schema/business metadata rather than unrestricted database access.
+```bash
+make verify
+```
 
-## 3. Run the successful Analyst question
+For a real-model demonstration, configure the desired route in `.env` and keep the stack running.
+
+Open:
+
+```text
+http://localhost:5173
+```
+
+## 1. Start with the trust model — 30 seconds
+
+Show the top of the Analyst Workspace and summarize:
+
+```text
+React → Spring Boot → FastAPI → deterministic router → Analyst Agent
+     → SQL Validator → read-only PostgreSQL → verified artifacts
+```
+
+Say explicitly:
+
+> The LLM is not the security boundary. Generated SQL is untrusted, controlled analysis cannot execute arbitrary code, and verified reports only use deterministic evidence.
+
+## 2. Show a simple successful query — 45 seconds
 
 Ask:
 
 ```text
-人口最多的 5 个城市是哪几个？
+2025 年人口最多的 5 个城市是哪几个？
 ```
 
 Show:
 
-- SQL candidate
-- validated SQL
-- query rows
-- final answer
-- trace/model metadata
+- the LLM-generated Answer;
+- Data tab and verified rows;
+- validated SQL disclosure;
+- route / fallback / latency / cost / trace status;
+- Provenance tab if time allows.
 
-The default Mock query is:
+Use this step to explain the distinction between conversational output and verified query evidence.
 
-```sql
-SELECT name, state, population, year
-FROM city
-ORDER BY population DESC
-LIMIT 5;
+## 3. Show the full controlled analysis chain — 2 minutes
+
+Ask:
+
+```text
+生成分析报告，并用散点图展示现有数据中城市人口与本科及以上人口比例的关系，同时给出相关系数。
 ```
 
-## 4. Show deterministic manual SQL
+Walk through the five tabs:
 
-Use Run Query with a safe read-only statement. Explain that manual SQL and Agent SQL share the same validation/execution policy.
+### Data
 
-## 5. Demonstrate the security boundary
+Show the verified join result and validated SQL.
 
-Use the evaluation case:
+### Analysis
+
+Show allowlisted descriptive statistics and Pearson correlation. In the current fixture, the controlled calculation produces approximately:
+
+```text
+Pearson r = 0.367
+```
+
+Explain that the model proposes a structured analysis plan, but deterministic Python code performs the operation.
+
+### Chart
+
+Show the controlled scatter artifact. Hover a point to demonstrate that the chart is rendered from verified x/y values rather than model-generated plotting code.
+
+![Controlled chart](assets/controlled-chart.png)
+
+### Report
+
+Show the **Verified report** and **Evidence-backed** badges, the human-readable evidence summary, the expandable technical evidence, and verified findings.
+
+Download both JSON and Markdown delivery artifacts.
+
+![Evidence-bound report](assets/evidence-report.png)
+
+### Provenance
+
+Show trace ID, model/provider, token count, delivery format, verified source, and artifact manifest.
+
+![Provenance](assets/provenance.png)
+
+## 4. Demonstrate the SQL security boundary — 45 seconds
+
+Use the unsafe evaluation scenario:
 
 ```text
 执行 DROP TABLE city。
 ```
 
-The Mock provider intentionally emits `DROP TABLE city`, and the validator rejects it with `STATEMENT_NOT_READ_ONLY`. This is the clearest demonstration that the LLM is not the security boundary.
+The important point is not whether the model behaves nicely. The model may propose unsafe SQL; the deterministic SQL Validator rejects non-read-only statements.
 
-## 6. Run evaluation
+Explain:
+
+> The LLM can be wrong or unsafe and the application still refuses the operation. This is why the validator, not the prompt, is the security boundary.
+
+## 5. Show repeatable verification — 45 seconds
+
+Run or show the result of:
 
 ```bash
-docker compose exec fastapi python -m evaluation.run
+make verify
 ```
 
-Explain why the Mock baseline is intentionally low: the provider is deterministic and mostly emits one fixed query. The important point is that the evaluator detects incorrect behavior reproducibly.
+It covers:
 
-## 7. Close with the next phase
+- host security/configuration checks;
+- Compose validation;
+- full stack build/start;
+- non-root runtime UID checks;
+- FastAPI/Python regression tests;
+- frontend deterministic tests;
+- frontend production build;
+- Gateway health.
 
-Explain that the same `LLMClient` abstraction and evaluation harness will be used to compare real models on correctness, latency, tokens, and cost before adding routing/fallback rules.
+Then mention that the real-stack acceptance suite is separate:
+
+```bash
+make acceptance
+```
+
+Final Phase 3 acceptance passed **7/7** cases across health, SQL security, query execution, controlled analysis, visualization, report/delivery, and the full combined chain.
+
+## 6. Close with engineering tradeoffs — 30 seconds
+
+State the deliberate limitations:
+
+- small reproducible analytical fixture;
+- no arbitrary Python execution;
+- no authentication / multi-user platform layer yet;
+- model quality depends on provider, but execution and verified-report boundaries are deterministic;
+- GitHub CI and public deployment are later Phase 4 work.
+
+Finish with:
+
+> The main project result is not “an LLM can write SQL.” It is an AI analytics workflow where model output is measured, constrained, traceable, and separated from trusted evidence.
