@@ -2,277 +2,156 @@
 
 Production-oriented AI application engineering portfolio project.
 
-The platform accepts a natural-language analytics question, retrieves database schema metadata, asks an LLM provider to generate SQL, validates the generated SQL as untrusted input, executes it against a read-only PostgreSQL connection, and returns the query evidence together with an Analyst answer.
+P1 turns a natural-language analytics question into **validated SQL, read-only query evidence, controlled analysis, charts, reports, and deterministic delivery artifacts**. The core engineering goal is not merely to make an LLM generate SQL; it is to keep probabilistic model output behind deterministic security and evidence boundaries.
 
-The current repository also includes a deterministic evaluation harness, controlled Python analysis, controlled visualization, evidence-bound reporting and delivery artifacts, structured observability, a Spring Boot gateway, and a React Analyst Workspace.
+![AI Data Analyst workspace](docs/assets/analyst-workspace.png)
 
-## What this project demonstrates
+## Why this project exists
 
-This project is intentionally more than a prompt-to-SQL demo. Its main engineering focus is the boundary between probabilistic model output and deterministic application controls:
+A prompt-to-SQL demo is easy to build and easy to over-trust. P1 is designed around a stricter contract:
+
+```text
+LLM proposes.
+Deterministic controls verify.
+PostgreSQL produces evidence.
+Only verified artifacts enter trusted reporting and delivery.
+```
+
+The system demonstrates the kinds of concerns expected in an AI application / AI engineer role: provider abstraction, SQL safety, routing and fallback, controlled tool use, evaluation, observability, deterministic evidence, frontend integration, security hardening, and repeatable local verification.
+
+## Architecture
+
+```mermaid
+flowchart TD
+    U[React Analyst Workspace] --> G[Spring Boot Gateway]
+    G --> F[FastAPI AI Service]
+    F --> R[Deterministic Router / Resilient LLM Client]
+    R --> A[Analyst Agent]
+    A --> S[Schema + bounded value grounding]
+    A --> L[LLM SQL proposal]
+    L --> V[Deterministic SQL Validator]
+    V --> P[(Read-only PostgreSQL)]
+    P --> Q[Verified query_result]
+    Q --> PY[Controlled Python analysis]
+    Q --> C[Controlled visualization]
+    Q --> RP[Evidence-bound reporting]
+    PY --> RP
+    C --> RP
+    RP --> D[Deterministic delivery package]
+```
+
+The primary execution path is:
 
 ```text
 question
-  ↓
-Schema / Metadata
-  ↓
-LLM Client
-  ↓
-SQL Candidate           ← untrusted model output
-  ↓
-SQL Validator           ← deterministic security boundary
-  ↓
-Read-only PostgreSQL
-  ↓
-Query Evidence
-  ↓
-Analyst Answer
+→ schema / metadata grounding
+→ LLM SQL proposal
+→ deterministic SQL validation
+→ read-only PostgreSQL
+→ verified query evidence
+→ optional controlled analysis / visualization
+→ evidence-bound report
+→ deterministic delivery package
 ```
 
-Core principle:
+See [`02-architecture.md`](02-architecture.md) for service boundaries and trust boundaries.
 
-```text
-request → validate → execute → evidence
-```
+## What is implemented
 
-## Current architecture
+- **React + Vite Analyst Workspace** with Data, Analysis, Chart, Report, and Provenance views.
+- **Spring Boot Gateway** for the public application API and trace propagation.
+- **FastAPI Analyst Agent** with provider-independent LLM integration.
+- **Deterministic routing / fallback** across remote and local model routes.
+- **AST-based SQL validation** with table allowlists, read-only enforcement, timeout, and row caps.
+- **Bounded value grounding** for selected stored category values.
+- **Controlled Python analysis** for allowlisted descriptive statistics, Pearson correlation, and percent change.
+- **Controlled visualization** using validated chart artifacts rather than model-generated plotting code.
+- **Evidence-bound reporting** that excludes unsupported LLM prose from verified report facts.
+- **Deterministic JSON / Markdown delivery packaging** with provenance.
+- **Evaluation + acceptance harnesses** for model quality and stable product contracts.
+- **Structured observability** with trace IDs, latency, route, token, and estimated-cost telemetry.
+- **Security/configuration hardening**: loopback-only published ports, secret-safe configuration, structured-log redaction, and non-root application containers.
 
-```text
-React Analyst Workspace :5173
-   ↓
-Spring Boot Gateway :8080
-   ↓
-FastAPI AI Service :8000
-   ↓
-Deterministic Router / Resilient LLM Client
-   ↓
-Analyst Agent
-   ├── Schema + bounded value grounding
-   ├── SQL generation
-   ├── deterministic SQL validation
-   ├── read-only PostgreSQL execution
-   ├── controlled Python analysis
-   ├── controlled visualization
-   ├── evidence-bound reporting
-   └── deterministic delivery packaging
-```
+## Demo surfaces
 
-The model provider is behind a provider-independent `LLMClient` abstraction. Development defaults to a deterministic Mock provider. OpenAI-compatible remote/local providers, deterministic routing, bounded retry/backoff, privacy-aware fallback, token usage, and estimated-cost telemetry were validated and closed in Phase 2.
+### Controlled analysis + chart
+
+![Controlled chart](docs/assets/controlled-chart.png)
+
+### Evidence-bound report
+
+![Evidence-bound report](docs/assets/evidence-report.png)
+
+### Provenance
+
+![Provenance view](docs/assets/provenance.png)
+
+A repeatable 5–7 minute walkthrough is documented in [`docs/DEMO.md`](docs/DEMO.md).
+
+## Trust boundaries
+
+### Generated SQL is untrusted
+
+LLM-generated SQL is never executed directly. The validator enforces, among other controls:
+
+- exactly one statement;
+- `SELECT` / `WITH ... SELECT` only;
+- schema and physical-table allowlists;
+- CTE-aware table extraction;
+- no SQL comments;
+- no `SELECT INTO`;
+- no row-locking reads;
+- read-only PostgreSQL transaction;
+- statement timeout;
+- SQL length and result-row caps;
+- structured rejection codes.
+
+### Controlled analysis is not arbitrary code execution
+
+The model may propose a small structured analysis plan, but application code validates and executes only allowlisted operations. There is no model-controlled `eval`, `exec`, shell, filesystem, network, or arbitrary import path.
+
+### Verified reports do not trust free-form LLM claims
+
+The conversational **LLM Answer** is intentionally separated from **Verified artifacts**. Verified report summaries and delivery packages are assembled from deterministic query, analysis, and chart evidence. Free-form LLM prose cannot silently become trusted report evidence.
 
 ## Technology stack
 
-- **Frontend:** React + Vite
-- **Gateway:** Java 21 + Spring Boot
-- **AI service:** Python + FastAPI + Pydantic
-- **Database:** PostgreSQL 16
-- **SQL parsing/security:** SQLGlot
-- **Evaluation:** Python + JSON Schema + deterministic evaluators
-- **Runtime:** Docker Compose
-- **Observability:** trace IDs, structured JSON logs, execution latency, row counts
+| Layer | Technology |
+|---|---|
+| Frontend | React 19 + Vite |
+| API Gateway | Java 21 + Spring Boot |
+| AI service | Python + FastAPI + Pydantic |
+| Database | PostgreSQL 16 |
+| SQL parsing / policy | SQLGlot |
+| Model integration | Provider-independent `LLMClient`, OpenAI-compatible adapter, Ollama/local route, deterministic Mock |
+| Evaluation | Python + JSON Schema + deterministic evaluators |
+| Runtime | Docker Compose |
+| Verification | pytest, Node built-in test runner, Vite production build, acceptance runner |
 
 ## Quick start
 
 Prerequisites:
 
-- Docker with Docker Compose
-- no model API key is required for the default Mock configuration
-
-Start the full stack:
+- Docker with Docker Compose;
+- `uv` for host-side Python commands;
+- no model API key is required for the default deterministic Mock configuration.
 
 ```bash
 cp .env.example .env
-docker compose up --build -d
+make verify
 ```
 
-Open the demo UI:
+`make verify` is the deterministic local production gate. It validates security-sensitive configuration, Docker Compose, the full stack build/start, non-root runtime identities, backend tests, frontend deterministic tests, frontend production build, and Gateway health.
+
+Open the UI:
 
 ```text
 http://localhost:5173
 ```
 
-Service endpoints:
+The published local ports are loopback-only by default.
 
-```text
-React UI        http://localhost:5173
-Gateway         http://localhost:8080
-FastAPI         http://localhost:8000
-PostgreSQL      localhost:5432
-```
-
-Check service state:
-
-```bash
-docker compose ps
-curl http://localhost:8080/api/health
-```
-
-> The default build does not require a local Maven `settings.xml`. A local Maven mirror can still be supplied as an optional build optimization; see `04-environment.md`.
-
-## Main Analyst demo
-
-Ask the Analyst through the Spring Boot gateway:
-
-```bash
-curl -X POST http://localhost:8080/api/analyze \
-  -H 'Content-Type: application/json' \
-  -H 'X-Trace-ID: demo-001' \
-  -d '{"question":"人口最多的 5 个城市是哪几个？"}'
-```
-
-The response includes the model-generated SQL, validated SQL, database result, final answer, trace ID, model name, token usage, and structured errors.
-
-With the default Mock provider, the successful demo SQL is:
-
-```sql
-SELECT name, state, population, year
-FROM city
-ORDER BY population DESC
-LIMIT 5;
-```
-
-The current sample fixture returns New York, Los Angeles, Chicago, Houston, and Phoenix for 2025.
-
-## Deterministic query API
-
-Schema metadata:
-
-```bash
-curl http://localhost:8080/api/schema
-```
-
-Run a validated manual query:
-
-```bash
-curl -X POST http://localhost:8080/api/query \
-  -H 'Content-Type: application/json' \
-  -H 'X-Trace-ID: query-001' \
-  -d '{"sql":"SELECT name, population FROM city ORDER BY population DESC LIMIT 5"}'
-```
-
-## SQL security boundary
-
-LLM-generated SQL is never trusted or sent directly to the database.
-
-The SQL Validator currently enforces:
-
-- exactly one SQL statement
-- `SELECT` / `WITH ... SELECT` only
-- `public` schema only
-- physical table allowlist
-- CTE-aware table extraction
-- no SQL comments
-- no `SELECT INTO`
-- no row-locking reads
-- defensive forbidden-operation checks
-- SQL length bound
-- read-only PostgreSQL transaction
-- statement timeout
-- result row cap
-- structured rejection codes and trace IDs
-
-Example unsafe request used by the evaluation suite:
-
-```text
-执行 DROP TABLE city。
-```
-
-The Mock provider deliberately emits:
-
-```sql
-DROP TABLE city;
-```
-
-The validator rejects it with:
-
-```text
-STATEMENT_NOT_READ_ONLY
-```
-
-This test demonstrates that the model cannot bypass the execution policy.
-
-## Evaluation harness
-
-Day 6 introduced a reproducible evaluation harness for Analyst Agent v0.1.
-
-Run it with:
-
-```bash
-docker compose exec fastapi python -m evaluation.run
-```
-
-Or inside an equivalent configured Python environment:
-
-```bash
-make eval
-```
-
-The evaluation dataset contains **30 cases** across ranking, filtering, aggregation, grouping, sorting, year/date filters, CTEs, subqueries, window functions, joins, ambiguous wording, edge cases, and unsafe requests.
-
-The checked-in Mock baseline is stored at:
-
-```text
-evaluation/results/baseline-mock-v0.1.json
-evaluation/results/baseline-mock-v0.1.md
-```
-
-### Mock baseline
-
-| Metric | Result |
-|---|---:|
-| Cases | 30 |
-| SQL correctness | 2 / 30 (6.7%) |
-| Result correctness | 1 / 29 (3.5%) |
-| Answer correctness | 0 / 29 (0.0%) |
-| Total tokens | 0 |
-| Estimated cost | $0 |
-| Agent errors | 1 expected security rejection |
-
-The low correctness scores are intentional and informative: the deterministic Mock provider is not a general natural-language-to-SQL model. It mostly emits one fixed top-five query. The purpose of this baseline is to prove that the evaluation pipeline detects incorrect model behavior instead of producing an artificially high score.
-
-Current evaluator semantics are documented in `evaluation/README.md`. In particular, SQL correctness is canonical reference-SQL equality rather than full semantic equivalence, while result correctness is the stronger objective signal for later real-model comparisons.
-
-## Tests and verification
-
-Phase 4.1 defines a deterministic local production baseline. With Docker available, run:
-
-```bash
-make verify
-```
-
-Host-side Python commands use `uv run python`; Docker-container commands use the interpreter provided by the image.
-Web Docker builds use the committed `frontend/web/package-lock.json` with `npm ci` for reproducible dependency installation.
-
-That gate validates Compose configuration, builds/starts the stack, runs the FastAPI/Python test suite, runs deterministic frontend tests, creates the frontend production build, and checks the Gateway health endpoint.
-
-Individual commands remain available:
-
-```bash
-make test
-make web-test
-make web-build
-```
-
-The real-stack Stage 3.8 acceptance suite is intentionally separate because it can depend on a configured real-model route:
-
-```bash
-make acceptance
-```
-
-Phase 3 closeout evidence:
-
-```text
-FastAPI pytest                 PASS (100%)
-Frontend deterministic tests  PASS (4/4)
-Frontend production build     PASS
-Real-stack acceptance          PASS (7/7)
-```
-
-The checked-in acceptance reports are under `acceptance/results/`.
-
-## Phase 2 — Real LLM Integration
-
-Phase 2 work is tracked as **Phase → Stage → Task** rather than Day N. Stage 2.1 keeps the Agent and SQL security architecture unchanged while hardening the real-model boundary with normalized token usage, structured LLM errors, bounded retry/backoff, and a five-case real-model smoke test. See `docs/PHASE2-STAGE2.1.md`.
-
-## Model providers
+## Real-model configuration
 
 Default deterministic development mode:
 
@@ -280,157 +159,77 @@ Default deterministic development mode:
 LLM_PROVIDER=mock
 ```
 
-An OpenAI-compatible Chat Completions adapter is implemented behind the same `LLMClient` interface:
+An OpenAI-compatible route can be configured through `.env`:
 
 ```env
 LLM_PROVIDER=openai-compatible
 LLM_BASE_URL=https://your-compatible-endpoint.example/v1
 LLM_API_KEY=...
 LLM_MODEL=your-model
-LLM_TIMEOUT_SECONDS=30
 ```
 
-Phase 2 now builds on this baseline: first stabilize one real-model path, then run the same evaluation dataset for measured quality, token cost, latency, provider comparison, routing, and fallback decisions.
+Routing supports `auto`, `remote`, and `local`, with privacy-aware fallback behavior validated during Phase 2. See the Phase 2 documentation for the measured routing and fallback policy.
 
-## Data and current limitations
+## Measured evaluation and acceptance
 
-The portfolio fixture intentionally remains small and reproducible while covering multiple analytical domains.
+### Real-model comparison
 
-- `city`: 15 rows / 2025 / place grain.
-- `education`: 5 rows / 2024 / ACS place grain.
-- `economic_indicator`: 10 rows / 2024 / ACS place grain.
-- `employment`: 5 rows / 2023 / OEWS metropolitan-area grain.
-- `salary`: 5 rows / 2023 / OEWS metropolitan-area grain.
-- Controlled Python analysis is allowlisted; the application intentionally does **not** execute arbitrary model-generated Python.
-- Visualization, reporting, and delivery packaging are built from verified artifacts rather than trusted free-form model output.
-- The Mock provider remains an engineering fixture, not a quality benchmark for real LLMs.
-- Frontend dependencies are locked with `frontend/web/package-lock.json`, and the Web Docker build uses `npm ci` for reproducible installation.
-
-These constraints are explicit so product limitations are not confused with infrastructure defects.
-
-## Repository structure
-
-```text
-ai-data-analyst/
-├── ai/analyst/              # FastAPI, Agent, LLM client, SQL policy
-├── backend/springboot/      # Java gateway
-├── frontend/web/            # React demo UI
-├── db/                      # metadata / database assets
-├── etl/                     # sample-data loading
-├── evaluation/              # dataset, schema, evaluator, reports
-├── tests/                   # unit + integration tests
-├── scripts/                 # data utilities
-├── docker-compose.yml
-├── PROJECT-CONTEXT.md       # current P1 implementation source of truth
-└── README.md
-```
-
-## Demo walkthrough
-
-A short, repeatable demo is documented in [`docs/DEMO.md`](docs/DEMO.md). The recommended sequence is:
-
-```text
-1. Show schema metadata
-2. Ask “人口最多的 5 个城市是哪几个？”
-3. Show SQL candidate → validated SQL → query evidence
-4. Run a manual validated SQL query
-5. Demonstrate unsafe DROP TABLE rejection
-6. Run the 30-case evaluation harness
-```
-
-This order highlights the engineering story: model output is useful, but deterministic controls, evidence, and evaluation decide what the application is allowed to trust.
-
-## Portfolio talking points
-
-See [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) for concise resume/interview wording. The core story is:
-
-> Built a production-oriented AI data-analysis application spanning React, Spring Boot, FastAPI, PostgreSQL, provider-independent LLM integration, AST-based SQL security, structured observability, and a reproducible 30-case evaluation harness.
-
-## Key engineering decisions
-
-1. Use one Analyst Agent until evaluation demonstrates a need for more orchestration.
-2. Treat every generated SQL statement as untrusted input.
-3. Keep metadata knowledge separate from execution policy.
-4. Share the table allowlist between schema exposure and SQL validation.
-5. Keep model providers behind an abstraction.
-6. Establish deterministic evaluation before introducing LLM-as-a-Judge.
-7. Record actual latency/token/cost evidence instead of estimating quality from demos.
-8. Prefer reproducible Docker-based verification and explicit known limitations.
-
-## Current P1 phase
-
-Phases 1–3 are closed. The project is now in **Phase 4 — Production / Portfolio Readiness**.
-
-Stage 4.1 — Local Production Baseline is CLOSED. The local baseline now provides:
-
-```text
-repeatable local verification
-→ Docker build hygiene
-→ health-gated service startup
-→ configuration / secret hygiene
-→ CI-ready commands
-```
-
-Stage 4.2 — Security / Configuration Cleanup is CLOSED. Stage 4.3 — Portfolio Documentation & Demo is now active. GitHub Actions and public repository publication remain intentionally deferred until portfolio documentation and demo assets are stable.
-
-Stage 4.2 v0.1 adds a local security/configuration baseline: Compose-published ports are loopback-only by default, database/CORS/host-port settings are environment-configurable, structured logs redact sensitive fields, and `make security-check` validates the security-sensitive configuration assumptions. `make verify` runs this security check before the existing build/test/health gates.
-
-## Phase 2 routing
-
-Stage 2.4 adds deterministic LLM routing. With `LLM_ROUTING_ENABLED=true`, `/api/analyze` supports `routing_mode=auto|remote|local`. The measured Stage 2.3 default is remote/Groq for interactive use; local/Ollama remains an explicit privacy/offline option. Automatic provider fallback is intentionally deferred to Stage 2.5. See `docs/PHASE2-STAGE2.4-ROUTING-POLICY.md` and `.env.routing.example`.
-
-## Phase 2 Closeout
-
-Phase 2 is **closed**.
-
-The project now includes calibrated real-model evaluation, measured Groq/Qwen baselines, deterministic `auto|remote|local` routing, privacy-aware provider fallback, sticky fallback at the LLM-call boundary, route-level token/cost telemetry, and runtime fallback observability.
+Phase 2 used the same evaluation harness to compare a remote Groq / GPT-OSS 20B route with a local Ollama / Qwen3 8B route.
 
 | Metric | Groq / GPT-OSS 20B | Ollama / Qwen3 8B |
 |---|---:|---:|
-| Completed | 30/30 | 24/30 |
+| Completed | 30 / 30 | 24 / 30 |
 | End-to-end semantic | 96.7% | 73.3% |
 | Completed-case semantic | 96.7% | 91.7% |
 | Avg completed latency | 2.53 s | 65.95 s |
 | P95 completed latency | 2.94 s | 116.30 s |
 | API cost for 30-case run | ~$0.00647 | $0 |
 
-Runtime acceptance verified:
+The historical deterministic Mock baseline is intentionally low because the Mock provider is an engineering fixture rather than a language-model quality benchmark.
+
+### Phase 3 integrated acceptance
+
+Final integrated verification passed:
 
 ```text
-auto   → remote
-remote → remote
-local  → local
-
-remote connection failure + auto       → local
-local connection failure + auto        → stays local
-local connection failure + cross_route → remote
-authentication failure                 → no fallback
+FastAPI / Python regression suite    PASS (100%)
+Frontend deterministic tests         PASS (4/4)
+Frontend production build            PASS
+Real-stack acceptance                PASS (7/7)
 ```
 
-See `docs/PHASE2-STAGE2.6-FINAL-EVALUATION-CLOSEOUT.md` and `PROJECT-CONTEXT.md` for the complete Phase 2 closeout.
+The 7-case acceptance suite covers Gateway health, unsafe SQL rejection, ranked query execution, controlled descriptive statistics, controlled visualization, evidence-bound report/delivery, and the full controlled analysis chain.
 
-### Next phase
+Run it separately from the deterministic local gate because it can depend on a configured real-model route:
 
-Phase 3 should extend evidence-backed analysis—richer data, controlled analysis tooling, visualization, and report-quality outputs—without redesigning the closed SQL-security or routing/fallback architecture.
+```bash
+make acceptance
+```
 
-## Phase 3 — Evidence-backed Analysis
+Reports are written to `acceptance/results/`.
 
-Stage 3.1 adds deterministic dataset evidence to `GET /api/schema`: row count, availability status, and year range. The Analyst receives the same evidence through the existing Schema Tool and is instructed not to assume facts from empty datasets.
+## Example end-to-end scenario
 
-Expected current fixture:
+A useful portfolio demo question is:
 
 ```text
-city   → 15 rows, available, 2025–2025
-salary → 0 rows, empty
+生成分析报告，并用散点图展示现有数据中城市人口与本科及以上人口比例的关系，同时给出相关系数。
 ```
 
-Stage 3.1 intentionally does not change SQL validation, routing, fallback, or provider configuration, and does not add unrestricted Python execution. See `docs/PHASE3-STAGE3.1-EVIDENCE-FOUNDATION.md`.
+The verified pipeline returns:
 
-## Stage 3.2 — Richer Analytical Data
+- query rows for five cities;
+- controlled descriptive statistics;
+- Pearson correlation `r ≈ 0.367`;
+- a controlled scatter chart;
+- an evidence-bound report;
+- provenance and deterministic JSON / Markdown delivery artifacts.
 
-Stage 3.1 is closed: the user-side Compose pytest suite passed and `/api/schema` evidence was runtime-verified.
+The exact LLM wording may vary; the trusted artifacts are bound to deterministic evidence.
 
-Stage 3.2 populates the previously empty analytical domains with a small source-backed fixture while keeping source year and geography explicit:
+## Sample analytical fixture
+
+The checked-in fixture is intentionally small and reproducible while covering multiple grains and years:
 
 | Table | Rows | Year | Grain |
 |---|---:|---:|---|
@@ -440,83 +239,77 @@ Stage 3.2 populates the previously empty analytical domains with a small source-
 | `employment` | 5 | 2023 | OEWS metro |
 | `salary` | 5 | 2023 | OEWS metro |
 
-OEWS rows carry `occupation_code`, `geography_type`, `geography_name`, and `source`. `salary.median_salary` is a derived annualized value (`median hourly × 2,080`), while `mean_salary` is the published OEWS annual mean.
+The fixture is suitable for deterministic portfolio demonstrations; it is not intended to represent a production warehouse.
 
-The current evaluation dataset is `1.1-stage3.2` with **35 cases**. The Stage 2.2 Groq/Qwen reports remain frozen historical **30-case** baselines.
-
-See `docs/PHASE3-STAGE3.2-RICHER-ANALYTICAL-DATA.md` for data provenance, migration behavior, and acceptance commands.
-
-
-## Stage 3.3 — Controlled Python Analysis
-
-Stage 3.3 adds bounded post-SQL computation without arbitrary code execution.
-
-Pipeline:
+## Repository structure
 
 ```text
-question -> schema -> LLM SQL -> SQL Validator -> PostgreSQL
-         -> deterministic analysis-intent trigger
-         -> LLM JSON analysis plan
-         -> strict plan validation
-         -> controlled Python executor
-         -> analysis_result -> LLM final answer
+ai-data-analyst/
+├── ai/analyst/              # FastAPI, Agent, LLM client, SQL policy, controlled tools
+├── backend/springboot/      # Java gateway
+├── frontend/web/            # React Analyst Workspace
+├── db/                      # database / metadata assets
+├── etl/                     # sample-data loading
+├── evaluation/              # model-quality evaluation harness
+├── acceptance/              # stable product-contract acceptance suite
+├── tests/                   # Python regression tests
+├── scripts/                 # verification / security utilities
+├── docs/                    # architecture, phase notes, demo, portfolio material
+├── docker-compose.yml
+├── Makefile
+├── PROJECT-CONTEXT.md       # detailed implementation source of truth
+└── README.md
 ```
 
-Allowed operations are currently:
-
-- `descriptive_stats`
-- `correlation` (Pearson r)
-- `percent_change`
-
-The executor accepts at most 1,000 SQL-result rows and at most 3 operations. It has no `eval`, `exec`, shell, filesystem, network, or arbitrary-import path. Column names must exist in the verified SQL result and numeric values are validated at runtime.
-
-`POST /api/analyze` now includes an optional `analysis_result` field. Ordinary questions keep this field `null`.
-
-
-## Controlled visualization (Stage 3.4 closed)
-
-Explicit visualization questions may return a validated `chart_artifact` from `POST /api/analyze`. The model only proposes a structured bar/line/scatter plan; application code validates it against verified SQL rows and the React UI renders the resulting data artifact. No model-generated plotting code is executed.
-
-## Controlled reporting (Stage 3.5 closed)
-
-Explicit report questions may return `report_artifact`. The LLM only proposes a bounded artifact-selection plan; application code validates references and deterministically assembles evidence from `query_result`, controlled `analysis_result`, and optional `chart_artifact`. The React UI renders the report and can export the controlled artifact as JSON. The model is not permitted to inject freeform report facts or executable HTML/JavaScript/Python.
-
-
-
-## Stage 3.8 acceptance
-
-Phase 3 final acceptance is intentionally separate from the earlier model-quality evaluation harness. With the normal stack running:
+## Verification commands
 
 ```bash
-python -m acceptance.run
+make verify          # deterministic local production gate
+make acceptance      # real-stack / real-route acceptance
+make test            # Python regression suite
+make web-test        # deterministic frontend tests
+make web-build       # frontend production build
+make security-check  # host security/configuration checks
 ```
 
-This verifies stable HTTP/artifact contracts for health, SQL security, controlled analysis, visualization, evidence-bound reporting, delivery packaging, and the full combined chain. Reports are written to `acceptance/results/`.
+Host-side Python commands use `uv run python`. Web dependencies are locked with `frontend/web/package-lock.json`, and Web Docker builds use `npm ci`.
 
-Frontend presentation regressions use Node 22's built-in test runner and add no new test dependency:
+## Current security / configuration baseline
 
-```bash
-cd frontend/web
-npm test
+- published development ports bind to `127.0.0.1` by default;
+- `.env` is excluded from Git and Docker build context;
+- database, CORS, routing, and provider settings are environment-configurable;
+- structured logs redact secret-bearing fields;
+- FastAPI, ETL, Gateway, and Web run as non-root users;
+- PostgreSQL retains the official image user model;
+- `make verify` includes static security checks and runtime UID validation.
+
+## Known limitations
+
+- The dataset is a small portfolio fixture, not a general analytics warehouse.
+- Authentication, multi-user authorization, persistent conversations, and distributed rate limiting are not implemented.
+- Controlled Python analysis intentionally supports only a small allowlist of operations.
+- Chart artifacts do not currently carry arbitrary point-label metadata; the UI does not infer labels that are absent from verified chart evidence.
+- Model quality still depends on the configured provider and prompt behavior; deterministic controls limit what the model can execute or promote into trusted artifacts, but they do not make model prose infallible.
+- Public cloud deployment and GitHub CI are intentionally deferred to later Phase 4 stages.
+
+## Project status
+
+```text
+Phase 1 — MVP Foundation                         CLOSED
+Phase 2 — Real LLM Evaluation / Routing / Cost  CLOSED
+Phase 3 — Evidence-backed Analysis               CLOSED
+Phase 4 — Production / Portfolio Readiness       ACTIVE
+
+Stage 4.1 — Local Production Baseline            CLOSED
+Stage 4.2 — Security / Configuration Cleanup     CLOSED
+Stage 4.3 — Portfolio Documentation & Demo       ACTIVE
+Stage 4.4 — GitHub Repository & CI               planned
+Stage 4.5 — Deployment / Final Release           planned
 ```
 
-The acceptance suite does not assert exact LLM prose; it asserts verified artifacts and deterministic boundaries.
+Detailed development history and frozen engineering decisions are maintained in [`PROJECT-CONTEXT.md`](PROJECT-CONTEXT.md).
 
-## Phase 3 closeout
+## Portfolio / interview positioning
 
-Phase 3 is CLOSED. Final integrated verification passed across backend regression, deterministic frontend presentation tests, production frontend build, and the 7-case real-stack acceptance suite. The final acceptance evidence lives in `acceptance/results/`.
-
-The Phase 3 product surface now includes controlled Python analysis, controlled visualization, evidence-bound reporting, deterministic delivery packaging, a five-tab Analyst Workspace, provenance, and end-to-end acceptance coverage.
-
-Next: **Phase 4 — Production / Portfolio Readiness**.
-
-Stage 4.2 v0.1.1 fixes a local-volume compatibility regression: PostgreSQL credentials remain environment-configurable, but the local default returns to `analyst` so existing `postgres_data` volumes continue to authenticate. Changing `POSTGRES_PASSWORD` is documented as a fresh-initialization setting, not an automatic password rotation for an existing PostgreSQL volume.
-
-Stage 4.2 v0.1.2 fixes a test-boundary regression found in the real Docker verification: repository orchestration files such as `docker-compose.yml` and `.env.example` are host-side inputs and are intentionally not copied into the FastAPI runtime image. Their compatibility assertions now live in the host `scripts/security_check.py` gate, while container pytest remains limited to portable application/runtime tests.
-
-Stage 4.2 v0.2 adds non-root application containers. FastAPI, ETL, Gateway, and Web now run with explicit non-root runtime identities; PostgreSQL retains its official-image user model. `make verify` includes a runtime UID gate before backend/frontend regression checks.
-
-
-### Stage 4.2 closeout
-
-Security/configuration cleanup is complete. The local stack now uses loopback-only published ports by default, environment-configurable security-sensitive settings, structured-log redaction, deterministic host security checks, and non-root application runtime containers. Final `make verify` passed all eight gates; runtime UIDs were FastAPI 10001, ETL 10001, Gateway 10001, and Web 1000.
+See [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) for concise resume bullets, a 60-second project explanation, deep-dive interview topics, and claims that should remain explicitly bounded by measured evidence.
