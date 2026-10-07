@@ -121,9 +121,10 @@ Before creating the GitHub repository:
 - [ ] All screenshot links resolve.
 - [ ] No `.env`, API keys, credentials, generated archives, or local caches are tracked.
 - [ ] `make verify` passes from the intended final local branch.
+- [ ] `make publish-check` passes, including full Git-history scanning.
 - [ ] Git history has been reviewed for accidentally committed secrets or oversized artifacts.
 - [ ] Repository description and topics are set from this file.
 - [ ] Default branch name and visibility are chosen deliberately.
 - [ ] Stage tags intended for publication are present.
 
-Stage 4.4 will own the actual repository creation, first push, and CI configuration.
+Stage 4.4 owns the actual repository creation, first push, and CI configuration. Follow [`GITHUB-PUBLISHING.md`](GITHUB-PUBLISHING.md) for the prepared first-publication procedure.

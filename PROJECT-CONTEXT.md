@@ -119,6 +119,17 @@ Stage 4.5 Deployment / Final Release         planned
 
 Stage 4.1 is CLOSED. GitHub publication remains deferred until the repository, documentation, secret hygiene, and repeatable verification baseline are stable.
 
+## Stage 4.4 v0.1 — GitHub / CI preparation
+
+Stage 4.4 now has a local publication candidate:
+
+- `.github/workflows/ci.yml` runs deterministic CI on push/PR/manual dispatch;
+- CI reuses `make verify` under Mock LLM configuration rather than duplicating product tests;
+- `scripts/repository_check.py` provides current-tree publication hygiene scanning;
+- `make publish-check` additionally scans Git history before the first public push;
+- `docs/GITHUB-PUBLISHING.md` defines the repository creation / first-push / first-CI runbook;
+- actual GitHub repository creation and remote CI PASS remain required before Stage 4.4 can close.
+
 Stage 4.1 closeout establishes:
 
 - `.dockerignore` build-context hygiene

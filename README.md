@@ -147,6 +147,8 @@ make verify
 
 `make verify` is the deterministic local production gate. It validates security-sensitive configuration, Docker Compose, the full stack build/start, non-root runtime identities, backend tests, frontend deterministic tests, frontend production build, and Gateway health.
 
+Before the first public GitHub push, run `make publish-check` to scan both the current tracked tree and Git history for publication hygiene issues. GitHub CI reuses the same deterministic local verification path; see [`docs/GITHUB-PUBLISHING.md`](docs/GITHUB-PUBLISHING.md).
+
 Open the UI:
 
 ```text
@@ -309,6 +311,8 @@ Stage 4.1 — Local Production Baseline            CLOSED
 Stage 4.2 — Security / Configuration Cleanup     CLOSED
 Stage 4.3 — Portfolio Documentation & Demo       CLOSED
 Stage 4.4 — GitHub Repository & CI               ACTIVE
+
+Stage 4.4 local preparation now includes a SHA-pinned GitHub Actions workflow plus `make repo-check` / `make publish-check`; remote repository creation and the first green GitHub Actions run are the remaining closeout evidence.
 Stage 4.5 — Deployment / Final Release           planned
 ```
 
