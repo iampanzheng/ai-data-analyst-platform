@@ -40,3 +40,11 @@ The current application containers still use their base-image default user. Conv
 Stage 4.2 v0.1.1 fixes a local-volume compatibility regression: PostgreSQL credentials remain environment-configurable, but the local default returns to `analyst` so existing `postgres_data` volumes continue to authenticate. Changing `POSTGRES_PASSWORD` is documented as a fresh-initialization setting, not an automatic password rotation for an existing PostgreSQL volume.
 
 Stage 4.2 v0.1.2 fixes a test-boundary regression found in the real Docker verification: repository orchestration files such as `docker-compose.yml` and `.env.example` are host-side inputs and are intentionally not copied into the FastAPI runtime image. Their compatibility assertions now live in the host `scripts/security_check.py` gate, while container pytest remains limited to portable application/runtime tests.
+
+## Container runtime hardening (v0.2)
+
+Application containers now use explicit non-root runtime identities. The build stages may still run privileged package-install/build steps, but the final FastAPI, ETL, Gateway, and Web processes do not run as UID 0. PostgreSQL is excluded from custom user overrides because the official image already manages its runtime user and data-directory ownership.
+
+FastAPI receives owned application/home directories so container-side pytest remains supported. The Web image uses the official `node` user and `--chown` copies so Vite can use its application tree without root. Gateway uses a fixed numeric runtime identity and writes temporary JVM state only to standard writable temporary locations.
+
+The local verification gate now checks this twice: `scripts/security_check.py` validates Dockerfile policy statically, and `make verify` runs `id -u` from each built application image and rejects UID 0 before running the existing regression/build/health gates.
