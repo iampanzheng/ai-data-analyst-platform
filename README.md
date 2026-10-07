@@ -88,7 +88,9 @@ See [`02-architecture.md`](02-architecture.md) for service boundaries and trust 
 
 A repeatable 5–7 minute walkthrough is documented in [`docs/DEMO.md`](docs/DEMO.md).
 
-Repository publication metadata is prepared in [`docs/GITHUB-METADATA.md`](docs/GITHUB-METADATA.md), and final screenshot/video capture guidance is in [`docs/DEMO-CAPTURE-CHECKLIST.md`](docs/DEMO-CAPTURE-CHECKLIST.md).
+[▶ Watch the ~70-second portfolio demo](docs/assets/p1-ai-data-analyst-demo.mp4)
+
+The final demo asset is a real application capture at 1920×1080, H.264, 30 fps. Repository publication metadata is prepared in [`docs/GITHUB-METADATA.md`](docs/GITHUB-METADATA.md), and the completed capture plan is documented in [`docs/DEMO-CAPTURE-CHECKLIST.md`](docs/DEMO-CAPTURE-CHECKLIST.md).
 
 ## Trust boundaries
 
@@ -305,8 +307,8 @@ Phase 4 — Production / Portfolio Readiness       ACTIVE
 
 Stage 4.1 — Local Production Baseline            CLOSED
 Stage 4.2 — Security / Configuration Cleanup     CLOSED
-Stage 4.3 — Portfolio Documentation & Demo       ACTIVE
-Stage 4.4 — GitHub Repository & CI               planned
+Stage 4.3 — Portfolio Documentation & Demo       CLOSED
+Stage 4.4 — GitHub Repository & CI               ACTIVE
 Stage 4.5 — Deployment / Final Release           planned
 ```
 

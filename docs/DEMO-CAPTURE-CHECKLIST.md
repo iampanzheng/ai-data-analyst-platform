@@ -83,11 +83,26 @@ Target file:
 docs/assets/provenance.png
 ```
 
-## Optional short demo video
+## Final short demo video
 
-Recommended length: **60–90 seconds** for a portfolio landing page or interview follow-up.
+The final portfolio demo has been captured and accepted.
 
-Suggested sequence:
+Target file:
+
+```text
+docs/assets/p1-ai-data-analyst-demo.mp4
+```
+
+Final properties:
+
+- duration: ~69.8 seconds;
+- resolution: 1920×1080;
+- codec: H.264;
+- frame rate: 30 fps;
+- browser content preserved without stretching, with a neutral padded background;
+- final ~6 seconds remain on Provenance.
+
+The accepted sequence follows the intended 60–90 second flow:
 
 ```text
 0–10s    Analyst Workspace + business question
@@ -138,4 +153,4 @@ Do not add screenshots of:
 - dozens of low-value UI states;
 - mock screens that do not correspond to implemented behavior.
 
-The four existing README screenshots plus one short video are sufficient for the final portfolio surface.
+The four existing README screenshots plus the finalized short video are the canonical portfolio demo assets for Stage 4.3.

@@ -4,6 +4,25 @@ Target length: **5–7 minutes**.
 
 The goal is to demonstrate the engineering story, not every feature: the LLM proposes useful work, deterministic controls decide what may execute and what may become trusted evidence.
 
+
+## Short portfolio demo
+
+A finalized ~70-second capture is stored at:
+
+```text
+docs/assets/p1-ai-data-analyst-demo.mp4
+```
+
+Capture properties:
+
+- 1920×1080
+- H.264
+- 30 fps
+- ~69.8 seconds
+- final sequence: Workspace → Answer → Data → Analysis → Chart → Report → Provenance
+
+The short demo is intended for quick portfolio review. The walkthrough below remains the preferred 5–7 minute interview demo.
+
 ## Before the demo
 
 Run the deterministic local gate:

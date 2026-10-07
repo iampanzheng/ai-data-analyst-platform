@@ -95,9 +95,11 @@ React · Spring Boot · FastAPI · PostgreSQL · LLM Routing · SQL Security · 
 
 ## Publication assets
 
-Before the first public GitHub push, use:
+The portfolio publication assets are now prepared:
 
 - [`GITHUB-METADATA.md`](GITHUB-METADATA.md) for repository About text, topics, and public-claim guardrails;
-- [`DEMO-CAPTURE-CHECKLIST.md`](DEMO-CAPTURE-CHECKLIST.md) for the final screenshot and optional short-video capture plan.
+- [`DEMO-CAPTURE-CHECKLIST.md`](DEMO-CAPTURE-CHECKLIST.md) for the completed screenshot/video capture plan;
+- `assets/analyst-workspace.png`, `assets/controlled-chart.png`, `assets/evidence-report.png`, and `assets/provenance.png` as the canonical README screenshots;
+- `assets/p1-ai-data-analyst-demo.mp4` as the finalized ~70-second portfolio demo.
 
-Actual GitHub repository creation and CI remain Stage 4.4 work.
+Actual GitHub repository creation, first push, and CI remain Stage 4.4 work.
