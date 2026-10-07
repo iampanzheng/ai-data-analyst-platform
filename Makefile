@@ -1,7 +1,7 @@
 PYTHON ?= uv run python
 COMPOSE ?= docker compose
 
-.PHONY: security-check help data-download etl up down logs ps compile test test-backend eval smoke smoke-docker acceptance web-test web-build compose-check verify
+.PHONY: security-check repo-check publish-check ci help data-download etl up down logs ps compile test test-backend eval smoke smoke-docker acceptance web-test web-build compose-check verify
 
 help:
 	@printf '%s\n' \
@@ -10,6 +10,9 @@ help:
 	  'make web-test       Run deterministic frontend tests in Compose' \
 	  'make web-build      Run the frontend production build in Compose' \
 	  'make security-check Run deterministic security/configuration checks' \
+	  'make repo-check     Check current Git tree for publication hygiene' \
+	  'make publish-check  Scan current tree + Git history before first public push' \
+	  'make ci             Run repository hygiene + deterministic production verification' \
 	  'make verify         Run the complete deterministic local production baseline' \
 	  'make acceptance     Run the real-stack Stage 3.8 acceptance suite from the host' \
 	  'make eval           Run the evaluation harness from the host'
@@ -66,3 +69,11 @@ verify:
 
 security-check:
 	$(PYTHON) scripts/security_check.py
+
+repo-check:
+	$(PYTHON) scripts/repository_check.py
+
+publish-check:
+	$(PYTHON) scripts/repository_check.py --history
+
+ci: repo-check verify

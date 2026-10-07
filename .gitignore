@@ -18,3 +18,8 @@ evaluation/results/evaluation-report.md
 # Downloaded public source artifacts.
 data/raw/census/sub-est2025.csv
 data/raw/bls/oesm24ma.zip
+
+# Local packaged artifacts; release/source packages are generated outside Git.
+*.zip
+*.tar
+*.tar.gz
