@@ -180,6 +180,18 @@ Local production baseline            PASS
 
 Stage 4.2 is CLOSED.
 
+## Stage 4.3 progress
+
+Stage 4.3 v0.1 establishes the first portfolio-facing documentation baseline without changing runtime behavior:
+
+- README is rewritten as the public repository entry point rather than a stage-by-stage development log;
+- `02-architecture.md` now reflects the actual controlled analysis / visualization / reporting / delivery architecture instead of marking those features as planned;
+- `docs/DEMO.md` is updated to the current five-tab Analyst Workspace and evidence-bound demo flow;
+- `docs/PORTFOLIO.md` now uses measured current capabilities, resume bullets, interview narrative, and explicit overclaim boundaries;
+- verified Stage 3.7 UI screenshots are added under `docs/assets/` for README/demo use.
+
+Stage 4.3 remains ACTIVE pending public-facing documentation review and final portfolio/GitHub preparation.
+
 ---
 
 # Historical context
