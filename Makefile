@@ -1,7 +1,7 @@
 PYTHON ?= uv run python
 COMPOSE ?= docker compose
 
-.PHONY: help data-download etl up down logs ps compile test test-backend eval smoke smoke-docker acceptance web-test web-build compose-check verify
+.PHONY: security-check help data-download etl up down logs ps compile test test-backend eval smoke smoke-docker acceptance web-test web-build compose-check verify
 
 help:
 	@printf '%s\n' \
@@ -9,6 +9,7 @@ help:
 	  'make test           Run FastAPI/Python tests in Compose' \
 	  'make web-test       Run deterministic frontend tests in Compose' \
 	  'make web-build      Run the frontend production build in Compose' \
+	  'make security-check Run deterministic security/configuration checks' \
 	  'make verify         Run the complete deterministic local production baseline' \
 	  'make acceptance     Run the real-stack Stage 3.8 acceptance suite from the host' \
 	  'make eval           Run the evaluation harness from the host'
@@ -62,3 +63,6 @@ compose-check:
 
 verify:
 	COMPOSE='$(COMPOSE)' sh scripts/verify_local.sh
+
+security-check:
+	$(PYTHON) scripts/security_check.py
