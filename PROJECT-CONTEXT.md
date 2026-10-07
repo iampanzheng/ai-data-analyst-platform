@@ -143,6 +143,20 @@ Stage 4.1 v0.1.1 fixes host portability discovered during the first real `make v
 
 Stage 4.1 v0.1.2 adds the real frontend npm lockfile and changes the Web Docker build to `npm ci`. The remaining closeout gate is a fresh `make verify` using the locked dependency path.
 
+## Stage 4.2 progress
+
+Stage 4.2 v0.1 establishes the first security/configuration cleanup baseline without changing product behavior:
+
+- published Compose ports bind to `127.0.0.1` by default instead of all host interfaces;
+- PostgreSQL database/user/password and host ports are environment-configurable with explicitly local-development defaults;
+- Gateway CORS and Web API base URL are environment-configurable;
+- FastAPI `LOG_LEVEL` now affects logging configuration with safe fallback to INFO;
+- structured JSON logs recursively redact sensitive keys such as API keys, passwords, authorization values, tokens, secrets, and database URLs;
+- `scripts/security_check.py` provides deterministic configuration checks and is included in `make verify`;
+- Stage 4.2 does not yet force non-root containers; that is deferred until ownership/test behavior is validated separately.
+
+Current Stage 4.2 v0.1 deterministic checks: security configuration baseline PASS, logging redaction tests 3/3 PASS, Python compileall PASS. A full local `make verify` remains the candidate closeout gate.
+
 ---
 
 # Historical context

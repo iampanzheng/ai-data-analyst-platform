@@ -373,6 +373,8 @@ repeatable local verification
 
 Stage 4.2 — Security / Configuration Cleanup is now active. GitHub Actions and public repository polish remain intentionally deferred until configuration/secret hygiene and portfolio documentation are stable.
 
+Stage 4.2 v0.1 adds a local security/configuration baseline: Compose-published ports are loopback-only by default, database/CORS/host-port settings are environment-configurable, structured logs redact sensitive fields, and `make security-check` validates the security-sensitive configuration assumptions. `make verify` runs this security check before the existing build/test/health gates.
+
 ## Phase 2 routing
 
 Stage 2.4 adds deterministic LLM routing. With `LLM_ROUTING_ENABLED=true`, `/api/analyze` supports `routing_mode=auto|remote|local`. The measured Stage 2.3 default is remote/Groq for interactive use; local/Ollama remains an explicit privacy/offline option. Automatic provider fallback is intentionally deferred to Stage 2.5. See `docs/PHASE2-STAGE2.4-ROUTING-POLICY.md` and `.env.routing.example`.
