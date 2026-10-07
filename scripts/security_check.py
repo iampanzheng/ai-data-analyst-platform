@@ -45,6 +45,23 @@ def main() -> None:
     for binding in expected_bindings:
         require(binding in compose, f"missing loopback-only port binding: {binding}")
 
+    application_dockerfiles = {
+        "FastAPI": ROOT / "ai/analyst/Dockerfile",
+        "ETL": ROOT / "etl/Dockerfile",
+        "Gateway": ROOT / "backend/springboot/Dockerfile",
+        "Web": ROOT / "frontend/web/Dockerfile",
+    }
+    for service, path in application_dockerfiles.items():
+        dockerfile = path.read_text()
+        user_lines = [
+            line.strip()
+            for line in dockerfile.splitlines()
+            if line.strip().upper().startswith("USER ")
+        ]
+        require(user_lines, f"{service} Dockerfile must declare an explicit runtime USER")
+        runtime_user = user_lines[-1].split(maxsplit=1)[1].strip().lower()
+        require(runtime_user not in {"root", "0", "0:0"}, f"{service} runtime USER must be non-root")
+
     print("security configuration baseline: PASS")
 
 

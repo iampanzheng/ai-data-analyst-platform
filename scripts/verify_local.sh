@@ -8,25 +8,41 @@ if ! command -v uv >/dev/null 2>&1; then
   exit 127
 fi
 
-echo "[1/7] Run security/configuration baseline checks"
+assert_non_root_service() {
+  service="$1"
+  uid="$($COMPOSE run --rm --no-deps --entrypoint id "$service" -u | tail -n 1 | tr -d '[:space:]')"
+  if [ -z "$uid" ] || [ "$uid" = "0" ]; then
+    echo "ERROR: service '$service' runtime UID must be non-root; got '${uid:-unknown}'." >&2
+    exit 1
+  fi
+  echo "$service runtime uid: $uid"
+}
+
+echo "[1/8] Run security/configuration baseline checks"
 uv run python scripts/security_check.py
 
-echo "[2/7] Validate Docker Compose configuration"
+echo "[2/8] Validate Docker Compose configuration"
 $COMPOSE config --quiet
 
-echo "[3/7] Build and start the local stack"
+echo "[3/8] Build and start the local stack"
 $COMPOSE up -d --build postgres etl fastapi gateway web
 
-echo "[4/7] Run FastAPI/Python regression suite"
+echo "[4/8] Verify application containers run as non-root"
+assert_non_root_service fastapi
+assert_non_root_service etl
+assert_non_root_service gateway
+assert_non_root_service web
+
+echo "[5/8] Run FastAPI/Python regression suite"
 $COMPOSE exec -T fastapi pytest -q
 
-echo "[5/7] Run deterministic frontend regression suite"
+echo "[6/8] Run deterministic frontend regression suite"
 $COMPOSE exec -T web npm test
 
-echo "[6/7] Run frontend production build"
+echo "[7/8] Run frontend production build"
 $COMPOSE exec -T web npm run build
 
-echo "[7/7] Verify Gateway health endpoint"
+echo "[8/8] Verify Gateway health endpoint"
 uv run python - <<'PY'
 import json
 import urllib.request
