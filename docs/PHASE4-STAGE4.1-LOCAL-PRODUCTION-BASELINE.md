@@ -24,9 +24,14 @@ FastAPI exposes `/health`. Compose now declares a FastAPI healthcheck, and the G
 
 ## Dependency reproducibility
 
-The Python dependency set is version-pinned. The frontend currently lacks a committed npm lockfile, so Node dependency locking remains a known Phase 4 item. It should be produced with the actual package manager in a networked development environment and then verified, not reconstructed manually.
+The Python dependency set is version-pinned. The frontend now commits the npm-generated `package-lock.json`, and the Web Dockerfile installs with `npm ci`. This makes the container build consume the exact resolved Node dependency graph instead of re-resolving semver ranges on each build.
 
 
 ## Host Python runtime policy
 
 Stage 4.1 v0.1.1 standardizes host-side Python execution on `uv run python`. This avoids relying on whether a workstation exposes the interpreter as `python` or `python3`, and keeps host commands inside the project's uv-managed runtime. Docker-container commands may continue to call `python` directly because the container image defines that interpreter.
+
+
+## Stage 4.1 v0.1.2
+
+The npm lockfile generated in the user's development environment is now part of the repository. `package.json` and the lockfile root dependency declarations match. A fresh `make verify` is the final closeout gate because the Web Docker build now exercises `npm ci`.

@@ -236,9 +236,9 @@ Phase 4.1 defines a deterministic local production baseline. With Docker availab
 
 ```bash
 make verify
+```
 
 Host-side Python commands use `uv run python`; Docker-container commands use the interpreter provided by the image.
-```
 
 That gate validates Compose configuration, builds/starts the stack, runs the FastAPI/Python test suite, runs deterministic frontend tests, creates the frontend production build, and checks the Gateway health endpoint.
 
@@ -303,7 +303,7 @@ The portfolio fixture intentionally remains small and reproducible while coverin
 - Controlled Python analysis is allowlisted; the application intentionally does **not** execute arbitrary model-generated Python.
 - Visualization, reporting, and delivery packaging are built from verified artifacts rather than trusted free-form model output.
 - The Mock provider remains an engineering fixture, not a quality benchmark for real LLMs.
-- The frontend currently has no committed npm lockfile; reproducible dependency locking is a remaining Phase 4 item and should be resolved in a networked development environment rather than fabricated offline.
+- Frontend dependencies are locked with `frontend/web/package-lock.json`, and the Web Docker build uses `npm ci` for reproducible installation.
 
 These constraints are explicit so product limitations are not confused with infrastructure defects.
 

@@ -116,9 +116,11 @@ Stage 4.5 Deployment / Final Release         planned
 
 Stage 4.1 is intentionally local-only. GitHub publication is deferred until the repository, documentation, secret hygiene, and repeatable verification baseline are stable.
 
-Stage 4.1 v0.1 adds `.dockerignore`, health-gated FastAPI → Gateway startup, an explicit `make verify` local production gate, clearer verification Make targets, and a complete safe `.env.example`. Frontend npm dependency locking remains a known Phase 4 item because no lockfile should be fabricated offline.
+Stage 4.1 v0.1 adds `.dockerignore`, health-gated FastAPI → Gateway startup, an explicit `make verify` local production gate, clearer verification Make targets, and a complete safe `.env.example`.
 
 Stage 4.1 v0.1.1 fixes host portability discovered during the first real `make verify` run: host-side Python execution is standardized on `uv run python` instead of assuming a `python` command exists. The Docker-container Python commands remain unchanged.
+
+Stage 4.1 v0.1.2 adds the real frontend npm lockfile and changes the Web Docker build to `npm ci`. The remaining closeout gate is a fresh `make verify` using the locked dependency path.
 
 ---
 
