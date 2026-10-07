@@ -1,6 +1,6 @@
 # Stage 4.1 — Local Production Baseline
 
-Status: **v0.1.2 candidate**
+Status: **v1.0 — CLOSED**
 
 ## Goal
 
@@ -43,12 +43,29 @@ It may exercise configured real-model routing and therefore is not part of the d
 
 `frontend/web/package-lock.json` is now committed and matches the current `package.json`. The Web Dockerfile copies both package manifests and installs with `npm ci`, so Docker builds use the exact resolved dependency graph rather than re-resolving semver ranges.
 
-## Closeout gates
+## Closeout verification
 
-- `make verify` passes end to end on the user's local Docker environment.
+Final user-side verification on the locked dependency path:
+
+```text
+make verify                         PASS
+FastAPI/Python regression suite    PASS (100%)
+Frontend deterministic tests       PASS (4/4)
+Frontend production build          PASS
+Gateway /api/health                PASS
+Local production baseline          PASS
+```
+
+Closeout conditions satisfied:
+
 - `.env` / `.git` / caches are excluded from Docker build context.
 - FastAPI reaches healthy state before Gateway startup dependency is satisfied.
+- Host Python commands use `uv run python`.
+- Frontend dependency resolution is locked with `package-lock.json`.
+- Web Docker builds install through `npm ci`.
 - Existing Phase 3 acceptance behavior remains unchanged.
+
+Stage 4.1 is CLOSED.
 
 
 ## v0.1.1 portability hotfix
@@ -65,3 +82,11 @@ It may exercise configured real-model routing and therefore is not part of the d
 - Changed the Web Docker build from `npm install` to `npm ci`.
 - The final Stage 4.1 closeout gate is one fresh `make verify` using this locked build path.
 - Recommended Git commit: `build(web): lock frontend dependencies`.
+
+
+## v1.0 closeout
+
+- User reran `make verify` after the `npm ci` migration.
+- The full six-step local production baseline passed.
+- Stage 4.1 is frozen except for regressions or measured evidence requiring change.
+- Next stage: Stage 4.2 — Security / Configuration Cleanup.

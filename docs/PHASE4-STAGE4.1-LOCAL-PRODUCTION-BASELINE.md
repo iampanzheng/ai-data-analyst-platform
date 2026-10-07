@@ -35,3 +35,10 @@ Stage 4.1 v0.1.1 standardizes host-side Python execution on `uv run python`. Thi
 ## Stage 4.1 v0.1.2
 
 The npm lockfile generated in the user's development environment is now part of the repository. `package.json` and the lockfile root dependency declarations match. A fresh `make verify` is the final closeout gate because the Web Docker build now exercises `npm ci`.
+
+
+## Final closeout
+
+Stage 4.1 is CLOSED. The final locked dependency path was verified by the user with `make verify` and completed successfully through Gateway health. The reproducibility baseline now includes a committed npm lockfile plus `npm ci` in the Web image.
+
+Next: Stage 4.2 — Security / Configuration Cleanup.

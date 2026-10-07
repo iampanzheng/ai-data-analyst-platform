@@ -239,6 +239,7 @@ make verify
 ```
 
 Host-side Python commands use `uv run python`; Docker-container commands use the interpreter provided by the image.
+Web Docker builds use the committed `frontend/web/package-lock.json` with `npm ci` for reproducible dependency installation.
 
 That gate validates Compose configuration, builds/starts the stack, runs the FastAPI/Python test suite, runs deterministic frontend tests, creates the frontend production build, and checks the Gateway health endpoint.
 
@@ -360,7 +361,7 @@ See [`docs/PORTFOLIO.md`](docs/PORTFOLIO.md) for concise resume/interview wordin
 
 Phases 1–3 are closed. The project is now in **Phase 4 — Production / Portfolio Readiness**.
 
-Current Stage 4.1 focuses on a local production baseline before any public GitHub repository is created:
+Stage 4.1 — Local Production Baseline is CLOSED. The local baseline now provides:
 
 ```text
 repeatable local verification
@@ -370,7 +371,7 @@ repeatable local verification
 → CI-ready commands
 ```
 
-GitHub Actions and public repository polish are intentionally deferred until the local baseline and portfolio documentation are stable.
+Stage 4.2 — Security / Configuration Cleanup is now active. GitHub Actions and public repository polish remain intentionally deferred until configuration/secret hygiene and portfolio documentation are stable.
 
 ## Phase 2 routing
 

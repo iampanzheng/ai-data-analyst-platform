@@ -10,7 +10,8 @@ Phase 2 — Real LLM Evaluation / Routing / Cost  ✅ CLOSED
 Phase 3 — Evidence-backed Analysis               ✅ CLOSED
 Phase 4 — Production / Portfolio Readiness       🚧 ACTIVE
 
-Stage 4.1 — Local Production Baseline            🚧 ACTIVE
+Stage 4.1 — Local Production Baseline            ✅ CLOSED
+Stage 4.2 — Security / Configuration Cleanup       🚧 ACTIVE
 
 Stage 3.1 — Evidence Foundation                  ✅ CLOSED
 Stage 3.2 — Richer Analytical Data               ✅ CLOSED
@@ -107,16 +108,36 @@ Phase 3 is CLOSED.
 ## Phase 4 current direction
 
 ```text
-Stage 4.1 Local Production Baseline          🚧 ACTIVE
-Stage 4.2 Security / Configuration Cleanup   planned
+Stage 4.1 Local Production Baseline          ✅ CLOSED
+Stage 4.2 Security / Configuration Cleanup   🚧 ACTIVE
 Stage 4.3 Portfolio Documentation & Demo     planned
 Stage 4.4 GitHub Repository & CI             planned
 Stage 4.5 Deployment / Final Release         planned
 ```
 
-Stage 4.1 is intentionally local-only. GitHub publication is deferred until the repository, documentation, secret hygiene, and repeatable verification baseline are stable.
+Stage 4.1 is CLOSED. GitHub publication remains deferred until the repository, documentation, secret hygiene, and repeatable verification baseline are stable.
 
-Stage 4.1 v0.1 adds `.dockerignore`, health-gated FastAPI → Gateway startup, an explicit `make verify` local production gate, clearer verification Make targets, and a complete safe `.env.example`.
+Stage 4.1 closeout establishes:
+
+- `.dockerignore` build-context hygiene
+- health-gated FastAPI → Gateway startup
+- `make verify` as the deterministic local production gate
+- host-side Python execution through `uv run python`
+- committed `frontend/web/package-lock.json`
+- Web Docker installs through `npm ci`
+- safe `.env.example` coverage for current routing/fallback configuration
+
+Final user-side verification completed on the locked dependency path:
+
+```text
+make verify                         PASS
+FastAPI/Python regression suite    PASS (100%)
+Frontend deterministic tests       PASS (4/4)
+Frontend production build          PASS
+Gateway /api/health                PASS
+```
+
+Stage 4.2 is now the active starting point.
 
 Stage 4.1 v0.1.1 fixes host portability discovered during the first real `make verify` run: host-side Python execution is standardized on `uv run python` instead of assuming a `python` command exists. The Docker-container Python commands remain unchanged.
 
