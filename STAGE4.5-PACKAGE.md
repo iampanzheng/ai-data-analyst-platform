@@ -9,3 +9,7 @@ Publication evidence: final CI Success; user-side `make repo-check`, `make relea
 Changes vs v0.1: README.md, PROJECT-CONTEXT.md, docs/RELEASE.md, docs/PHASE4-STAGE4.5-RELEASE-PLAN.md, STAGE4.5-PACKAGE.md. No runtime or CI changes.
 
 Recommended commit: `docs: close P1 v1.0.0 final portfolio release`.
+
+## v1.0.1 documentation correction
+
+`docs/RELEASE.md` Verification evidence and Demo were aligned with the final public Release Notes; no verification runs were repeated and no runtime code changed.

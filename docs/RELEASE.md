@@ -13,16 +13,19 @@
 
 ## Verification evidence
 
-- Repository publication hygiene: **PASS** (user-provided run)
-- Release candidate static checks: **PASS** (user-provided run)
-- Local production verification: **PASS** (user-provided run)
-- End-to-end acceptance: **7/7 PASS** (user-provided run)
-- GitHub Actions CI on the final release commit: **PASS** (user-provided result)
-- GitHub Release page, Latest label, MP4 and source archives: visually confirmed in user screenshots. MP4 download confirmed by user.
+- Repository publication hygiene: **PASS**
+- Release candidate static checks: **PASS**
+- Local production verification: **PASS**
+- End-to-end acceptance: **7/7 PASS**
+- GitHub Actions CI on the final release commit: **PASS**
 
 ## Demo
 
-[Download the ~70-second video (MP4)](https://github.com/iampanzheng/ai-data-analyst-platform/releases/download/v1.0.0/p1-ai-data-analyst-demo.mp4). The video is also versioned at `docs/assets/p1-ai-data-analyst-demo.mp4`; GitHub's blob view does not provide reliable inline playback.
+[Download the ~70-second demo (MP4)](https://github.com/iampanzheng/ai-data-analyst-platform/releases/download/v1.0.0/p1-ai-data-analyst-demo.mp4)
+
+The demo covers the complete workflow from natural-language analysis through validated SQL, controlled analytics, visualization, evidence-backed reporting, and provenance.
+
+The MP4 is included as a downloadable GitHub Release asset and is also versioned at `docs/assets/p1-ai-data-analyst-demo.mp4`. GitHub's repository file viewer may not play the video inline.
 
 ## Running
 
