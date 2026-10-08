@@ -723,3 +723,12 @@ Stage 4.3 v0.2 prepares the final publication surface without creating the GitHu
 Stage 4.3 v1.0 is CLOSED. Final portfolio evidence includes four canonical UI screenshots and `docs/assets/p1-ai-data-analyst-demo.mp4` (1920×1080, H.264, 30 fps, ~69.8 seconds). The video uses the real application and ends on the Provenance view. Runtime/API behavior was unchanged throughout Stage 4.3.
 
 Next starting point: Stage 4.4 — GitHub Repository & CI.
+
+
+## Stage 4.5 v0.1 — Final Release Candidate (ACTIVE)
+
+- Target public release version: `v1.0.0`.
+- Hosting decision: validated local/self-hosted portfolio reference; no public cloud deployment claimed.
+- Static release check: `make release-check`; release runbook and notes: `docs/PHASE4-STAGE4.5-RELEASE-PLAN.md`, `docs/RELEASE.md`.
+- Pending: user-side final `make verify`, optional `make acceptance` rerun, GitHub Actions green on final commit, `v1.0.0` annotated tag, GitHub Release with MP4 attached, public verification and final Phase 4 closeout.
+- Do not mark Stage 4.5 / Phase 4 CLOSED before a verified public Release.

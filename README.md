@@ -297,7 +297,11 @@ Host-side Python commands use `uv run python`. Web dependencies are locked with 
 - Controlled Python analysis intentionally supports only a small allowlist of operations.
 - Chart artifacts do not currently carry arbitrary point-label metadata; the UI does not infer labels that are absent from verified chart evidence.
 - Model quality still depends on the configured provider and prompt behavior; deterministic controls limit what the model can execute or promote into trusted artifacts, but they do not make model prose infallible.
-- Public cloud deployment is intentionally deferred to Stage 4.5; GitHub publication and deterministic CI are complete.
+- Public cloud hosting is not offered in the v1.0.0 portfolio release; the supported reference deployment remains local Docker Compose. See the [Stage 4.5 release plan](docs/PHASE4-STAGE4.5-RELEASE-PLAN.md).
+
+## Public release
+
+The [v1.0.0 release notes](docs/RELEASE.md) and [release / deployment policy](docs/PHASE4-STAGE4.5-RELEASE-PLAN.md) describe the release candidate. The GitHub Release is **not yet published**; the local Compose environment is the reference deployment.
 
 ## Project status
 
