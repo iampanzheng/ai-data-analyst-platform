@@ -1,6 +1,6 @@
 # P1 v1.0.0 — Final Portfolio Release
 
-**Status:** release candidate; publish only after gates pass.
+**Status:** Released — v1.0.0 (Latest).
 
 ## Highlights
 
@@ -13,14 +13,16 @@
 
 ## Verification evidence
 
-- Stage 3.8 HTTP acceptance: **7/7 PASS** (historical verified run).
-- Latest Stage 4.4 local `make repo-check`, `make publish-check`, `make verify`: **PASS**, user-provided output.
-- First GitHub Actions push run: **PASS**, 1m34s (user-provided output).
-- Release candidate MUST be revalidated from the final `v1.0.0` commit/tag before publishing. Do not present historical checks as a new release-specific run.
+- Repository publication hygiene: **PASS** (user-provided run)
+- Release candidate static checks: **PASS** (user-provided run)
+- Local production verification: **PASS** (user-provided run)
+- End-to-end acceptance: **7/7 PASS** (user-provided run)
+- GitHub Actions CI on the final release commit: **PASS** (user-provided result)
+- GitHub Release page, Latest label, MP4 and source archives: visually confirmed in user screenshots. MP4 download confirmed by user.
 
 ## Demo
 
-[~70-second end-to-end application demo](assets/p1-ai-data-analyst-demo.mp4) — versioned repository asset. An additional copy should be attached as a GitHub Release asset. The release asset may be downloaded rather than played inline.
+[Download the ~70-second video (MP4)](https://github.com/iampanzheng/ai-data-analyst-platform/releases/download/v1.0.0/p1-ai-data-analyst-demo.mp4). The video is also versioned at `docs/assets/p1-ai-data-analyst-demo.mp4`; GitHub's blob view does not provide reliable inline playback.
 
 ## Running
 

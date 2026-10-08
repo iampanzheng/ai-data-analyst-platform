@@ -301,7 +301,7 @@ Host-side Python commands use `uv run python`. Web dependencies are locked with 
 
 ## Public release
 
-The [v1.0.0 release notes](docs/RELEASE.md) and [release / deployment policy](docs/PHASE4-STAGE4.5-RELEASE-PLAN.md) describe the release candidate. The GitHub Release is **not yet published**; the local Compose environment is the reference deployment.
+The [v1.0.0 GitHub Release](https://github.com/iampanzheng/ai-data-analyst-platform/releases/tag/v1.0.0) is published and marked Latest. [Release notes](docs/RELEASE.md) and the [deployment policy](docs/PHASE4-STAGE4.5-RELEASE-PLAN.md) document the release. The local Docker Compose environment remains the reference deployment. [Download the ~70-second demo (MP4)](https://github.com/iampanzheng/ai-data-analyst-platform/releases/download/v1.0.0/p1-ai-data-analyst-demo.mp4); GitHub repository file viewer does not guarantee inline playback.
 
 ## Project status
 
@@ -309,13 +309,13 @@ The [v1.0.0 release notes](docs/RELEASE.md) and [release / deployment policy](do
 Phase 1 — MVP Foundation                         CLOSED
 Phase 2 — Real LLM Evaluation / Routing / Cost  CLOSED
 Phase 3 — Evidence-backed Analysis               CLOSED
-Phase 4 — Production / Portfolio Readiness       ACTIVE
+Phase 4 — Production / Portfolio Readiness       CLOSED
 
 Stage 4.1 — Local Production Baseline            CLOSED
 Stage 4.2 — Security / Configuration Cleanup     CLOSED
 Stage 4.3 — Portfolio Documentation & Demo       CLOSED
 Stage 4.4 — GitHub Repository & CI               CLOSED
-Stage 4.5 — Deployment / Final Release           ACTIVE
+Stage 4.5 — Deployment / Final Release           CLOSED
 
 Public repository: https://github.com/iampanzheng/ai-data-analyst-platform
 

@@ -1,6 +1,6 @@
 # Stage 4.5 — Release / Deployment Decision
 
-**v0.1 release candidate — ACTIVE.**
+**v1.0 closeout — CLOSED; GitHub Release v1.0.0 published.**
 
 ## Deployment decision
 
@@ -42,3 +42,7 @@ Run `gh auth login` beforehand if GitHub CLI is not authenticated. Alternatively
 ## Version policy
 
 `p1-phase4-stage4.x` = internal milestone tags; `v1.0.0` = public portfolio release. Do not force-update a published tag. The final closeout tag may be created later without moving the `v1.0.0` release tag.
+
+## Final release outcome (2026-10-08)
+
+The verified [v1.0.0 Release](https://github.com/iampanzheng/ai-data-analyst-platform/releases/tag/v1.0.0) is public and marked Latest. Release assets include the MP4 and GitHub-generated source archives. The MP4 is downloadable but not reliably playable in the GitHub code viewer. Local Docker Compose is the supported reference deployment, not a public internet service. This outcome was confirmed by user-provided screenshots and verification logs. The release tag remains immutable; final closeout changes are post-release documentation commits on main.

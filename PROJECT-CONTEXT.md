@@ -8,13 +8,13 @@
 Phase 1 — MVP Foundation                         ✅ CLOSED
 Phase 2 — Real LLM Evaluation / Routing / Cost  ✅ CLOSED
 Phase 3 — Evidence-backed Analysis               ✅ CLOSED
-Phase 4 — Production / Portfolio Readiness       🚧 ACTIVE
+Phase 4 — Production / Portfolio Readiness       ✅ CLOSED
 
 Stage 4.1 — Local Production Baseline            ✅ CLOSED
 Stage 4.2 — Security / Configuration Cleanup       ✅ CLOSED
 Stage 4.3 — Portfolio Documentation & Demo          ✅ CLOSED
 Stage 4.4 — GitHub Repository & CI                  ✅ CLOSED
-Stage 4.5 — Deployment / Final Release               🚧 ACTIVE
+Stage 4.5 — Deployment / Final Release               ✅ CLOSED
 
 Stage 3.1 — Evidence Foundation                  ✅ CLOSED
 Stage 3.2 — Richer Analytical Data               ✅ CLOSED
@@ -65,6 +65,15 @@ full Compose pytest: PASS (100%)
 /api/schema evidence: PASS
 salary join smoke: PASS — Los Angeles / 153566.40 / Los Angeles-Long Beach-Anaheim, CA
 ```
+
+## Stage 4.5 and P1 v1.0.0 final closeout (2026-10-08)
+
+- Public repository: https://github.com/iampanzheng/ai-data-analyst-platform
+- Public version tag: `v1.0.0`; GitHub Release: https://github.com/iampanzheng/ai-data-analyst-platform/releases/tag/v1.0.0 (`Latest` confirmed by user screenshot; displayed abbreviated commit `ac62b84`).
+- Public assets: `p1-ai-data-analyst-demo.mp4` (3.79 MB), automatic source ZIP and TAR.GZ; MP4 download verified by user. GitHub repository blob view does **not** play MP4 inline, so public copy should link to the downloadable Release asset.
+- Verification on release candidate: `make repo-check` PASS, `make release-check` PASS, `make verify` PASS, `make acceptance` 7/7 PASS; final commit GitHub Actions Success (user-provided logs). The screenshots verify the Release page / assets, not a fresh independent cloud deployment.
+- License: MIT; reference deployment remains local/self-hosted Docker Compose. No public multi-tenant SaaS, auth or cloud SLA claimed.
+- Phase 1–4 and Stage 4.1–4.5 are CLOSED. This documentation-only post-release commit does not change or move the published `v1.0.0` tag.
 
 # Frozen Decisions
 
